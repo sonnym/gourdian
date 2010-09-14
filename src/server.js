@@ -9,10 +9,6 @@ var chess_loop = new function() {
   var games = [];
 };
 
-var sessions = new function() {
-  var sessions = [];
-};
-
 handler.listen(Number(process.env.PORT || PORT), HOST);
 
 handler.get("/", handler.staticHandler("index.html"));
