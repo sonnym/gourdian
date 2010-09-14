@@ -1,25 +1,30 @@
-var sys = require("sys");
-var url = require("url");
+var cookie = require("./lib/cookie-node");
+var http = require("http");
 var log = require("./log");
 var readFile = require("fs").readFile;
-DEBUG = false;
-
-var fu = exports;
-
-var NOT_FOUND = "Not Found\n";
+var sessions = require("./lib/node-sessions/session_manager.js");
+var sys = require("sys");
+var url = require("url");
 
 // private variables
 
+DEBUG = false;
+log.level = "debug";
+
+var fu = exports;
+var NOT_FOUND = "Not Found\n";
 var getMap = {};
 
-fu.get = function (path, handler) {
-  getMap[path] = handler;
-};
+var session_manager = new sessions.SessionManager({lifetime: 1000, domain: '127.0.0.1'});
 
 var createServer = require("http").createServer;
 var server = createServer(function (req, res) {
   if (req.method === "GET" || req.method === "HEAD") {
     var handler = getMap[url.parse(req.url).pathname] || notFound;
+    session_manager.lookupOrCreate(req, function(session) {
+      // session is undefined here?
+      res.setCookie("SID", session.sid);
+    });
 
     res.simpleText = function (code, body) {
       res.writeHead(code, { "Content-Type": "text/plain"
@@ -44,9 +49,15 @@ var server = createServer(function (req, res) {
 
 function notFound(req, res) {
   res.writeHead(404, { "Content-Type": "text/plain"
-                       , "Content-Length": NOT_FOUND.length
+                     , "Content-Length": NOT_FOUND.length
                      });
   res.end(NOT_FOUND);
+}
+
+// public methods
+
+fu.get = function (path, handler) {
+  getMap[path] = handler;
 }
 
 fu.listen = function (port, host) {
