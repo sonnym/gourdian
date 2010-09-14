@@ -2,11 +2,38 @@
 <html>
  <head>
   <title>
-   node test
+   Infinite Bughouse
   </title>
+  <script src="lib/jquery-1.4.2.min.js" type="text/javascript"></script>
+  <script src="client.js" type="text/javascript"></script>
+  <link href="http://fonts.googleapis.com/css?family=Cantarell" rel="stylesheet" type="text/css">
+  <link href="lib/awesome-buttons/awesome-buttons.css" rel="stylesheet" type="text/css">
+  <link href="client.css" rel="stylesheet" type="text/css">
  </head>
  <body>
-  hello world
+  <div id="content">
+    <div id="welcome">
+     <h2>Welcome to Infinite Bughouse</h2>
+     <h3>Instructions</h3>
+     <p>
+      Bughouse is a chess variant normally played with four people on two boards.
+     </p>
+     <p><a class="awesome blue bold" onclick="ib.play()">Play</a></p>
+   </div>
+   <div id="games">
+    <div id="left">
+     <div class="board"></div>
+     <div class="meta"></div>
+    </div>
+    <div id="primary">
+     <div class="board"></div>
+     <div class="meta"></div>
+    </div>
+    <div id="right">
+     <div class="board"></div>
+     <div class="meta"></div>
+    </div>
+  </div>
  </body>
 </html>
 
