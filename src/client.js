@@ -40,7 +40,6 @@ var ib = function() {
 
       $("#welcome").remove();
       $("#primary > .board").html(array2board("primary"));
-<<<<<<< HEAD
 
       $(".piece").draggable({ revert: "invalid" });
 
@@ -51,18 +50,7 @@ var ib = function() {
 
       $(".piece").bind("dragstop", function(event, ui) {
         $(".ui-droppable").disabled = true;
-=======
-
-      $(".piece").draggable({revert: "invalid"});
-
-      $(".piece").bind("dragstart", function(event, ui) {
-        display_moves("primary", $(ui.helper[0]));
-      });
-
-      $(".piece").bind("dragstop", function(event, ui) {
-        $(".ui-droppable").disabled = true;
         //validate("primary", $(ui.helper[0]));
->>>>>>> cbe0db3f4ed6d4254e11316a439ea9c4d1ca7a5d
       });
     }
   };
@@ -109,22 +97,22 @@ var ib = function() {
       valid.push(start - 8);
       if (start > 47 && start < 56) valid.push(start - 16);
     } else if (piece == "B" || piece == "b") {
-      valid = wrap_mult_check(board, turn, start, [7, 9]);
+      valid = mult_check(turn, start, [7, 9]);
     } else if (piece == "N" || piece == "n") {
-      $.merge(valid, wrap_mult_check(board, turn, start, [6, 10], 1, 1), wrap_multi_check(board, turn, start, [15, 17], 1, 2));
+      $.merge(valid, $.merge(mult_check(turn, start, [6, 10], 1, 1), mult_check(turn, start, [15, 17], 1, 2)));
     } else if (piece == "R" || piece == "r") {
-      valid = wrap_mult_check(board, turn, start, [1, 8]);
+      valid = mult_check(turn, start, [1, 8]);
     } else if (piece == "Q" || piece == "q") {
-      $.merge(valid, wrap_mult_check(board, turn, start, [1, 7, 8, 9]));
+      $.merge(valid, mult_check(turn, start, [1, 7, 8, 9]));
     } else if (piece == "K" || piece == "k") {
-      valid = wrap_mult_check(board, turn, start, [1, 7, 8, 9], 1);
+      valid = mult_check(turn, start, [1, 7, 8, 9], 1);
     }
 
     return valid;
   }
 
   // gives valid positions for multiples, neglects left and right board edges
-  function wrap_mult_check(board, turn, start, distances, depth, wrap) {
+  function mult_check(turn, start, distances, depth, wrap) {
     var valid = [],
         iter = (start < 31) ? function(cur, dist) { return start + (dist * cur) < 64; } : function(cur, dist) { return start - (dist * cur) >= 0; };
 
@@ -140,17 +128,20 @@ var ib = function() {
           var index = indices[i];
 
           if (index < 64 && index >= 0 && !blocked[i]) {
-            var piece = state[index];
+            // ensure minimum number of wraps => essential for knights
+            if (wrap && Math.abs(position2rank(start) - position2rank(index)) != wrap) continue;
 
-            if (!piece) valid.push(index);
+            var piece_in_target = state[index];
+
+            if (!piece_in_target) valid.push(index);
             else  {
               blocked[i] = true;
 
               // allow capture on first block
-              if (!(turn == "w" && in_array(piece, $.keys(white_pieces)) || turn == "b" && in_array(piece, $.keys(black_pieces)))) valid.push(index);
+              if (!(turn == "w" && in_array(piece_in_target, $.keys(white_pieces)) || turn == "b" && in_array(piece_in_target, $.keys(black_pieces)))) valid.push(index);
             }
 
-            // if distance == 8 => traversing file; ignore wrapping conditions
+            // if distance == 8 => traversing board file; ignore wrapping conditions
             if (!wrap && distance != 8 && (index % 8 == 0 || (index + 1) % 8 == 0)) blocked[i] = true;
           }
         }
@@ -160,6 +151,10 @@ var ib = function() {
     }
 
     return valid;
+  }
+
+  function position2rank(p) {
+    return Math.floor(p / 8) + 1;
   }
 
   function array2fen() { }
@@ -179,6 +174,7 @@ var ib = function() {
     }
 
     return ret;
+  }
 
   function board_square(color, id, piece) {
     if (piece == "") return "<div class=\"square " + color + "\" id=\"" + id + "\">&nbsp;</div>";
