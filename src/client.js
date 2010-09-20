@@ -111,7 +111,9 @@ var ib = function() {
     return valid;
   }
 
-  // gives valid positions for multiples, neglects left and right board edges
+  // returns valid indices from the board array to which a piece can move
+  // takes into account the need for a knight to travel multiple ranks in a given move,
+  // blokcing by other pieces, en prise for any move with a regular pattern
   function mult_check(turn, start, distances, depth, wrap) {
     var valid = [],
         iter = (start < 31) ? function(cur, dist) { return start + (dist * cur) < 64; } : function(cur, dist) { return start - (dist * cur) >= 0; };
@@ -122,6 +124,7 @@ var ib = function() {
           current = 1;
 
       do {
+        // traversing an array
         var indices = [start + (distance * current), start - (distance * current)];
 
         for (var i in indices) {
