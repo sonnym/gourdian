@@ -40,6 +40,7 @@ var ib = function() {
 
       $("#welcome").remove();
       $("#primary > .board").html(array2board("primary"));
+<<<<<<< HEAD
 
       $(".piece").draggable({ revert: "invalid" });
 
@@ -50,6 +51,18 @@ var ib = function() {
 
       $(".piece").bind("dragstop", function(event, ui) {
         $(".ui-droppable").disabled = true;
+=======
+
+      $(".piece").draggable({revert: "invalid"});
+
+      $(".piece").bind("dragstart", function(event, ui) {
+        display_moves("primary", $(ui.helper[0]));
+      });
+
+      $(".piece").bind("dragstop", function(event, ui) {
+        $(".ui-droppable").disabled = true;
+        //validate("primary", $(ui.helper[0]));
+>>>>>>> cbe0db3f4ed6d4254e11316a439ea9c4d1ca7a5d
       });
     }
   };
@@ -166,7 +179,6 @@ var ib = function() {
     }
 
     return ret;
-  }
 
   function board_square(color, id, piece) {
     if (piece == "") return "<div class=\"square " + color + "\" id=\"" + id + "\">&nbsp;</div>";
