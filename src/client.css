@@ -68,7 +68,6 @@ body {
 
 .square {
   width: 12%;
-  height: 60px; /* quick fix for square height after move */
   float: left;
 
   border: solid 1px #979452;

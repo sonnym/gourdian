@@ -27,7 +27,14 @@
     </div>
     <div id="primary">
      <div class="board"></div>
-     <div class="meta"></div>
+     <div class="meta hidden">
+      <div class="options">
+        <label>
+          <input type="checkbox" onchange="ib.toggle_show_moves(this.checked);" checked>
+          Show Moves
+        </label>
+      </div>
+     </div>
     </div>
     <div id="right">
      <div class="board"></div>

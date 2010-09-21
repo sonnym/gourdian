@@ -17,6 +17,7 @@ var ib = function() {
                , "":  "&nbsp;"
                };
   var boards = {};
+  var show_moves = true;
 
     ////////////////////
    // public methods //
@@ -26,10 +27,15 @@ var ib = function() {
       $.getScript("board.js"
                   , function(data, textStatus) {
                       boards["primary"] = new ib.board();
+
                       $("#welcome").remove();
+
                       draw_board("primary");
                     }
                   );
+    },
+    toggle_show_moves : function(sm) {
+      show_moves = sm;
     }
   };
 
@@ -44,6 +50,7 @@ var ib = function() {
                                                                display_moves("primary", $(ui.helper[0]));
                                                            }
                                                          });
+    $("#" + b + " > .meta").removeClass("hidden");
   }
 
   function array2board(board) {
@@ -73,7 +80,7 @@ var ib = function() {
 
     for (var i = 0, l = valid.length; i < l; i++) {
       $("#" + board + valid[i]).droppable({ tolerance: "fit"
-                                          , activeClass: "droppable"
+                                          , activeClass: (show_moves) ? "droppable" : ""
                                           , hoverClass: "droppable_hover"
                                           , drop: function(event, ui) {
                                               boards[board].update_state(piece_location, parseInt($(this).attr("id").substring(board.length)));
