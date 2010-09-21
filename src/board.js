@@ -2,11 +2,11 @@ ib.board = function() {
     ///////////////////////
    // private variables //
   ///////////////////////
-  var white_pieces = ["K", "Q", "R", "B", "N", "P"];
-  var black_pieces = ["k", "q", "r", "b", "n", "p"];
+  var white_pieces = ["K", "Q", "R", "B", "N", "P"]
+    , black_pieces = ["k", "q", "r", "b", "n", "p"]
 
-  var fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-  var state = [];
+    , fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+    , state = [];
 
     /////////////////
    // constructor //
@@ -34,8 +34,8 @@ ib.board = function() {
    // private methods //
   /////////////////////
   function fen2array() {
-    var position = fen.split(" ")[0].replace(/\//g, ""),
-        offset = 0;
+    var position = fen.split(" ")[0].replace(/\//g, "")
+      , offset = 0;
 
     for (var i = 0, l = position.length; i < l; i++) {
       var char = position.charAt(i);
@@ -47,12 +47,12 @@ ib.board = function() {
 
   // returns array of valid array positions
   function valid_locations(start) {
-    var valid = [],
-        fen_parts = fen.split(" "),
-        turn = fen_parts[1],
-        castle = fen_parts[2],
-        en_passant = (fen_parts[3] == "-") ? null : square2position(fen_parts[3]),
-        piece = state[start];
+    var valid = []
+      , fen_parts = fen.split(" ")
+      , turn = fen_parts[1]
+      , castle = fen_parts[2]
+      , en_passant = (fen_parts[3] == "-") ? null : square2position(fen_parts[3])
+      , piece = state[start];
 
     if (piece == "" || (turn == "w" && !in_array(piece, white_pieces)) || turn == "b" && !in_array(piece, black_pieces)) return [];
 
@@ -71,13 +71,13 @@ ib.board = function() {
     var valid = [];
 
     if (piece == "p") {
-      var comp = function(a, b) { return a + b; },
-          pieces = black_pieces,
-          start_rank = [7, 16];
+      var comp = function(a, b) { return a + b; }
+        , pieces = black_pieces
+        , start_rank = [7, 16];
     } else if (piece == "P") {
-      var comp = function(a, b) { return a - b; },
-          pieces = white_pieces,
-          start_rank = [47, 56];
+      var comp = function(a, b) { return a - b; }
+        , pieces = white_pieces
+        , start_rank = [47, 56];
     }
 
     // forward movement
@@ -104,13 +104,13 @@ ib.board = function() {
   // the main idea here is:  when numbering the pieces of a chess board from 0 to 63, all pieces move multiples of certain integers from their starting position,
   // and cannot wrap around the board, except in the case of the knight which *must* appear to wrap into the next rank or the one after
   function mult_check(turn, start, distances, depth, wrap) {
-    var valid = [],
-        iter = (start < 31) ? function(cur, dist) { return start + (dist * cur) < 64; } : function(cur, dist) { return start - (dist * cur) >= 0; };
+    var valid = []
+      , iter = (start < 31) ? function(cur, dist) { return start + (dist * cur) < 64; } : function(cur, dist) { return start - (dist * cur) >= 0; };
 
     for (var d in distances) {
-      var distance = distances[d],
-          blocked = [false, false],
-          current = 1;
+      var distance = distances[d]
+        , blocked = [false, false]
+        , current = 1;
 
       do {
         // traversing an array; indices is literal
@@ -180,9 +180,9 @@ ib.board = function() {
   }
 
   function update_state(from, to) {
-    var piece = state[from],
-        valid = valid_locations(from),
-        capture = (to != "");
+    var piece = state[from]
+      , valid = valid_locations(from)
+      , capture = (to != "");
 
     if (in_array(to, valid)) {
       // en passant

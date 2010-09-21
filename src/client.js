@@ -15,9 +15,10 @@ var ib = function() {
                , "n": "&#9822;"
                , "p": "&#9823;"
                , "":  "&nbsp;"
-               };
-  var boards = {};
-  var show_moves = true;
+               }
+    , boards = {}
+    , show_moves = true
+    , flipped = false;  // with respect to fen
 
     ////////////////////
    // public methods //
@@ -36,6 +37,10 @@ var ib = function() {
     },
     toggle_show_moves : function(sm) {
       show_moves = sm;
+    },
+    toggle_flip_board : function() {
+      flipped = !flipped;
+      draw_board("primary");
     }
   };
 
@@ -54,16 +59,28 @@ var ib = function() {
   }
 
   function array2board(board) {
-    var state = boards[board].get_state(),
-        line = 0,
-        ret = "";
+    var state = boards[board].get_state()
+      , line = 0
+      , ret = "";
 
-    for (var i = 0, l = state.length; i < l; i++) {
-      if (i % 8 == 0) {
-        ret += "<div class=\"rank_break\"></div>";
-        line++;
+    // since the index of the square acts as an id, simply state.reverse()ing alters the *position* of the pieces,
+    // hence the following:  dirty, but operational
+    if (!flipped) {
+      for (var i = 0, l = state.length; i < l; i++) {
+        if (i % 8 == 0) {
+          ret += "<div class=\"rank_break\"></div>";
+          line++;
+        }
+        ret += board_square((((i + line + 1 % 2) % 2 == 0) ? 'light' : 'dark'), board + i.toString(), state[i]);
       }
-      ret += board_square((((i + line + 1 % 2) % 2 == 0) ? 'light' : 'dark'), board + i.toString(), state[i]);
+    } else {
+      for (var i = state.length - 1; i >= 0; i--) {
+        ret += board_square((((i + line + 1 % 2) % 2 == 0) ? 'light' : 'dark'), board + i.toString(), state[i]);
+        if (i % 8 == 0) {
+          ret += "<div class=\"rank_break\"></div>";
+          line++;
+        }
+      }
     }
 
     return ret;
@@ -75,8 +92,8 @@ var ib = function() {
   }
 
   function display_moves(board, piece) {
-    var piece_location = parseInt(piece.parent()[0].id.substring(board.length)),
-        valid = boards[board].get_valid_locations(piece_location);
+    var piece_location = parseInt(piece.parent()[0].id.substring(board.length))
+      , valid = boards[board].get_valid_locations(piece_location);
 
     for (var i = 0, l = valid.length; i < l; i++) {
       $("#" + board + valid[i]).droppable({ tolerance: "fit"

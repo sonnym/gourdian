@@ -4,6 +4,7 @@ body {
   color: #979564;
   font-family: helvetica, sans-serif;
 }
+a { color: #979564; }
 
 #content {
   height: 100%;
