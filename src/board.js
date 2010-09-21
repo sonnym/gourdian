@@ -60,7 +60,7 @@ ib.board = function() {
     else if (in_array(piece, ["B", "b"])) valid = mult_check(turn, start, [7, 9]);
     else if (in_array(piece, ["N", "n"])) $.merge(valid, $.merge(mult_check(turn, start, [6, 10], 1, 1), mult_check(turn, start, [15, 17], 1, 2)));
     else if (in_array(piece, ["R", "r"])) valid = mult_check(turn, start, [1, 8]);
-    else if (in_array(piece, ["Q", "q"])) $.merge(valid, mult_check(turn, start, [1, 7, 8, 9]));
+    else if (in_array(piece, ["Q", "q"])) valid = mult_check(turn, start, [1, 7, 8, 9]);
     else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1, 7, 8, 9], 1);
 
     return valid;
@@ -114,31 +114,42 @@ ib.board = function() {
 
       do {
         // traversing an array; indices is literal
-        var indices = [start + (distance * current), start - (distance * current)];
+        var indices = [start + (distance * current), start - (distance * current)]
+          , prev_indices = [start + (distance * (current - 1)), start - (distance * (current - 1))]; // do: [start, start]
 
         for (var i in indices) {
-          var index = indices[i];
+          var index = indices[i]
+            , prev_index = prev_indices[i];
 
           if (index < 64 && index >= 0 && !blocked[i]) {
             // ensure minimum number of wraps => essential for knights
-            if (wrap && Math.abs(position2row(start) - position2row(index)) != wrap) continue;
+            if (wrap && Math.abs(position2row(prev_index) - position2row(index)) != wrap) continue;
 
-            var piece_in_target = state[index];
+            // distance == 8 => traversing board file; ignore wrapping conditions
+            // distance == 1 => traversing board rank; check if rank switch occurs
+            // for other pieces (moving diagonally); ensure moving by one in each row and col
+            if (!wrap && distance != 8 &&
+                          ((distance == 1 && position2row(start) - position2row(index) != 0) ||
+                           (Math.abs(position2col(prev_index) - position2col(index)) != 1 ||
+                            Math.abs(position2row(prev_index) - position2row(index)) != 1))) blocked[i] = true;
 
-            if (!piece_in_target) valid.push(index);
-            else  {
-              blocked[i] = true;
+            //if (!wrap && distance != 8 && (distance == 1 && position2row(start) - position2row(index) != 0)) blocked[i] = true;
 
-              // allow capture on first block
-              if (!(turn == "w" && in_array(piece_in_target, white_pieces) || turn == "b" && in_array(piece_in_target, black_pieces))) valid.push(index);
+            if (!blocked[i]) {
+              var piece_in_target = state[index];
+
+              if (!piece_in_target) valid.push(index);
+              else  {
+                // allow capture on first block if opposing piece in way
+                if (turn == "w" && in_array(piece_in_target, black_pieces) || turn == "b" && in_array(piece_in_target, white_pieces)) valid.push(index);
+                blocked[i] = true;
+              }
             }
-
-            // if distance == 8 => traversing board file; ignore wrapping conditions
-            if (!wrap && distance != 8 && (index % 8 == 0 || (index + 1) % 8 == 0)) blocked[i] = true;
           }
         }
 
         current++;
+        prev_indices = indices;
       } while(iter(current, distance) && (!depth || current <= depth))
     }
 
@@ -153,8 +164,12 @@ ib.board = function() {
     return 9 - position2row;
   }
 
+  function position2col(p) {
+    return (p % 8);
+  }
+
   function position2file(p) {
-    return String.fromCharCode(97 + (p % 8));
+    return String.fromCharCode(97 + position2col(p));
   }
 
   function square2position(s) {

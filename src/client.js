@@ -18,22 +18,24 @@ var ib = function() {
                }
     , boards = {}
     , show_moves = true
-    , flipped = false;  // with respect to fen
+    , flipped = false   // with respect to fen
+    , DEBUG = false;
 
     ////////////////////
    // public methods //
   ////////////////////
   return {
     play : function() {
-      $.getScript("board.js"
-                  , function(data, textStatus) {
-                      boards["primary"] = new ib.board();
+      if (DEBUG) {
+        var f = document.createElement("script");
+        f.setAttribute("type","text/javascript");
+        f.setAttribute("src", "board.js");
+        document.getElementsByTagName("head")[0].appendChild(f)
 
-                      $("#welcome").remove();
-
-                      draw_board("primary");
-                    }
-                  );
+        init();
+      } else {
+        $.getScript("board.js", function(data, textStatus) { init(); });
+      }
     },
     toggle_show_moves : function(sm) {
       show_moves = sm;
@@ -47,6 +49,12 @@ var ib = function() {
     /////////////////////
    // private methods //
   /////////////////////
+
+  function init() {
+    boards["primary"] = new ib.board();
+    $("#welcome").remove();
+    draw_board("primary");
+  }
   function draw_board(b) {
     $("#" + b + " > .board").html(array2board(b));
     $("#" + b + " > .board > .square > .piece").draggable( { revert: "invalid"
