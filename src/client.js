@@ -77,7 +77,7 @@ var ib = function() {
     else if (in_array(piece, ["B", "b"])) valid = mult_check(turn, start, [7, 9]);
     else if (in_array(piece, ["N", "n"])) $.merge(valid, $.merge(mult_check(turn, start, [6, 10], 1, 1), mult_check(turn, start, [15, 17], 1, 2)));
     else if (in_array(piece, ["R", "r"])) valid = mult_check(turn, start, [1, 8]);
-    else if (in_array(piece, ["Q", "k"])) $.merge(valid, mult_check(turn, start, [1, 7, 8, 9]));
+    else if (in_array(piece, ["Q", "q"])) $.merge(valid, mult_check(turn, start, [1, 7, 8, 9]));
     else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1, 7, 8, 9], 1);
 
     return valid;
@@ -102,8 +102,8 @@ var ib = function() {
     if (start > start_rank[0] && start < start_rank[1] && !state[comp(start, 16)]) valid.push(comp(start, 16));
 
     // capture
-    if (state[comp(start, 7)] && !in_array(state[comp(start, 7)], $.keys(pieces)) && Math.abs(position2rank(start) - position2rank(comp(start, 7))) == 1) valid.push(comp(start, 7));
-    if (state[comp(start, 9)] && !in_array(state[comp(start, 9)], $.keys(pieces)) && Math.abs(position2rank(start) - position2rank(comp(start, 9))) == 1) valid.push(comp(start, 9));
+    if (state[comp(start, 7)] && !in_array(state[comp(start, 7)], $.keys(pieces)) && Math.abs(position2row(start) - position2row(comp(start, 7))) == 1) valid.push(comp(start, 7));
+    if (state[comp(start, 9)] && !in_array(state[comp(start, 9)], $.keys(pieces)) && Math.abs(position2row(start) - position2row(comp(start, 9))) == 1) valid.push(comp(start, 9));
 
     // en passant
     if (ep && (comp(start, 7) == ep || comp(start, 9) == ep)) valid.push(ep);
@@ -137,7 +137,7 @@ var ib = function() {
 
           if (index < 64 && index >= 0 && !blocked[i]) {
             // ensure minimum number of wraps => essential for knights
-            if (wrap && Math.abs(position2rank(start) - position2rank(index)) != wrap) continue;
+            if (wrap && Math.abs(position2row(start) - position2row(index)) != wrap) continue;
 
             var piece_in_target = state[index];
 
@@ -161,8 +161,12 @@ var ib = function() {
     return valid;
   }
 
-  function position2rank(p) {
+  function position2row(p) {
     return Math.floor(p / 8) + 1;
+  }
+
+  function position2rank(p) { // yagni, but incorrect terminology was irksome
+    return 9 - position2row;
   }
 
   function position2file(p) {
@@ -192,9 +196,9 @@ var ib = function() {
       // updating fen is also dependent upon valid drop
       var fen_parts = fen.split(" ");
 
-      fen_parts[0] = array2fen();                                                                                                                               // position
-      fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                                                                        // turn
-      if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                                                                     // castle
+      fen_parts[0] = array2fen();                                                                                                                              // position
+      fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                                                                       // turn
+      if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                                                                    // castle
         if (piece == "k") fen_parts[2].replace(/[kq]/g, "");
         else if (piece == "K") fen_parts[2].replace(/[KQ]/g, "");
         else if (piece == "r") {
@@ -207,9 +211,9 @@ var ib = function() {
 
         if (fen_parts[2].length == 0) fen_parts[2] = "-";
       }
-      fen_parts[3] = (in_array(piece, ["p", "P"]) && Math.abs(from - to) == 16) ? position2file(from) + position2rank(Math.min(from, to) + 8) : "-"; // en passant
-      fen_parts[4] = (in_array(piece, ["p", "P"]) || capture) ? 0 : fen_parts[4] + 1;                                                               // half move number
-      if (fen_parts[1] == "w") fen_parts[5]++;                                                                                                     // full move number
+      fen_parts[3] = (in_array(piece, ["p", "P"]) && Math.abs(from - to) == 16) ? position2file(from) + position2row(Math.min(from, to) + 8) : "-"; // en passant
+      fen_parts[4] = (in_array(piece, ["p", "P"]) || capture) ? 0 : fen_parts[4] + 1;                                                              // half move number
+      if (fen_parts[1] == "w") fen_parts[5]++;                                                                                                    // full move number
 
       fen = fen_parts.join(" ");
     }
