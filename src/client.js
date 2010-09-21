@@ -17,8 +17,6 @@ var ib = function() {
                      , "p": "&#9823;"
                      };
   var pieces = {};
-  $.extend(pieces, black_pieces, white_pieces, {"": "&nbsp;"});
-
   var fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   var state = [];
 
@@ -36,6 +34,8 @@ var ib = function() {
   ////////////////////
   return {
     play : function() {
+      $.extend(pieces, black_pieces, white_pieces, {"": "&nbsp;"});
+
       fen2array();
 
       $("#welcome").remove();
