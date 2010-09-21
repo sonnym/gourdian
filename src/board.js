@@ -133,8 +133,6 @@ ib.board = function() {
                            (Math.abs(position2col(prev_index) - position2col(index)) != 1 ||
                             Math.abs(position2row(prev_index) - position2row(index)) != 1))) blocked[i] = true;
 
-            //if (!wrap && distance != 8 && (distance == 1 && position2row(start) - position2row(index) != 0)) blocked[i] = true;
-
             if (!blocked[i]) {
               var piece_in_target = state[index];
 
