@@ -73,44 +73,52 @@ var ib = function() {
 
     if (piece == "" || (turn == "w" && !in_array(piece, $.keys(white_pieces))) || turn == "b" && !in_array(piece, $.keys(black_pieces))) return [];
 
-    if (piece == "p") { // black pawns
-      // forward movement
-      if (!state[start + 8]) valid.push(start + 8);
-      if (start > 7 && start < 16 && !state[start + 16]) valid.push(start + 16);
+    if (in_array(piece, ["P", "p"])) valid = pawn_check(start, piece, en_passant);
+    else if (in_array(piece, ["B", "b"])) valid = mult_check(turn, start, [7, 9]);
+    else if (in_array(piece, ["N", "n"])) $.merge(valid, $.merge(mult_check(turn, start, [6, 10], 1, 1), mult_check(turn, start, [15, 17], 1, 2)));
+    else if (in_array(piece, ["R", "r"])) valid = mult_check(turn, start, [1, 8]);
+    else if (in_array(piece, ["Q", "k"])) $.merge(valid, mult_check(turn, start, [1, 7, 8, 9]));
+    else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1, 7, 8, 9], 1);
 
-      // capture
-      if (state[start + 7] && !in_array(state[start + 7], $.keys(black_pieces)) && position2rank(start) - position2rank(start + 7) == 0) valid.push(start + 7);
-      if (state[start + 9] && !in_array(state[start + 9], $.keys(black_pieces)) && position2rank(start) - position2rank(start + 9) == 0) valid.push(start + 9);
+    return valid;
+  }
 
-      // en passant
-      if (en_passant && (start + 7 == en_passant || start + 9 == en_passant)) valid.push(en_passant);
+  // handles edge cases for pawn movement
+  function pawn_check(start, piece, ep) {
+    var valid = [];
+
+    if (piece == "p") {
+      var comp = function(a, b) { return a + b; },
+          pieces = black_pieces,
+          start_rank = [7, 16];
     } else if (piece == "P") {
-      if (!state[start - 8]) valid.push(start - 8);
-      if (start > 47 && start < 56 && !state[start - 16]) valid.push(start - 16);
-
-      if (state[start - 7] && !in_array(state[start - 7], $.keys(white_pieces)) && position2rank(start) - position2rank(start - 7) == 0) valid.push(start - 7);
-      if (state[start - 9] && !in_array(state[start - 9], $.keys(white_pieces)) && position2rank(start) - position2rank(start - 9) == 0) valid.push(start - 9);
-
-      if (en_passant && (start - 7 == en_passant || start - 9 == en_passant)) valid.push(en_passant);
-    } else if (piece == "B" || piece == "b") {
-      valid = mult_check(turn, start, [7, 9]);
-    } else if (piece == "N" || piece == "n") {
-      $.merge(valid, $.merge(mult_check(turn, start, [6, 10], 1, 1), mult_check(turn, start, [15, 17], 1, 2)));
-    } else if (piece == "R" || piece == "r") {
-      valid = mult_check(turn, start, [1, 8]);
-    } else if (piece == "Q" || piece == "q") {
-      $.merge(valid, mult_check(turn, start, [1, 7, 8, 9]));
-    } else if (piece == "K" || piece == "k") {
-      valid = mult_check(turn, start, [1, 7, 8, 9], 1);
+      var comp = function(a, b) { return a - b; },
+          pieces = white_pieces,
+          start_rank = [47, 56];
     }
+
+    // forward movement
+    if (!state[comp(start, 8)]) valid.push(comp(start, 8));
+    if (start > start_rank[0] && start < start_rank[1] && !state[comp(start, 16)]) valid.push(comp(start, 16));
+
+    // capture
+    if (state[comp(start, 7)] && !in_array(state[comp(start, 7)], $.keys(pieces)) && Math.abs(position2rank(start) - position2rank(comp(start, 7))) == 1) valid.push(comp(start, 7));
+    if (state[comp(start, 9)] && !in_array(state[comp(start, 9)], $.keys(pieces)) && Math.abs(position2rank(start) - position2rank(comp(start, 9))) == 1) valid.push(comp(start, 9));
+
+    // en passant
+    if (ep && (comp(start, 7) == ep || comp(start, 9) == ep)) valid.push(ep);
 
     return valid;
   }
 
   // returns valid indices from the board array to which a piece can move
   // takes into account the need for a knight to travel multiple ranks in a given move,
-  // blokcing by other pieces, en prise for any move with a regular pattern
+  // blocking by other pieces, en prise for any move with a regular pattern
+  //
   // mult here stands for multiplicative since, by default, the search will search at all multiples of a distance within array bounds
+  //
+  // the main idea here is that, when numbering the pieces of a chess board from 0 to 63, all pieces move multiples of certain integers,
+  // and cannot wrap around the board, except in the case of the knight which must appear to wrap into the next rank or the one after
   function mult_check(turn, start, distances, depth, wrap) {
     var valid = [],
         iter = (start < 31) ? function(cur, dist) { return start + (dist * cur) < 64; } : function(cur, dist) { return start - (dist * cur) >= 0; };
@@ -121,7 +129,7 @@ var ib = function() {
           current = 1;
 
       do {
-        // traversing an array
+        // traversing an array; indices is literal
         var indices = [start + (distance * current), start - (distance * current)];
 
         for (var i in indices) {
