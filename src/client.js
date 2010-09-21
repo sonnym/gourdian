@@ -39,19 +39,8 @@ var ib = function() {
       fen2array();
 
       $("#welcome").remove();
-      $("#primary > .board").html(array2board("primary"));
 
-      $(".piece").draggable({ revert: "invalid" });
-
-      $(".piece").bind("dragstart", function(event, ui) {
-        $(".ui-droppable").droppable("destroy");
-        display_moves("primary", $(ui.helper[0]));
-      });
-
-      $(".piece").bind("dragstop", function(event, ui) {
-        $(".ui-droppable").disabled = true;
-        //validate("primary", $(ui.helper[0]));
-      });
+      draw_board("primary");
     }
   };
 
@@ -73,22 +62,16 @@ var ib = function() {
     }
   }
 
-  function validate(board, piece, square) {
-    return in_array(square, valid_locations(board, piece));
-  }
-
   // returns array of valid array positions
-  function valid_locations(board, p) {
+  function valid_locations(board, start) {
     var valid = [],
         fen_parts = fen.split(" "),
         turn = fen_parts[1],
         castle = fen_parts[2],
         en_passant = fen_parts[3],
-        piece = p.context.lastElementChild.innerHTML;
+        piece = state[start];
 
-    if ((turn == "w" && !in_array(piece, $.keys(white_pieces))) || turn == "b" && !in_array(piece, $.keys(black_pieces))) return [];
-
-    var start = parseInt(p.parent()[0].id.substring(board.length));
+    if (piece == "" || (turn == "w" && !in_array(piece, $.keys(white_pieces))) || turn == "b" && !in_array(piece, $.keys(black_pieces))) return [];
 
     if (piece == "p") {
       valid.push(start + 8);
@@ -114,6 +97,7 @@ var ib = function() {
   // returns valid indices from the board array to which a piece can move
   // takes into account the need for a knight to travel multiple ranks in a given move,
   // blokcing by other pieces, en prise for any move with a regular pattern
+  // mult here stands for multiplicative since, by default, the search will search at all multiples of a distance within array bounds
   function mult_check(turn, start, distances, depth, wrap) {
     var valid = [],
         iter = (start < 31) ? function(cur, dist) { return start + (dist * cur) < 64; } : function(cur, dist) { return start - (dist * cur) >= 0; };
@@ -160,10 +144,59 @@ var ib = function() {
     return Math.floor(p / 8) + 1;
   }
 
-  function array2fen() { }
+  function position2color(p) {
+    return ((p + (position2rank(p) - 1 % 2)) % 2) == 0;
+  }
+
+  function update_state(board, from, to) {
+    var piece = state[from],
+        valid = valid_locations(board, from);
+
+    if (in_array(to, valid)) {
+      state[to] = piece;
+      state[from] = "";
+
+      // updating fen is also dependent upon valid drop
+      var fen_parts = fen.split(" ");
+
+      fen_parts[0] = array2fen();
+      fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";
+
+      fen = fen_parts.join(" ");
+    }
+  }
+
+  function array2fen() {
+    var ret = "";
+
+    for (var i = 0, l = state.length; i < l; i++) {
+      var piece = state[i];
+
+      if (i > 0 && i % 8 == 0) ret += '/';
+
+      if (piece == "") {
+        var count = 1;
+        for (; state[i + 1] == "" && (i + 1) % 8 != 0; count++) i++;
+        ret += parseInt(count);
+      } else ret += piece;
+    }
+
+    return ret;
+  }
 
    // display methods
   ///////////////////
+  function draw_board(b) {
+    $("#" + b + " > .board").html(array2board(b));
+
+    $("#" + b + " > .board > .square > .piece").draggable( { revert: "invalid"
+                                                           , start: function(event, ui) {
+                                                               $(".ui-droppable").droppable("destroy");
+                                                               display_moves("primary", $(ui.helper[0]));
+                                                           }
+                                                         });
+  }
+
   function array2board(board) {
     var line = 0,
         ret = "";
@@ -173,7 +206,7 @@ var ib = function() {
         ret += "<div class=\"rank_break\"></div>";
         line++;
       }
-      ret += board_square((((i + line % 2) % 2 == 0) ? 'light' : 'dark'), board + i.toString(), state[i]);
+      ret += board_square((((i + line + 1 % 2) % 2 == 0) ? 'light' : 'dark'), board + i.toString(), state[i]);
     }
 
     return ret;
@@ -185,13 +218,18 @@ var ib = function() {
   }
 
   function display_moves(board, piece) {
-    var valid = valid_locations(board, piece);
+    var piece_location = parseInt(piece.parent()[0].id.substring(board.length)),
+        valid = valid_locations(board, piece_location);
 
     for (var i = 0, l = valid.length; i < l; i++) {
       $("#" + board + valid[i]).droppable({ tolerance: "fit"
                                           , activeClass: "droppable"
                                           , hoverClass:  "droppable_hover"
-      });
+                                          , drop: function(event, ui) {
+                                              update_state(board, piece_location, $(this).attr("id").substring(board.length));
+                                              draw_board(board);
+                                            }
+                                          });
     }
   }
 
