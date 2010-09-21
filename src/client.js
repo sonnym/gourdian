@@ -144,13 +144,14 @@ var ib = function() {
     return Math.floor(p / 8) + 1;
   }
 
-  function position2color(p) {
-    return ((p + (position2rank(p) - 1 % 2)) % 2) == 0;
+  function position2file(p) {
+    return String.fromCharCode(97 + (p % 8));
   }
 
   function update_state(board, from, to) {
     var piece = state[from],
-        valid = valid_locations(board, from);
+        valid = valid_locations(board, from),
+        capture = (to != "");
 
     if (in_array(to, valid)) {
       state[to] = piece;
@@ -159,8 +160,24 @@ var ib = function() {
       // updating fen is also dependent upon valid drop
       var fen_parts = fen.split(" ");
 
-      fen_parts[0] = array2fen();
-      fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";
+      fen_parts[0] = array2fen();                                                                                                                               // position
+      fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                                                                        // turn
+      if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                                                                     // castle
+        if (piece == "k") fen_parts[2].replace(/[kq]/g, "");
+        else if (piece == "K") fen_parts[2].replace(/[KQ]/g, "");
+        else if (piece == "r") {
+          if (from == 0) fen_parts[2].replace(/[q]/g, "");
+          else if (from == 7) fen_parts[2].replace(/[k]/g, "");
+        } else if (piece == "R") {
+          if (from == 56) fen_parts[2].replace(/[Q]/g, "");
+          else if (from == 63) fen_parts[2].replace(/[K]/g, "");
+        }
+
+        if (fen_parts[2].length == 0) fen_parts[2] = "-";
+      }
+      fen_parts[3] = (in_array(piece, ["p", "P"]) && Math.abs(from - to) == 16) ? position2file(from) + position2rank(Math.min(from, to) + 8) : "-"; // en passant
+      fen_parts[4] = (in_array(piece, ["p", "P"]) || capture) ? 0 : fen_parts[4] + 1;                                                               // half move number
+      if (fen_parts[1] == "w") fen_parts[5]++;                                                                                                     // full move number
 
       fen = fen_parts.join(" ");
     }
