@@ -20,20 +20,20 @@ var ib = function() {
   var fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
   var state = [];
 
-  // http://snipplr.com/view/10430/jquery-object-keys/ => https://groups.google.com/group/jquery-en/browse_thread/thread/3d35ff16671f87a2%5C
-  $.extend({
-    keys: function(obj) {
-      var a = [];
-      $.each(obj, function(k) { a.push(k) });
-      return a;
-    }
-  });
-
     ////////////////////
    // public methods //
   ////////////////////
   return {
     play : function() {
+      // http://snipplr.com/view/10430/jquery-object-keys/ => https://groups.google.com/group/jquery-en/browse_thread/thread/3d35ff16671f87a2%5C
+      $.extend({
+        keys: function(obj) {
+          var a = [];
+          $.each(obj, function(k) { a.push(k) });
+          return a;
+        }
+      });
+
       $.extend(pieces, black_pieces, white_pieces, {"": "&nbsp;"});
 
       fen2array();
@@ -68,17 +68,30 @@ var ib = function() {
         fen_parts = fen.split(" "),
         turn = fen_parts[1],
         castle = fen_parts[2],
-        en_passant = fen_parts[3],
+        en_passant = (fen_parts[3] == "-") ? null : square2position(fen_parts[3]),
         piece = state[start];
 
     if (piece == "" || (turn == "w" && !in_array(piece, $.keys(white_pieces))) || turn == "b" && !in_array(piece, $.keys(black_pieces))) return [];
 
-    if (piece == "p") {
-      valid.push(start + 8);
-      if (start > 7 && start < 16) valid.push(start + 16);
+    if (piece == "p") { // black pawns
+      // forward movement
+      if (!state[start + 8]) valid.push(start + 8);
+      if (start > 7 && start < 16 && !state[start + 16]) valid.push(start + 16);
+
+      // capture
+      if (state[start + 7] && !in_array(state[start + 7], $.keys(black_pieces)) && position2rank(start) - position2rank(start + 7) == 0) valid.push(start + 7);
+      if (state[start + 9] && !in_array(state[start + 9], $.keys(black_pieces)) && position2rank(start) - position2rank(start + 9) == 0) valid.push(start + 9);
+
+      // en passant
+      if (en_passant && (start + 7 == en_passant || start + 9 == en_passant)) valid.push(en_passant);
     } else if (piece == "P") {
-      valid.push(start - 8);
-      if (start > 47 && start < 56) valid.push(start - 16);
+      if (!state[start - 8]) valid.push(start - 8);
+      if (start > 47 && start < 56 && !state[start - 16]) valid.push(start - 16);
+
+      if (state[start - 7] && !in_array(state[start - 7], $.keys(white_pieces)) && position2rank(start) - position2rank(start - 7) == 0) valid.push(start - 7);
+      if (state[start - 9] && !in_array(state[start - 9], $.keys(white_pieces)) && position2rank(start) - position2rank(start - 9) == 0) valid.push(start - 9);
+
+      if (en_passant && (start - 7 == en_passant || start - 9 == en_passant)) valid.push(en_passant);
     } else if (piece == "B" || piece == "b") {
       valid = mult_check(turn, start, [7, 9]);
     } else if (piece == "N" || piece == "n") {
@@ -148,12 +161,23 @@ var ib = function() {
     return String.fromCharCode(97 + (p % 8));
   }
 
+  function square2position(s) {
+    return ((parseInt(s.charAt(1)) - 1) * 8) + (s.charCodeAt(0) - 97)
+  }
+
   function update_state(board, from, to) {
     var piece = state[from],
         valid = valid_locations(board, from),
         capture = (to != "");
 
     if (in_array(to, valid)) {
+      // en passant
+      if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
+        if (from > to) state[to + 8] = "";
+        else if (from < to) state[to - 8] = "";
+      }
+
+      // relocate piece
       state[to] = piece;
       state[from] = "";
 
@@ -243,7 +267,7 @@ var ib = function() {
                                           , activeClass: "droppable"
                                           , hoverClass:  "droppable_hover"
                                           , drop: function(event, ui) {
-                                              update_state(board, piece_location, $(this).attr("id").substring(board.length));
+                                              update_state(board, piece_location, parseInt($(this).attr("id").substring(board.length)));
                                               draw_board(board);
                                             }
                                           });
