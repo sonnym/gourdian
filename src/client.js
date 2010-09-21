@@ -23,12 +23,13 @@ var ib = function() {
   ////////////////////
   return {
     play : function() {
-      /* could lazy load, ala, but does not show parse errors
       $.getScript("board.js"
-                 , function(data, textStatus) { */
-      boards["primary"] = new ib_board();
-      $("#welcome").remove();
-      draw_board("primary");
+                  , function(data, textStatus) {
+                      boards["primary"] = new ib.board();
+                      $("#welcome").remove();
+                      draw_board("primary");
+                    }
+                  );
     }
   };
 

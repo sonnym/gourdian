@@ -1,4 +1,4 @@
-var ib_board = function() {
+ib.board = function() {
     ///////////////////////
    // private variables //
   ///////////////////////
