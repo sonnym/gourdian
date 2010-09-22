@@ -9,7 +9,7 @@ var ib = function() {
                      , "N": "&#9816;"
                      , "P": "&#9817;"
                      }
-  var black_pieces = { "k": "&#9818;"
+    , black_pieces = { "k": "&#9818;"
                      , "q": "&#9819;"
                      , "r": "&#9820;"
                      , "b": "&#9821;"
@@ -18,6 +18,8 @@ var ib = function() {
                      }
     , pieces = {}
     , boards = {}
+    , name = ""
+    , color = ""
     , show_moves = true
     , flipped = false   // with respect to fen
     , promotion_piece = ""
@@ -65,9 +67,17 @@ var ib = function() {
   /////////////////////
 
   function init() {
-    boards["primary"] = new ib.board();
-    $("#welcome").remove();
-    draw_board("primary");
+    name = $("#name").val();
+    if (!name) name = "anonymous";
+
+    join(function(data) {
+      color = data.color;
+
+      boards["primary"] = new ib.board();
+      $("#welcome").remove();
+
+      draw_board("primary");
+    });
   }
 
   // display functions
@@ -101,14 +111,15 @@ var ib = function() {
     } else {
       for (var i = state.length - 1; i >= 0; i--) {
         ret += board_square((((i + line + 1 % 2) % 2 == 0) ? 'light' : 'dark'), board + i.toString(), state[i]);
-        if (i % 8 == 0) {
+        if (i % 8 == 0 && i != 0) {
           ret += "<div class=\"rank_break\"></div>";
           line++;
         }
       }
     }
 
-    return ret;
+    // add extra rank_break at the end of the board to fix styles
+    return ret += "<div class=\"rank_break\"></div>";
   }
 
   function board_square(color, id, piece) {
@@ -121,6 +132,8 @@ var ib = function() {
       , valid = boards[board].get_valid_locations(piece_location)
       , turn = get_turn_from_piece_div(piece);
 
+    if (!DEBUG && turn != color) return;
+
     for (var i = 0, l = valid.length; i < l; i++) {
       $("#" + board + valid[i]).droppable({ tolerance: "fit"
                                           , activeClass: (show_moves) ? "droppable" : ""
@@ -132,6 +145,7 @@ var ib = function() {
                                                                             if (message == "promote") display_promotion_dialog(turn, callback);
                                                                             else if (message == "complete") {
                                                                               draw_board(board);
+                                                                              relay_fen();
                                                                             }
                                                                           }
                                                                         );
@@ -183,5 +197,38 @@ var ib = function() {
   function get_turn_from_piece_div(d) {
     var ascii = d.children().first().html().charCodeAt(0);
     return (ascii > 64 && ascii < 91) ? "w" : (ascii > 96 && ascii < 123) ? "b" : null;
+  }
+
+  // transport functions
+
+  function join(callback) {
+    $.ajax({ cache: false
+           , type: "POST"
+           , dataType: "json"
+           , url: "/join"
+           , data: { name: name }
+           , error: function() {
+               alert("error connecting to server");
+             }
+          , success: function(data) {
+              callback(data);
+            }
+          });
+  }
+
+  function relay_fen() {
+    $.ajax({ cache: false
+           , type: "PUT"
+           , dataType: "json"
+           , url: "/fen"
+           , data: { fen: boards["primary"].get_fen() }
+           , error: function() {
+               alert("error connecting to server");
+             }
+          , success: function(data) {
+              boards["primary"].set_fen(data.fen);
+              draw_board("primary");
+            }
+          });
   }
 }();

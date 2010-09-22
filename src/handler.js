@@ -1,33 +1,21 @@
-var cookie = require("./lib/cookie-node");
-var http = require("http");
-var log = require("./log");
-var readFile = require("fs").readFile;
-var sessions = require("./lib/node-sessions/session_manager.js");
-var sys = require("sys");
-var url = require("url");
+  ///////////////////////
+ // private variables //
+///////////////////////
 
-// private variables
+var cookie = require("./lib/cookie-node")
+  , createServer = require("http").createServer
+  , http = require("http")
+  , log = require("./log")
+  , readFile = require("fs").readFile
+  , sys = require("sys")
+  , url = require("url");
 
-DEBUG = false;
-log.level = "debug";
+var NOT_FOUND = "Not Found\n"
+  , getMap = {};
 
-var fu = exports;
-var NOT_FOUND = "Not Found\n";
-var getMap = {};
-
-var session_manager = new sessions.SessionManager({lifetime: 1000, domain: '127.0.0.1'});
-
-var createServer = require("http").createServer;
 var server = createServer(function (req, res) {
-  if (req.method === "GET" || req.method === "HEAD") {
+  if (req.method === "GET" || req.method === "HEAD" || req.method === "POST" || req.method == "PUT") {
     var handler = getMap[url.parse(req.url).pathname] || notFound;
-
-    session_manager.lookupSession(req, function(session) {
-      var cookie = req.getCookie("SID");
-      if (!cookie || !session) { // perform check for session in case of expired cookie after server restart
-        res.setCookie("SID", session_manager.createSession().sid);
-      }
-    });
 
     res.simpleText = function (code, body) {
       res.writeHead(code, { "Content-Type": "text/plain"
@@ -48,7 +36,9 @@ var server = createServer(function (req, res) {
   }
 });
 
-// private methods
+  /////////////////////
+ // private methods //
+/////////////////////
 
 function notFound(req, res) {
   res.writeHead(404, { "Content-Type": "text/plain"
@@ -57,20 +47,38 @@ function notFound(req, res) {
   res.end(NOT_FOUND);
 }
 
-// public methods
+function extname (path) {
+  var index = path.lastIndexOf(".");
+  return index < 0 ? "" : path.substring(index);
+}
 
-fu.get = function (path, handler) {
+  ////////////////////
+ // public methods //
+////////////////////
+
+exports.get = function (path, handler) {
   getMap[path] = handler;
 }
 
-fu.listen = function (port, host) {
+exports.post = function (path, handler) {
+  getMap[path] = handler;
+;}
+
+exports.listen = function (port, host) {
+  DEBUG = false;
+  log.level = "debug";
+
   server.listen(port, host);
   log.info("Server at http://" + (host || "127.0.0.1") + ":" + port.toString() + "/");
+
+  process.on("uncaughtException", function(err) {
+    log.fatal("caught exception: " + err);
+  });
 }
 
-fu.staticHandler = function (filename) {
+exports.staticHandler = function (filename) {
   var body, headers;
-  var content_type = fu.mime.lookupExtension(extname(filename));
+  var content_type = exports.mime.lookupExtension(extname(filename));
 
   function loadResponseData(callback) {
     if (body && headers && !DEBUG) {
@@ -102,14 +110,9 @@ fu.staticHandler = function (filename) {
   }
 };
 
-function extname (path) {
-  var index = path.lastIndexOf(".");
-  return index < 0 ? "" : path.substring(index);
-}
-
 // stolen from ryan- thanks
 // stolen from jack- thanks
-fu.mime = {
+exports.mime = {
   // returns MIME type for extension, or fallback, or octet-steam
   lookupExtension : function(ext, fallback) {
     return exports.mime.TYPES[ext.toLowerCase()] || fallback || 'application/octet-stream';

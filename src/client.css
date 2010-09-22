@@ -28,6 +28,14 @@ a { color: #979564; }
   z-index: 3;
 }
 
+input[type=text] {
+  border: solid 1px #979452;
+  background: #041410;
+  color: #fff;
+  font-family: monospace;
+  font-size: 1.3em;
+}
+
 #games {
   position: absolute;
   height: 100%;
@@ -66,6 +74,9 @@ a { color: #979564; }
   width: 100%;
   color: #000;
 }
+.meta {
+  margin-top: 5px;
+}
 
 .square {
   width: 12%;
@@ -100,7 +111,7 @@ a { color: #979564; }
 }
 .hidden { display: none; }
 
-.ui-dialog {
+.ui-dialog, .meta {
   background: #0c1f1a;
 
   border: solid 2px #979452;

@@ -21,6 +21,12 @@ ib.board = function() {
       get_valid_locations : function(loc) {
         return valid_locations(loc);
       }
+    , get_fen : function() {
+        return fen;
+      }
+    , set_fen : function(f) {
+        fen = f;
+      }
     , get_state : function() {
           return state;
         }
