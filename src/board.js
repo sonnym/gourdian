@@ -20,12 +20,32 @@ ib.board = function() {
     return {
       get_valid_locations : function(loc) {
         return valid_locations(loc);
-      },
-      get_state : function() {
+      }
+    , get_state : function() {
         return state;
-      },
-      update_state : function(from, to) {
-        update_state(from, to);
+      }
+    // prepare changes to state before calling private function; allows messaging for pawn promotion
+    , update_state : function(from, to, callback) {
+
+        var piece = state[from]
+          , valid = valid_locations(from)
+          , capture = (to != "");
+
+        if (in_array(to, valid)) {
+          // en passant
+          if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
+            if (from > to) state[to + 8] = "";
+            else if (from < to) state[to - 8] = "";
+          }
+
+          // pawn promotion
+          if ((piece == "p" && to > 55 && from < 64) || (piece == "P" && to >= 0 && to < 8)) {
+            if (callback) callback("promote", function(new_piece) {
+              piece = new_piece;
+              update_state(piece, from, to, capture);
+            });
+          } else update_state(piece, from, to, capture);
+        }
       }
     };
   };
@@ -33,19 +53,9 @@ ib.board = function() {
     /////////////////////
    // private methods //
   /////////////////////
-  function fen2array() {
-    var position = fen.split(" ")[0].replace(/\//g, "")
-      , offset = 0;
 
-    for (var i = 0, l = position.length; i < l; i++) {
-      var char = position.charAt(i);
-
-      if (isNaN(char)) state[i + offset] = char;
-      else for (var j = 0; j < char; j++) state[i + ((j == char - 1) ? offset : offset++)] = "";
-    }
-  }
-
-  // returns array of valid array positions
+  // validations
+  
   function valid_locations(start) {
     var valid = []
       , fen_parts = fen.split(" ")
@@ -154,24 +164,49 @@ ib.board = function() {
     return valid;
   }
 
-  function position2row(p) {
-    return Math.floor(p / 8) + 1;
+  // updates the state array and fen string
+  function update_state(piece, from, to, capture) {
+    // relocate piece
+    state[to] = piece;
+    state[from] = "";
+
+    // updating fen is also dependent upon valid drop
+    var fen_parts = fen.split(" ");
+
+    fen_parts[0] = array2fen();                                                                                                                              // position
+    fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                                                                       // turn
+    if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                                                                    // castle
+      if (piece == "k") fen_parts[2].replace(/[kq]/g, "");
+      else if (piece == "K") fen_parts[2].replace(/[KQ]/g, "");
+      else if (piece == "r") {
+        if (from == 0) fen_parts[2].replace(/[q]/g, "");
+        else if (from == 7) fen_parts[2].replace(/[k]/g, "");
+      } else if (piece == "R") {
+        if (from == 56) fen_parts[2].replace(/[Q]/g, "");
+        else if (from == 63) fen_parts[2].replace(/[K]/g, "");
+      }
+
+      if (fen_parts[2].length == 0) fen_parts[2] = "-";
+    }
+    fen_parts[3] = (in_array(piece, ["p", "P"]) && Math.abs(from - to) == 16) ? position2file(from) + position2row(Math.min(from, to) + 8) : "-"; // en passant
+    fen_parts[4] = (in_array(piece, ["p", "P"]) || capture) ? 0 : fen_parts[4] + 1;                                                              // half move number
+    if (fen_parts[1] == "w") fen_parts[5]++;                                                                                                    // full move number
+
+    fen = fen_parts.join(" ");
   }
 
-  function position2rank(p) { // yagni, but incorrect terminology was irksome
-    return 9 - position2row;
-  }
+  // fen conversions
 
-  function position2col(p) {
-    return (p % 8);
-  }
+  function fen2array() {
+    var position = fen.split(" ")[0].replace(/\//g, "")
+      , offset = 0;
 
-  function position2file(p) {
-    return String.fromCharCode(97 + position2col(p));
-  }
+    for (var i = 0, l = position.length; i < l; i++) {
+      var char = position.charAt(i);
 
-  function square2position(s) {
-    return ((parseInt(s.charAt(1)) - 1) * 8) + (s.charCodeAt(0) - 97)
+      if (isNaN(char)) state[i + offset] = char;
+      else for (var j = 0; j < char; j++) state[i + ((j == char - 1) ? offset : offset++)] = "";
+    }
   }
 
   function array2fen() {
@@ -192,46 +227,25 @@ ib.board = function() {
     return ret;
   }
 
-  function update_state(from, to) {
-    var piece = state[from]
-      , valid = valid_locations(from)
-      , capture = (to != "");
+  // helpers
+  function position2row(p) {
+    return Math.floor(p / 8) + 1;
+  }
 
-    if (in_array(to, valid)) {
-      // en passant
-      if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
-        if (from > to) state[to + 8] = "";
-        else if (from < to) state[to - 8] = "";
-      }
+  function position2rank(p) { // yagni, but incorrect terminology was irksome
+    return 9 - position2row;
+  }
 
-      // relocate piece
-      state[to] = piece;
-      state[from] = "";
+  function position2col(p) {
+    return (p % 8);
+  }
 
-      // updating fen is also dependent upon valid drop
-      var fen_parts = fen.split(" ");
+  function position2file(p) {
+    return String.fromCharCode(97 + position2col(p));
+  }
 
-      fen_parts[0] = array2fen();                                                                                                                              // position
-      fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                                                                       // turn
-      if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                                                                    // castle
-        if (piece == "k") fen_parts[2].replace(/[kq]/g, "");
-        else if (piece == "K") fen_parts[2].replace(/[KQ]/g, "");
-        else if (piece == "r") {
-          if (from == 0) fen_parts[2].replace(/[q]/g, "");
-          else if (from == 7) fen_parts[2].replace(/[k]/g, "");
-        } else if (piece == "R") {
-          if (from == 56) fen_parts[2].replace(/[Q]/g, "");
-          else if (from == 63) fen_parts[2].replace(/[K]/g, "");
-        }
-
-        if (fen_parts[2].length == 0) fen_parts[2] = "-";
-      }
-      fen_parts[3] = (in_array(piece, ["p", "P"]) && Math.abs(from - to) == 16) ? position2file(from) + position2row(Math.min(from, to) + 8) : "-"; // en passant
-      fen_parts[4] = (in_array(piece, ["p", "P"]) || capture) ? 0 : fen_parts[4] + 1;                                                              // half move number
-      if (fen_parts[1] == "w") fen_parts[5]++;                                                                                                    // full move number
-
-      fen = fen_parts.join(" ");
-    }
+  function square2position(s) {
+    return ((parseInt(s.charAt(1)) - 1) * 8) + (s.charCodeAt(0) - 97)
   }
 
    // etc

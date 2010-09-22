@@ -100,6 +100,28 @@ a { color: #979564; }
 }
 .hidden { display: none; }
 
+.ui-dialog {
+  background: #0c1f1a;
+
+  border: solid 2px #979452;
+  border-radius: 20px;
+  -moz-border-radius: 20px;
+
+  padding: 10px 20px;
+}
+#promotion {
+  padding: 15px 30px;
+}
+.promotion_piece {
+  float: left;
+  margin-left: 6px;
+  font-size: 26pt;
+  cursor: pointer;
+}
+.promotion_piece_selected {
+  border: solid 1px #979452;
+}
+
 /* buttons */
 .awesome.blue { background-color: #1d2142 !important; }
 .awesome.bold { font-weight: bold !important; }
