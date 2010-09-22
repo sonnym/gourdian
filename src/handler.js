@@ -21,10 +21,6 @@ var createServer = require("http").createServer;
 var server = createServer(function (req, res) {
   if (req.method === "GET" || req.method === "HEAD") {
     var handler = getMap[url.parse(req.url).pathname] || notFound;
-    session_manager.lookupOrCreate(req, function(session) {
-      // session is undefined here?
-      res.setCookie("SID", session.sid);
-    });
 
     session_manager.lookupSession(req, function(session) {
       var cookie = req.getCookie("SID");
