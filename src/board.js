@@ -22,29 +22,29 @@ ib.board = function() {
         return valid_locations(loc);
       }
     , get_state : function() {
-        return state;
-      }
-    // prepare changes to state before calling private function; allows messaging for pawn promotion
-    , update_state : function(from, to, callback) {
+          return state;
+        }
+      // prepare changes to state before calling private function; allows messaging for pawn promotion
+      , update_state : function(from, to, callback) {
 
-        var piece = state[from]
-          , valid = valid_locations(from)
-          , capture = (to != "");
+          var piece = state[from]
+            , valid = valid_locations(from)
+            , capture = (to != "");
 
-        if (in_array(to, valid)) {
-          // en passant
-          if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
-            if (from > to) state[to + 8] = "";
-            else if (from < to) state[to - 8] = "";
-          }
+          if (in_array(to, valid)) {
+            // en passant
+            if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
+              if (from > to) state[to + 8] = "";
+              else if (from < to) state[to - 8] = "";
+            }
 
-          // pawn promotion
-          if ((piece == "p" && to > 55 && from < 64) || (piece == "P" && to >= 0 && to < 8)) {
-            if (callback) callback("promote", function(new_piece) {
-              piece = new_piece;
-              update_state(piece, from, to, capture);
+            // pawn promotion
+            if ((piece == "p" && to > 55 && from < 64) || (piece == "P" && to >= 0 && to < 8)) {
+              if (callback) callback("promote", function(new_piece) {
+                piece = new_piece;
+                update_state(piece, from, to, capture, callback);
             });
-          } else update_state(piece, from, to, capture);
+          } else update_state(piece, from, to, capture, callback);
         }
       }
     };
@@ -165,7 +165,7 @@ ib.board = function() {
   }
 
   // updates the state array and fen string
-  function update_state(piece, from, to, capture) {
+  function update_state(piece, from, to, capture, callback) {
     // relocate piece
     state[to] = piece;
     state[from] = "";
@@ -193,6 +193,8 @@ ib.board = function() {
     if (fen_parts[1] == "w") fen_parts[5]++;                                                                                                    // full move number
 
     fen = fen_parts.join(" ");
+
+    callback("complete");
   }
 
   // fen conversions

@@ -70,6 +70,8 @@ var ib = function() {
     draw_board("primary");
   }
 
+  // display functions
+
   function draw_board(b) {
     $("#" + b + " > .board").html(array2board(b));
     $("#" + b + " > .board > .square > .piece").draggable( { revert: "invalid"
@@ -126,9 +128,13 @@ var ib = function() {
                                           , drop: function(event, ui) {
                                               boards[board].update_state(piece_location
                                                                         , parseInt($(this).attr("id").substring(board.length))
-                                                                        , function(message, callback) { if (message == "promote") display_promotion_dialog(turn, callback); }
+                                                                        , function(message, callback) {
+                                                                            if (message == "promote") display_promotion_dialog(turn, callback);
+                                                                            else if (message == "complete") {
+                                                                              draw_board(board);
+                                                                            }
+                                                                          }
                                                                         );
-                                              draw_board(board);
                                             }
                                           });
     }
