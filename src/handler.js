@@ -64,6 +64,10 @@ exports.post = function (path, handler) {
   getMap[path] = handler;
 ;}
 
+exports.put = function (path, handler) {
+  getMap[path] = handler;
+;}
+
 exports.listen = function (port, host) {
   DEBUG = false;
   log.level = "debug";

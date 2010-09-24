@@ -1,13 +1,16 @@
 HOST = null; // localhost
-PORT = 8124
+PORT = 8124;
+TMPDIR = "/tmp";
 
 var starttime = (new Date()).getTime()
+  , fs = require("fs")
   , handler = require("./handler")
   , log = require("./log")
   , qs = require("querystring")
   , spawn = require("child_process").spawn
   , url = require("url")
   , sessions = require("./lib/node-sessions/session_manager.js")
+
   , session_manager = new sessions.SessionManager({lifetime: 1000, domain: HOST ? HOST : "127.0.0.1"});
 
 var bughouse = new function() {
@@ -51,7 +54,7 @@ handler.post("/join", function(req, res) {
   });
 });
 
-handler.post("/fen", function(req, res) {
+handler.put("/fen", function(req, res) {
   session_manager.lookupSession(req, function(session) {
     if (!session) {
       res.simpleJSON(200, { "error": "session expired" });
@@ -63,9 +66,33 @@ handler.post("/fen", function(req, res) {
 
     req.on("end", function() {
       var fen = qs.parse(body).fen;
+
       log.info("recieved updated fen for client with sid: " + session.sid + " ; fen: " + fen);
 
-      res.simpleJSON(200, { "fen": "valid" });
+      // fen input into crafty only cares about current position and move
+      var crafty = spawn("crafty", ["setboard " + fen.split(" ", 2).join(" "), "sd 1", "logpath=" + TMPDIR]);
+
+      crafty.stdout.on("data", function(data) {
+        //log.info("crafty says: " + data);
+
+        // let crafty work for 5 seconds before killing it
+        setTimeout(function() {
+          crafty.stdin.write("move\nsavepos tmp.txt\nend\n");
+        }, 5000);
+      });
+
+      crafty.on("exit", function() {
+        log.info("crafty exited");
+
+        fs.readFile("tmp.txt", "ascii", function(err, data) {
+          if (err) log.error("encountered error: " + err);
+
+          var fen = data.split(" ")[1];
+
+          res.simpleJSON(200, { "fen": fen });
+        });
+      });
+
     });
   });
 });

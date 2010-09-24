@@ -1,4 +1,6 @@
-var ib = function() {
+var ib = (function() {
+    DEBUG = true;
+
     ///////////////////////
    // private variables //
   ///////////////////////
@@ -22,8 +24,7 @@ var ib = function() {
     , color = ""
     , show_moves = true
     , flipped = false   // with respect to fen
-    , promotion_piece = ""
-    , DEBUG = false;
+    , promotion_piece = "";
 
     ////////////////////
    // public methods //
@@ -226,9 +227,10 @@ var ib = function() {
                alert("error connecting to server");
              }
           , success: function(data) {
-              boards["primary"].set_fen(data.fen);
-              draw_board("primary");
+              boards["primary"].set_fen(data.fen, function(message) {
+                if (message == "converted") draw_board("primary");
+              });
             }
           });
   }
-}();
+})();

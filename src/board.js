@@ -1,4 +1,4 @@
-ib.board = function() {
+ib.board = (function() {
     ///////////////////////
    // private variables //
   ///////////////////////
@@ -24,8 +24,12 @@ ib.board = function() {
     , get_fen : function() {
         return fen;
       }
-    , set_fen : function(f) {
-        fen = f;
+    , set_fen : function(f, callback) {
+        var fen_parts = fen.split(" ");
+        fen_parts[0] = f;
+        fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";
+        fen = fen_parts.join(" ");
+        this.state = fen2array(callback);
       }
     , get_state : function() {
           return state;
@@ -205,7 +209,7 @@ ib.board = function() {
 
   // fen conversions
 
-  function fen2array() {
+  function fen2array(callback) {
     var position = fen.split(" ")[0].replace(/\//g, "")
       , offset = 0;
 
@@ -215,6 +219,8 @@ ib.board = function() {
       if (isNaN(char)) state[i + offset] = char;
       else for (var j = 0; j < char; j++) state[i + ((j == char - 1) ? offset : offset++)] = "";
     }
+
+    if (callback) callback("converted");
   }
 
   function array2fen() {
@@ -262,4 +268,4 @@ ib.board = function() {
       return e == needle;
     }).length > 0;
   }
-}();
+})();
