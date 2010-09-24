@@ -1,26 +1,42 @@
 // was uninspired by the offerings
-var grow = (function() {
-  var spawn = require("child_process").spawn
-      , sys = require('sys')
+(function() {
+  var http = require("http")
 
-      , clients = []
-      , v8_memory = function() { return sys.inspect(process.memoryUsage()) };
+    , clients = [];
 
-    while (true) {
-      clients.push((function() {
-        var http = require("http")
-          , server = http.createClient("8124");
+  while (true) {
+    clients.push((function() {
+      var request
+        , localhost = http.createClient(8124)
 
-        return server.request("GET", "/").on("response", function(response) { response.on("end"), function() { request() } });
-      })());
-        
-      
-      var count = clients.length
-        ,  count_output = function() { console.log(v8_memory.heapUsed + " / " + v8_memory.heapTotal + " heap; " + count + " clients ") };
+      function req() {
+        request = localhost.request("GET", "/");
+        request.end();
 
-      if (count < 500 && count % 10 == 0) count_output();
-      else if (count < 5000 && count % 100 == 0) count_output();
-      else if (count < 50000 && count % 1000 == 0) count_output(); // surely 50000 is high
-      else count_output();
-    }
+        res();
+      }
+      function res() {
+        request.on("response", function(response) {
+          response.on('data', function (chunk) {
+            console.log('BODY: ' + chunk);
+          });
+          console.log(response.statusCode);
+
+          response.on("end", function() {
+           req();
+          });
+        });
+      }
+
+      req();
+    })());
+
+    var count = clients.length
+      , count_output = function() { console.log(count + " clients ") };
+
+    if (count < 500 && count % 10 == 0) count_output();
+    else if (count < 5000 && count % 100 == 0) count_output();
+    else if (count < 50000 && count % 1000 == 0) count_output(); // surely 50000 is high
+    else if (count > 50000) count_output();
+  }
 })();
