@@ -53,6 +53,9 @@ var ib = (function() {
 
       promotion_piece = piece;
     }
+  , redraw_boards : function() {
+      draw_boards();
+    }
   };
 
     /////////////////////
