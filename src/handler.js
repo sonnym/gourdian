@@ -2,39 +2,14 @@
  // private variables //
 ///////////////////////
 
-var cookie = require("./lib/cookie-node")
-  , createServer = require("http").createServer
+var createServer = require("http").createServer
   , http = require("http")
   , log = require("./log")
   , readFile = require("fs").readFile
-  , sys = require("sys")
-  , url = require("url");
+  , url = require("url")
 
 var NOT_FOUND = "Not Found\n"
   , getMap = {};
-
-var server = createServer(function (req, res) {
-  if (req.method === "GET" || req.method === "HEAD" || req.method === "POST" || req.method == "PUT") {
-    var handler = getMap[url.parse(req.url).pathname] || notFound;
-
-    res.simpleText = function (code, body) {
-      res.writeHead(code, { "Content-Type": "text/plain"
-                          , "Content-Length": body.length
-                          });
-      res.end(body);
-    };
-
-    res.simpleJSON = function (code, obj) {
-      var body = JSON.stringify(obj);
-      res.writeHead(code, { "Content-Type": "text/json"
-                          , "Content-Length": body.length
-                          });
-      res.end(body);
-    };
-
-    handler(req, res);
-  }
-});
 
   /////////////////////
  // private methods //
@@ -60,19 +35,25 @@ exports.get = function (path, handler) {
   getMap[path] = handler;
 }
 
-exports.post = function (path, handler) {
-  getMap[path] = handler;
-;}
+exports.server = createServer(function (req, res) {
+  if (req.method === "GET" || req.method === "HEAD") {
+    var handler = getMap[url.parse(req.url).pathname] || notFound;
 
-exports.put = function (path, handler) {
-  getMap[path] = handler;
-;}
+    res.simpleText = function (code, body) {
+      res.writeHead(code, { "Content-Type": "text/plain"
+                          , "Content-Length": body.length
+                          });
+      res.end(body);
+    };
+
+    handler(req, res);
+  }
+});
 
 exports.listen = function (port, host) {
   DEBUG = false;
-  log.level = "debug";
 
-  server.listen(port, host);
+  exports.server.listen(port, host);
   log.info("Server at http://" + (host || "127.0.0.1") + ":" + port.toString() + "/");
 
   process.on("uncaughtException", function(err) {

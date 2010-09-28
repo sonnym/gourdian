@@ -1,98 +1,71 @@
-HOST = null; // localhost
-PORT = 8124;
-TMPDIR = "/tmp";
+(function() {
+  HOST = null; // localhost
+  PORT = 8124;
 
-var starttime = (new Date()).getTime()
-  , fs = require("fs")
-  , handler = require("./handler")
-  , log = require("./log")
-  , qs = require("querystring")
-  , spawn = require("child_process").spawn
-  , url = require("url")
-  , sessions = require("./lib/node-sessions/session_manager.js")
+  var starttime = (new Date()).getTime()
+    , handler = require("./handler")
+    , log = require("./log")
+    , io = require("./lib/socket.io")
 
-  , session_manager = new sessions.SessionManager({lifetime: 1000, domain: HOST ? HOST : "127.0.0.1"});
 
-var bughouse = new function() {
-  var games = [];
-};
+  // listen
 
-handler.listen(Number(process.env.PORT || PORT), HOST);
+  handler.listen(Number(process.env.PORT || PORT), HOST);
+  socket = io.listen(handler.server, { log: log.info });
 
-// static requests
-handler.get("/", handler.staticHandler("index.html"));
+  // game state
 
-handler.get("/board.js", handler.staticHandler("board.js"));
-handler.get("/client.js", handler.staticHandler("client.js"));
-handler.get("/client.css", handler.staticHandler("client.css"));
+  var bughouse = new function() {
+    var games = []
+      , waiting = [];
 
-handler.get("/lib/jquery-1.4.2.min.js", handler.staticHandler("lib/jquery-1.4.2.min.js"));
-handler.get("/lib/jquery-ui-1.8.5.custom.min.js", handler.staticHandler("lib/jquery-ui-1.8.5.custom.min.js"));
-handler.get("/lib/awesome-buttons/awesome-buttons.css", handler.staticHandler("lib/awesome-buttons/awesome-buttons.css"));
-
-// dynamic requests
-handler.post("/join", function(req, res) {
-  session_manager.lookupSession(req, function(session) {
-    var cookie = req.getCookie("SID");
-
-    // perform check for session in case of expired cookie after server restart
-    if (!cookie || !session) {
-      session = session_manager.createSession();
-      log.info("created session: " + session.sid);
-      res.setCookie("SID", session.sid);
+    var game = new function() {
+      return { white: "", black: "", fen: "" }
     }
-  });
+  };
 
-  var body = ""
-  req.on("data", function(chunk) { body += chunk; });
+  // static requests
 
-  // wait until entire body is received, lest some of the body be missed
-  req.on("end", function() {
-    var name = qs.parse(body).name;
-    log.info("user with name " + name + " joined");
-    res.simpleJSON(200, { "color": "w" });
-  });
-});
+  handler.get("/", handler.staticHandler("index.html"));
 
-handler.put("/fen", function(req, res) {
-  session_manager.lookupSession(req, function(session) {
-    if (!session) {
-      res.simpleJSON(200, { "error": "session expired" });
-      return;
-    }
+  handler.get("/board.js", handler.staticHandler("board.js"));
+  handler.get("/client.js", handler.staticHandler("client.js"));
+  handler.get("/client.css", handler.staticHandler("client.css"));
 
-    var body = ""
-    req.on("data", function(chunk) { body += chunk; });
+  handler.get("/lib/socket.io.js", handler.staticHandler("lib/socket.io/support/socket.io-client/socket.io.js"));
+  handler.get("/lib/web-socket-js/WebSocketMain.swf", handler.staticHandler("lib/web-socket-js/WebSocketMain.swf"));
 
-    req.on("end", function() {
-      var fen = qs.parse(body).fen;
+  handler.get("/lib/jquery-1.4.2.min.js", handler.staticHandler("lib/jquery-1.4.2.min.js"));
+  handler.get("/lib/jquery-ui-1.8.5.custom.min.js", handler.staticHandler("lib/jquery-ui-1.8.5.custom.min.js"));
+  handler.get("/lib/awesome-buttons/awesome-buttons.css", handler.staticHandler("lib/awesome-buttons/awesome-buttons.css"));
 
-      log.info("recieved updated fen for client with sid: " + session.sid + " ; fen: " + fen);
+  // sockets
 
-      // fen input into crafty only cares about current position and move
-      var crafty = spawn("crafty", ["setboard " + fen.split(" ", 2).join(" "), "sd 1", "logpath=" + TMPDIR]);
+  socket.on("connection", function(client) {
+    client.on("message", function(obj) {
+      if (obj.action == "join") {
+        var name = obj.data.name
+          , color = "w";
+        //, color = (Math.floor(Math.random()*2) == 0) ? "w" : "b";
+        //
+        log.info("user with name " + name + " joined; assigned: " + color);
 
-      crafty.stdout.on("data", function(data) {
-        //log.info("crafty says: " + data);
+        client.send({color: color});
+      } else if (obj.action == "pos") {
+        var crafty = require("./crafty")
+          , fen = obj.data.fen
+          , sid = client.sessionId;
 
-        // let crafty work for 5 seconds before killing it
-        setTimeout(function() {
-          crafty.stdin.write("move\nsavepos tmp.txt\nend\n");
-        }, 5000);
-      });
+        log.info("recieved updated fen for client with sid: " + client.sessionId + " ; fen: " + fen);
 
-      crafty.on("exit", function() {
-        log.info("crafty exited");
-
-        fs.readFile("tmp.txt", "ascii", function(err, data) {
-          if (err) log.error("encountered error: " + err);
-
-          var fen = data.split(" ")[1];
-
-          res.simpleJSON(200, { "fen": fen });
-        });
-      });
-
+        crafty.move( fen
+                   , client.sessionId
+                   , function(new_fen) {
+                       log.debug("move callback");
+                       client.send({fen: new_fen});
+                     }
+                   );
+      }
     });
   });
-});
+})();

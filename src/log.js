@@ -4,7 +4,7 @@ var log = exports;
 
 // public variables
 
-log.level = 'info';
+log.level = 'debug';
 log.location = '../log/development.log'; // seems reasonable
 log.output = function(msg) {
   fs.open(log.location, 'a', function (err, fd) {
@@ -16,23 +16,28 @@ log.output = function(msg) {
 
 // private variables
 
-var levels = { 'info': 1
-             , 'debug': 2
-             , 'fatal': 3
+var levels = { "debug": 1
+             , "info": 2
+             , "error": 3
+             , "fatal": 4
              };
 
 // public methods
 
 log.debug = function(msg) {
-  if (levelcalc(log.level) >= levels['debug']) log.output(msg);
+  if (levelcalc(log.level) <= levels['debug']) log.output(msg);
 }
 
 log.info = function(msg) {
-  if (levelcalc(log.level) >= levels['info']) log.output(msg);
+  if (levelcalc(log.level) <= levels['info']) log.output(msg);
+};
+
+log.error = function(msg) {
+  if (levelcalc(log.level) <= levels['error']) log.output(msg);
 };
 
 log.fatal = function(msg) {
-  if (levelcalc(log.level) >= levels['fatal']) log.output(msg);
+  if (levelcalc(log.level) <= levels['fatal']) log.output(msg);
 };
 
 // private methods

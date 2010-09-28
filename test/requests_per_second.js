@@ -2,7 +2,8 @@
 (function() {
   var http = require("http")
 
-    , clients = [];
+    , clients = []
+    , server = require("./../src/server.js")
 
   while (true) {
     clients.push((function() {

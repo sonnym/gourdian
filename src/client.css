@@ -70,23 +70,38 @@ input[type=text] {
   vertical-align: middle;
 }
 
-.board {
-  width: 100%;
+#primary .board {
+  width: 95%;
   color: #000;
 }
 .meta {
-  margin-top: 5px;
+  margin: 5px 0px;
 }
 
 .square {
-  width: 12%;
   float: left;
-
   border: solid 1px #979452;
-
-  font-size: 34pt;
   text-align: center;
 }
+
+#primary .board .square {
+  width: 12%;
+  font-size: 34pt;
+}
+
+#left .board, #right .board {
+  width: 95%;
+  color: #000;
+}
+
+#left .board .square, #right .board .square {
+  width: 11%;
+  font-size: 28pt;
+}
+
+#primary .meta { width: 86%; }
+#left .meta, #right .meta { width: 76%; }
+
 .light {
   background: #979452;
 }
