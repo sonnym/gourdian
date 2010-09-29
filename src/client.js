@@ -22,6 +22,7 @@ var ib = (function() {
     , boards = {}
     , name = null
     , color = null
+    , selected = null
     , show_moves = true
     , flipped = {"primary": false, "left": true, "right": true}   // with respect to fen
     , promotion_piece = ""
@@ -40,6 +41,7 @@ var ib = (function() {
     }
   , toggle_show_moves : function(sm) {
       show_moves = sm;
+      $(".droppable").removeClass("droppable");
     }
   , toggle_flip_board : function() {
       flipped["left"] = flipped["right"] = flipped["primary"];
@@ -149,12 +151,29 @@ var ib = (function() {
 
   function draw_board(b) {
     $("#" + b + " > .board").html(array2board(b));
-    $("#" + b + " > .board > .square > .piece").draggable( { revert: "invalid"
-                                                           , start: function(event, ui) {
-                                                               $(".ui-droppable").droppable("destroy");
-                                                               display_moves("primary", $(ui.helper[0]));
-                                                           }
-                                                         });
+
+    var pieces = $("#" + b + " > .board > .square > .piece")
+    pieces.each(function(i, e) {
+      $(this).draggable( { revert: "invalid"
+                           , start: function(event, ui) {
+                               $(".ui-droppable").droppable("destroy");
+                               display_moves("primary", $(ui.helper[0]), "drag");
+                           }
+                         });
+      $(this).click(function() {
+        $(".selected").removeClass("selected");
+        $(".droppable").removeClass("droppable");
+
+        var square = $(this).parent().attr("id");
+        if (square == selected) selected = null;
+        else {
+          $(this).parent().addClass("selected");
+          selected = square;
+          display_moves("primary", $(this), "click");
+        }
+      });
+    });
+
     $("#" + b + " > .meta").removeClass("hidden");
   }
 
@@ -192,7 +211,7 @@ var ib = (function() {
     else return "<div class=\"square " + color + "\" id=\"" + id + "\"><div class=\"piece\">" + pieces[piece] + "<span class=\"hidden\">" + piece + "</span></div></div>";
   }
 
-  function display_moves(board, piece) {
+  function display_moves(board, piece, method) {
     var piece_location = get_location_from_piece_div(board, piece)
       , valid = boards[board].get_valid_locations(piece_location)
       , turn = get_turn_from_piece_div(piece);
@@ -200,23 +219,34 @@ var ib = (function() {
     if (!DEBUG && turn != color) return;
 
     for (var i = 0, l = valid.length; i < l; i++) {
-      $("#" + board + valid[i]).droppable({ tolerance: "fit"
-                                          , activeClass: (show_moves) ? "droppable" : ""
-                                          , hoverClass: "droppable_hover"
-                                          , drop: function(event, ui) {
-                                              boards[board].update_state(piece_location
-                                                                        , parseInt($(this).attr("id").substring(board.length))
-                                                                        , function(message, callback) {
-                                                                            if (message == "promote") display_promotion_dialog(turn, callback);
-                                                                            else if (message == "complete") {
-                                                                              draw_board(board);
-                                                                              socket.send({ action: "pos", data: { fen: boards["primary"].get_fen() } });
-                                                                            }
-                                                                          }
-                                                                        );
-                                            }
-                                          });
+      var square = $("#" + board + valid[i]);
+
+      if (method == "drag") {
+        square.droppable({ tolerance: "fit"
+                         , activeClass: (show_moves) ? "droppable" : ""
+                         , hoverClass: "selected"
+                         , drop: function(event, ui) { register_move(board, piece_location, $(this), turn) }
+                         });
+      } else if (method == "click") {
+        if (show_moves) square.addClass("droppable");
+        square.click(function() {
+          if (selected) register_move(board, piece_location, $(this), turn);
+        });
+      }
     }
+  }
+
+  function register_move(b, from, to, t) {
+    boards[b].update_state( from
+                          , parseInt(to.attr("id").substring(b.length))
+                          , function(message, callback) {
+                              if (message == "promote") display_promotion_dialog(t, callback);
+                              else if (message == "complete") {
+                                draw_board(b);
+                                socket.send({ action: "pos", data: { fen: boards["primary"].get_fen() } });
+                              }
+                            }
+                          );
   }
 
   function display_promotion_dialog(turn, callback) {

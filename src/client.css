@@ -111,7 +111,7 @@ input[type=text] {
 .droppable {
   background: #745b38;
 }
-.droppable_hover {
+.selected {
   border: solid 1px #fff;
 }
 
