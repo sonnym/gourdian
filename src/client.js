@@ -91,8 +91,6 @@ var ib = (function() {
         socket = new io.Socket(null, {port: 8124});
         socket.connect();
 
-        // xhr-multipart sockets fail without immediate message, useragent: Mozilla/5.0 (X11; U; Linux x86_64; en-US; rv:1.9.2.10) Gecko/20100914 SUSE/3.6.10-0.3.1 Firefox/3.6.10
-        // seems like a good time to join
         socket.send({ action: "join", data: { name: name } });
 
         socket.on("message", function(data) {

@@ -11,7 +11,7 @@
   // listen
 
   handler.listen(Number(process.env.PORT || PORT), HOST);
-  socket = io.listen(handler.server, { log: log.info });
+  socket = io.listen(handler.server, { log: log.info, transports: ['websocket', 'xhr-multipart', 'xhr-polling', 'jsonp-polling']});
 
   // game state
 
