@@ -20,3 +20,15 @@ exports.can_connect_via_websocket = function() {
     assert.notEqual(buf.length, 0);
   });
 }
+
+exports.can_join_game = function() {
+  var run = 0;
+  client_sock.addListener('data', function(buf) {
+    // can safely assume we are connected
+    if (run == 0) {
+      var message = JSON.stringify({ action: "join", data: { name: "anonymous" } });
+      client_sock.send("~m~" + (message.length + 3) + "~m~~j~" + message);
+      run = 1;
+    }
+  });
+}

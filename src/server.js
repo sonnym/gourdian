@@ -43,6 +43,8 @@
 
   socket.on("connection", function(client) {
     client.on("message", function(obj) {
+      log.debug("websocket hit: " + JSON.stringify(obj));
+
       if (obj.action == "join") {
         var name = obj.data.name
           , color = "w";
