@@ -1,4 +1,4 @@
-(function() {
+(function(callback) {
   HOST = null; // localhost
   PORT = 8124;
 
@@ -68,4 +68,6 @@
       }
     });
   });
+
+  if (callback) callback();
 })();
