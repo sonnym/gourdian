@@ -4,3 +4,6 @@
 [submodule "src/lib/web-socket-js"]
 	path = src/lib/web-socket-js
 	url = http://github.com/gimite/web-socket-js.git
+[submodule "test/lib/node-websocket-client"]
+	path = test/lib/node-websocket-client
+	url = http://github.com/pgriess/node-websocket-client.git
