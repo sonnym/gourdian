@@ -1,5 +1,5 @@
 var ib = (function() {
-    DEBUG = false;
+    DEBUG = true;
 
     ///////////////////////
    // private variables //
@@ -122,10 +122,10 @@ var ib = (function() {
     if (DEBUG) {
       var f = document.createElement("script");
       f.setAttribute("type","text/javascript");
-      f.setAttribute("src", "board.js");
+      f.setAttribute("src", file);
       document.getElementsByTagName("head")[0].appendChild(f)
 
-      if (callback) callback();
+      if (callback) setTimeout(callback, 1000);
     } else $.getScript(file, function(data, textStatus) {
                                if (callback) callback();
                              });
