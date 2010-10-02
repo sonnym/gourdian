@@ -1,5 +1,5 @@
 var ib = (function() {
-    DEBUG = true;
+    DEBUG = false;
 
     ///////////////////////
    // private variables //
@@ -94,7 +94,10 @@ var ib = (function() {
         socket.send({ action: "join", data: { name: name } });
 
         socket.on("message", function(data) {
-          // join
+          if (data.hold) {
+            show_hold_dialog();
+          }
+          // join response/color assignment
           if (data.color) {
             color = data.color;
 
@@ -104,6 +107,10 @@ var ib = (function() {
 
               if (boards["primary"] && boards["left"] && boards["right"]) draw_boards();
             }
+
+            var hold = $("#hold");
+            hold.dialog("destroy");
+            hold.addClass("hidden");
           }
           // position update
           if (data.fen) {
@@ -245,6 +252,18 @@ var ib = (function() {
                               }
                             }
                           );
+  }
+
+  function show_hold_dialog() {
+    $("#hold").dialog({ autoOpen: true
+                      , closeText: ""
+                      , draggable: false
+                      , modal: true
+                      , title: "Please Hold"
+                      , open: function(event, ui) {
+                         $(this).removeClass("hidden");
+                        }
+                      });
   }
 
   function display_promotion_dialog(turn, callback) {
