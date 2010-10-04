@@ -38,6 +38,7 @@
               messages.push(test_name + " error; " + e.message);
               error();
             }
+            messages[messages.length - 1] += "\n" + e.stack;
           }
         }
       }

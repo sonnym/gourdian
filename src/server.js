@@ -44,7 +44,7 @@ socket.on("connection", function(client) {
 
     if (obj.action == "join") {
       var name = obj.data.name
-        , sid = client.sessionId
+        , sid = client.sessionId + ""
 
         , data = bughouse.join(sid, name);
 
@@ -53,7 +53,7 @@ socket.on("connection", function(client) {
           , opp_id = data.opp
           , opp = socket.getClient(opp_id)
           , color = data[sid]
-          , opp_color = data[opp];
+          , opp_color = color == "w" ? "b" : "w";
 
         log.info("user with name " + name + ", sid " + sid + " joined; assigned: " + color + "; oppnent: " + opp_id + " " + opp_color);
 
@@ -63,16 +63,23 @@ socket.on("connection", function(client) {
         log.info("user with name " + name + " joined; held");
         client.send({hold: 1});
       }
+    } else if (obj.action == "kibitz") {
+      var game = Math.floor(Math.random() * games.length) == 0;
+
+      client.send({kibitz: 1, game: game});
     } else if (obj.action == "pos") {
       var fen = obj.data.fen
-        , sid = client.sessionId
-        , data = bughouse.update(sid, fen)
-          , opp_id = data.opp
-          , opp = socket.getClient(opp_id)
+        , sid = client.sessionId + ""
+        , opp_id = bughouse.update(sid, fen)
+        , opp = socket.getClient(parseInt(opp_id))
+
+      log.debug(opp_id);
 
       opp.send({game: game, fen: fen});
 
-      log.info("recieved updated fen for client with sid: " + client.sessionId + " ; fen: " + fen + "; opp " + opp_id);
+      // TODO: send to adjacent players and adjacent kibitzers
+
+      log.info("recieved updated fen for client with sid: " + sid + " ; fen: " + fen + "; opp " + opp_id);
     }
   });
 });

@@ -114,6 +114,13 @@ var ib = (function() {
             hold.addClass("hidden");
           }
 
+          // kibitz set up
+          if (data.kibitz) {
+            boards["primary"].set_fen(data.fen, function(message) {
+              if (message == "converted") draw_board("primary");
+            });
+          }
+
           // position update
           if (data.fen) {
             boards["primary"].set_fen(data.fen, function(message) {
