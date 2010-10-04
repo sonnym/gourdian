@@ -57,7 +57,7 @@ exports.listen = function (port, host) {
   log.info("Server at http://" + (host || "127.0.0.1") + ":" + port.toString() + "/");
 
   process.on("uncaughtException", function(err) {
-    log.fatal("caught exception: " + err);
+    log.fatal("caught exception: " + err + "\n" + err.stack);
   });
 }
 
