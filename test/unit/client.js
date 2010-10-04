@@ -21,33 +21,59 @@ exports.can_connect_via_websocket = function() {
   });
 }
 
+// async tests do not work yet, but can be verified from logs
 exports.can_join_game = function() {
-  var run = 0
-    , message = { action: "join", data: { name: "anonymous" } };
+  var message_sent = false
+    , message = { action: "join", data: { name: "anonymous" } }
+    , receipt = { hold: 1};
 
   client_sock.addListener('data', function(buf) {
     // can safely assume we are connected
-    if (run == 0) {
-      run = 1;
+    if (!message_sent) {
+      message_sent = true;
+      socket_send(client_sock, message);
     }
   });
+
+  client_sock.onmessage = function(m) {
+    var obj = message_parse(m);
+    if (obj.hold) {
+      assertEqual(obj, receipt);
+    }
+  }
 }
 
 exports.two_clients_make_a_game = function() {
-  var client_sock2 = new new WebSocket("ws://127.0.0.1:8124/socket.io/websocket", "borf")
-    , message = { action: "join", data: { name: "anonymous" } };
+  var client_sock2 = new WebSocket("ws://127.0.0.1:8124/socket.io/websocket", "borf")
+    , message = { action: "join", data: { name: "anonymous" } }
+    , message_sent = [false, false];
 
   client_sock.addListener("data", function(buf) {
-    socket_send(client_sock, message);
+    if (!message_sent[0]) {
+      socket_send(client_sock, message);
+      message_sent[0] = true;
+    }
 
-    client_sock2.addListener("dat", function(buf2) {
+    client_sock2.addListener("data", function(buf2) {
+      if (!message_sent[1]) {
         socket_send(client_sock2, message);
-      
+        message_sent[1] = true;
+      }
     });
   });
 }
 
+// helpers
 function socket_send(c, o) {
   var m = JSON.stringify(o);
   c.send("~m~" + (m.length + 3) + "~m~~j~" + m);
+}
+
+function message_parse(m) {
+  var parsed = m.data.substring(3)
+    , m_len_end = parsed.indexOf("~")
+    // , m_len = parsed.substring(m_len_end) // unused
+    , parsed = parsed.substring(m_len_end + 6);
+
+  return eval("'" + parsed + "'"); // assume json
 }

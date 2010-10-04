@@ -1,7 +1,7 @@
 TMPDIR = "/tmp";
 
 var fs = require("fs")
-  , log = require("./log")
+  , log = require("./../../src/log")
   , spawn = require("child_process").spawn
   , sys = require("sys")
 

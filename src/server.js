@@ -13,40 +13,7 @@ var starttime = (new Date()).getTime()
   , log = require("./log")
   , io = require("./lib/socket.io")
 
-// game state
-
-var bughouse = (function() {
-  var games = []
-    , waiting = [];
-
-  var game = function(w, b) {
-    return { white: 0, black: 0, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" }
-  }
-
-  return {
-    join : function(sid) {
-      if (waiting.length > 0) {
-        var opp = waiting.pop()
-          , color = (Math.floor(Math.random()*2) == 0) ? "w" : "b";
-
-        if (color == "w") new_game(sid, opp);
-        else new_game(opp, sid);
-
-        // tell opponent their color
-        socket.broadcast({color: ((color == "w") ? "b" : "w")});
-
-        return color;
-      } else {
-        waiting.push(sid);
-        return null;
-      }
-    }
-  }
-
-  function new_game(w, b) {
-    games.push(new game(w, b));
-  }
-})();
+  , bughouse = require("./bughouse");
 
   ////////////////
  // statements //
@@ -79,26 +46,33 @@ socket.on("connection", function(client) {
       var name = obj.data.name
         , sid = client.sessionId
 
-        , color = bughouse.join(sid);
+        , data = bughouse.join(sid, name);
 
-      log.info("user with name " + name + " joined; assigned: " + color);
+      if (data) {
+        var game = data.game
+          , opp_id = data.opp
+          , opp = socket.getClient(opp_id)
+          , color = data[sid]
+          , opp_color = data[opp];
 
-      if (color) client.send({color: color});
-      else client.send({hold: 1});
+        log.info("user with name " + name + ", sid " + sid + " joined; assigned: " + color + "; oppnent: " + opp_id + " " + opp_color);
+
+        opp.send({game: game, color: opp_color});
+        client.send({game: game, color: color});
+      } else {
+        log.info("user with name " + name + " joined; held");
+        client.send({hold: 1});
+      }
     } else if (obj.action == "pos") {
-      var crafty = require("./crafty")
-        , fen = obj.data.fen
-        , sid = client.sessionId;
+      var fen = obj.data.fen
+        , sid = client.sessionId
+        , data = bughouse.update(sid, fen)
+          , opp_id = data.opp
+          , opp = socket.getClient(opp_id)
 
-      log.info("recieved updated fen for client with sid: " + client.sessionId + " ; fen: " + fen);
+      opp.send({game: game, fen: fen});
 
-      crafty.move( fen
-                 , client.sessionId
-                 , function(new_fen) {
-                     log.debug("move callback");
-                     client.send({fen: new_fen});
-                   }
-                 );
+      log.info("recieved updated fen for client with sid: " + client.sessionId + " ; fen: " + fen + "; opp " + opp_id);
     }
   });
 });

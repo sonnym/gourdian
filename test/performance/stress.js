@@ -1,8 +1,15 @@
 var client = require("./client")
+    crafty = require("./../lib/crafty")
   , clients = [];
 
 exports.test = function() {
   /*
+  crafty.move( fen
+             , client.sessionId
+             , function(new_fen) {
+               }
+             );
+
   while (true) {
     var count = clients.length
       , count_output = function() { console.log(count + " clients ") };

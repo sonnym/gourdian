@@ -1,5 +1,5 @@
 var ib = (function() {
-    DEBUG = false;
+  DEBUG = false;
 
     ///////////////////////
    // private variables //
@@ -34,10 +34,10 @@ var ib = (function() {
   ////////////////////
   return {
     play : function() {
-      init();
+      init("join");
     }
   , kibitz : function() {
-      init();
+      init("kibitz");
     }
   , toggle_show_moves : function(sm) {
       show_moves = sm;
@@ -66,7 +66,7 @@ var ib = (function() {
 
   // initial state
 
-  function init() {
+  function init(action) {
     // add ability to get keys from objects
     // http://snipplr.com/view/10430/jquery-object-keys/ => https://groups.google.com/group/jquery-en/browse_thread/thread/3d35ff16671f87a2%5C
     $.extend({ keys: function(obj) {
@@ -91,12 +91,13 @@ var ib = (function() {
         socket = new io.Socket(null, {port: 8124});
         socket.connect();
 
-        socket.send({ action: "join", data: { name: name } });
+        socket.send({ action: action, data: { name: name } });
 
         socket.on("message", function(data) {
           if (data.hold) {
             show_hold_dialog();
           }
+
           // join response/color assignment
           if (data.color) {
             color = data.color;
@@ -112,6 +113,7 @@ var ib = (function() {
             hold.dialog("destroy");
             hold.addClass("hidden");
           }
+
           // position update
           if (data.fen) {
             boards["primary"].set_fen(data.fen, function(message) {
