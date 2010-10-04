@@ -158,30 +158,35 @@ var ib = (function() {
 
   function draw_board(b) {
     $("#" + b + " > .board").html(array2board(b));
+    $("#" + b + " > .meta").removeClass("hidden");
+
+    // no need for periphal boards to have draggable overhead . . .
+    if (b != "primary") return;
 
     var pieces = $("#" + b + " > .board > .square > .piece")
     pieces.each(function(i, e) {
-      $(this).draggable( { revert: "invalid"
+      // . . . or when held or for oponent's pieces
+      if (get_color_from_piece_div($(pieces[i])) == color) {
+        $(this).draggable({ revert: "invalid"
                            , start: function(event, ui) {
                                $(".ui-droppable").droppable("destroy");
                                display_moves("primary", $(ui.helper[0]), "drag");
                            }
-                         });
-      $(this).click(function() {
-        $(".selected").removeClass("selected");
-        $(".droppable").removeClass("droppable");
+                          });
+        $(this).click(function() {
+          $(".selected").removeClass("selected");
+          $(".droppable").removeClass("droppable");
 
-        var square = $(this).parent().attr("id");
-        if (square == selected) selected = null;
-        else {
-          $(this).parent().addClass("selected");
-          selected = square;
-          display_moves("primary", $(this), "click");
-        }
-      });
+          var square = $(this).parent().attr("id");
+          if (square == selected) selected = null;
+          else {
+            $(this).parent().addClass("selected");
+            selected = square;
+            display_moves("primary", $(this), "click");
+          }
+        });
+      }
     });
-
-    $("#" + b + " > .meta").removeClass("hidden");
   }
 
   function array2board(board) {
@@ -221,7 +226,7 @@ var ib = (function() {
   function display_moves(board, piece, method) {
     var piece_location = get_location_from_piece_div(board, piece)
       , valid = boards[board].get_valid_locations(piece_location)
-      , turn = get_turn_from_piece_div(piece);
+      , turn = get_color_from_piece_div(piece);
 
     if (!DEBUG && turn != color) return;
 
@@ -308,7 +313,7 @@ var ib = (function() {
     return parseInt(d.parent()[0].id.substring(board.length));
   }
 
-  function get_turn_from_piece_div(d) {
+  function get_color_from_piece_div(d) {
     var ascii = d.children().first().html().charCodeAt(0);
     return (ascii > 64 && ascii < 91) ? "w" : (ascii > 96 && ascii < 123) ? "b" : null;
   }
