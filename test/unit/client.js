@@ -116,30 +116,33 @@ exports.two_players_can_play_a_game = function() {
   // join
   client_sock.onopen = function() {
     if (!join_message_sent[0]) {
-      socket_send(client_sock, join_message);
+      socket_send(client_sock, "j", join_message);
       join_message_sent[0] = true;
     }
   }
 
   client_sock2.onopen = function() {
     if (!join_message_sent[1]) {
-      socket_send(client_sock2, join_message);
+      socket_send(client_sock2, "j", join_message);
       join_message_sent[1] = true;
     }
   }
 
   // play
   client_sock.onmessage = client_sock2.onmessage = function(m) {
+    // thanks to miksago for the following
+    if (m.data.substr(7,3) == "~h~") socket_send(this, "h", m.data.substr(10));
+
     var obj = message_parse(m)
       , sock = this;
 
     if (obj.color && obj.color == "w") {
-      socket_send(sock, update_position_message("rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq e3 0 1"));
+      socket_send(sock, "j", update_position_message("rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq e3 0 1"));
     } else if (obj.fen) {
-      crafty.move( "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+      crafty.move( obj.fen
                  , parseInt(obj.game)
                  , function(new_fen) {
-                     socket_send(sock, update_position_message(new_fen));
+                     socket_send(sock, "j", update_position_message(new_fen));
                    }
                  );
     }
@@ -147,9 +150,9 @@ exports.two_players_can_play_a_game = function() {
 }
 
 // helpers
-function socket_send(c, o) {
-  var m = JSON.stringify(o);
-  c.send("~m~" + (m.length + 3) + "~m~~j~" + m);
+function socket_send(c, t, o) {
+  var m = (t == "j") ? JSON.stringify(o) : o;
+  c.send("~m~" + (m.length + 3) + "~m~~" + t + "~" + m);
 }
 
 function message_parse(m) {

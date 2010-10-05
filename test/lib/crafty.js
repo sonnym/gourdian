@@ -30,9 +30,11 @@ exports.move = function(fen, uuid, callback) {
         return;
       }
 
-      var new_fen = data.split(" ")[1];
+      // crafty breaks the last 4 parts of the fen; manually provide them
+      var fen_parts = data.split(" ")
+          new_fen = fen_parts[1] + " " + fen_parts[2] + " KQkq - 0 1";
 
-      fs.unlink(parseInt(uuid) + ".txt"); // deletes file => stops execution
+      fs.unlink(parseInt(uuid) + ".txt"); // deletes file
 
       if (callback) callback(new_fen);
     });
