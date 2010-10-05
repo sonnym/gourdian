@@ -45,13 +45,16 @@ exports.join = function(sid, name) {
 
 exports.update = function(sid, fen) {
   log.debug(client_count + " current clients: " + sys.inspect(clients));
-  var game = games[clients[sid].game];
+
+  var game_id = clients[sid].game
+    , game = games[game_id]
+    , opp_id = (game.white == sid) ? game.black : game.white;
 
   game.fen = fen;
 
   // TODO: validate fen changes
 
-  return (game.white == sid) ? game.black : game.white;
+  return { game: game_id, opp_id: opp_id }
 }
 
   /////////////////////

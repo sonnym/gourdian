@@ -44,7 +44,7 @@ socket.on("connection", function(client) {
 
     if (obj.action == "join") {
       var name = obj.data.name
-        , sid = client.sessionId + ""
+        , sid = client.sessionId
 
         , data = bughouse.join(sid, name);
 
@@ -64,18 +64,17 @@ socket.on("connection", function(client) {
         client.send({hold: 1});
       }
     } else if (obj.action == "kibitz") {
-      var game = Math.floor(Math.random() * games.length) == 0;
+      var game = Math.floor(Math.random() * games.length);
 
       client.send({kibitz: 1, game: game});
     } else if (obj.action == "pos") {
       var fen = obj.data.fen
-        , sid = client.sessionId + ""
-        , opp_id = bughouse.update(sid, fen)
-        , opp = socket.getClient(parseInt(opp_id))
+        , sid = client.sessionId
+        , data = bughouse.update(sid, fen)
+        , opp_id = data.opp_id
+        , opp = socket.getClient(opp_id)
 
-      log.debug(opp_id);
-
-      opp.send({game: game, fen: fen});
+      opp.send({game: data.game, fen: fen});
 
       // TODO: send to adjacent players and adjacent kibitzers
 

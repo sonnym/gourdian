@@ -12,22 +12,18 @@ exports.move = function(fen, uuid, callback) {
       killer_id = 0;
 
   crafty.stdout.on("data", function(data) {
-    log.debug("crafty data");
-
     if (killer_id == 0) killer_id = setTimeout(function() {
       log.debug("crafty kill");
 
-      crafty.stdin.write("move\nsavepos " + uuid + "\nend\n");
-    }, 5000, uuid, killer_id);
+      crafty.stdin.write("move\nsavepos " + uuid + ".txt\nend\n");
+    }, 5000, uuid);
 
   });
 
   crafty.on("exit", function() {
-    log.debug("crafty exited");
+    log.debug("crafty exit");
 
-    fs.readFile(uuid, "ascii", function(err, data) {
-      log.debug("reading position file: " + uuid);
-
+    fs.readFile(parseInt(uuid) + ".txt", "ascii", function(err, data) {
       if (err) {
         log.debug("error");
         log.error("encountered error: " + err);
@@ -36,7 +32,7 @@ exports.move = function(fen, uuid, callback) {
 
       var new_fen = data.split(" ")[1];
 
-      // unlink(uuid); // deletes file => stops execution
+      fs.unlink(parseInt(uuid) + ".txt"); // deletes file => stops execution
 
       if (callback) callback(new_fen);
     });
