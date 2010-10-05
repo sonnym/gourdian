@@ -46,6 +46,8 @@ exports.join = function(sid, name) {
 exports.update = function(sid, fen) {
   log.debug(client_count + " current clients: " + sys.inspect(clients));
 
+  if (!clients[sid]) return; // client disconnected during an update
+
   var game_id = clients[sid].game
     , game = games[game_id]
     , opp_id = (game.white == sid) ? game.black : game.white;
@@ -55,6 +57,20 @@ exports.update = function(sid, fen) {
   // TODO: validate fen changes
 
   return { game: game_id, opp_id: opp_id }
+}
+
+exports.quit = function(sid) {
+  var client = clients[sid]
+    , game_id = client.game
+    , data = null;
+
+  if (game_id > 0) {
+    data = { game: game_id, opp_id: ((game.white == sid) ? game.black : game.white) };
+    rm_game(game_id);
+  }
+
+  rm_client(sid);
+  return data;
 }
 
   /////////////////////
@@ -68,7 +84,7 @@ function add_client(sid, name) {
 }
 
 function rm_client(sid) {
-  clients[sid] = null;
+  delete clients[sid];
   client_count--;
 }
 
@@ -79,6 +95,6 @@ function new_game(w, b) {
   return games.length - 1;
 }
 
-function end_game(index) {
+function rm_game(index) {
   games.splice(num, 1) = null;
 }

@@ -70,8 +70,11 @@ socket.on("connection", function(client) {
     } else if (obj.action == "pos") {
       var fen = obj.data.fen
         , sid = client.sessionId
-        , data = bughouse.update(sid, fen)
-        , opp_id = data.opp_id
+        , data = bughouse.update(sid, fen);
+
+      if (!data) return; // client disconnected during an update
+
+      var opp_id = data.opp_id
         , opp = socket.getClient(opp_id)
 
       opp.send({game: data.game, fen: fen});
@@ -81,4 +84,10 @@ socket.on("connection", function(client) {
       log.info("recieved updated fen for client with sid: " + sid + " ; fen: " + fen + "; opp " + opp_id);
     }
   });
+});
+
+socket.on("clientDisconnect", function(client) {
+  bughouse.quit(client.sessionId);
+
+  // TODO: send resignation to opponent
 });
