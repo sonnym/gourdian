@@ -65,9 +65,9 @@ socket.on("connection", function(client) {
         client.send({hold: 1});
       }
     } else if (obj.action == "kibitz") {
-      var data = bughouse.kibitz(sid, obj.data.name);
+      var states = bughouse.kibitz(sid, obj.data.name);
 
-      client.send({ kibitz: 1, data: data });
+      client.send({ kibitz: 1, states: states });
     } else if (obj.action == "pos") {
       var fen = obj.data.fen
         , data = bughouse.update(sid, fen);
@@ -76,10 +76,14 @@ socket.on("connection", function(client) {
 
       var opp_id = data.opp_id
         , opp = socket.getClient(opp_id)
+        , watchers = data.watchers;
 
       opp.send({game: data.game, fen: fen});
 
-      // TODO: send to adjacent players and adjacent kibitzers
+      for (var i = 0, l = watchers.length; i < l; i++) {
+        var watcher = socket.getClient(watchers[i]);
+        if (watcher) watcher.send({game: data.game, fen: fen});
+      }
 
       log.info("recieved updated fen for client with sid: " + sid + " ; fen: " + fen + "; opp " + opp_id);
     }
@@ -89,5 +93,5 @@ socket.on("connection", function(client) {
 socket.on("clientDisconnect", function(client) {
   bughouse.quit(client.sessionId);
 
-  // TODO: send resignation to opponent
+  // TODO: send resignation updates
 });

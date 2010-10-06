@@ -19,13 +19,15 @@ var ib = (function() {
                      , "p": "&#9823;"
                      }
     , pieces = {}
-    , boards = {}
+    , boards = { "l" : { flipped: true, gid: null, obj: null } // flipped with respect to fen
+               , "c" : { flipped: false, gid: null, obj: null }
+               , "r" : { flipped: true, gid: null, obj: null }
+               }
     , name = null
     , color = null
     , selected = null
     , show_moves = true
-    , flipped = {"primary": false, "left": true, "right": true}   // with respect to fen
-    , promotion_piece = ""
+    , promotion_piece = null
 
     , socket = null;
 
@@ -44,8 +46,8 @@ var ib = (function() {
       $(".droppable").removeClass("droppable");
     }
   , toggle_flip_board : function() {
-      flipped["left"] = flipped["right"] = flipped["primary"];
-      flipped["primary"] = !flipped["primary"];
+      boards["l"].flipped = boards["r"].flipped = boards["c"].flipped;
+      boards["c"].flipped = !boards["c"].flipped;
 
       draw_boards();
     }
@@ -78,9 +80,13 @@ var ib = (function() {
 
     $.extend(pieces, black_pieces, white_pieces, {"": "&nbsp;"});
 
-    // board is required first for flipping after join
+    // board is required first
     load_js("board.js", function() {
-      init_display();
+      // create and display
+      for (var b in boards) boards[b].obj = new ib.board();
+      $("#welcome").remove();
+
+      draw_boards();
 
       // set name
       name = $("#name").val();
@@ -96,6 +102,7 @@ var ib = (function() {
         socket.on("message", function(data) {
           if (DEBUG) console.log(data);
 
+          // hold
           if (data.hold) {
             show_hold_dialog();
           }
@@ -105,10 +112,8 @@ var ib = (function() {
             color = data.color;
 
             if (data.color == "b") {
-              flipped["left"] = flipped["right"] = flipped["primary"];
-              flipped["primary"] = !flipped["primary"];
-
-              if (boards["primary"] && boards["left"] && boards["right"]) draw_boards();
+              toggle_flip_board();
+              draw_boards();
             }
 
             var hold = $("#hold");
@@ -118,22 +123,23 @@ var ib = (function() {
 
           // kibitz set up
           if (data.kibitz) {
-            boards["primary"].set_fen(data.data.states.primary.fen, function(message) {
-              if (message == "converted") draw_board("primary");
-            });
-            boards["left"].set_fen(data.data.states.left.fen, function(message) {
-              if (message == "converted") draw_board("left");
-            });
-            boards["right"].set_fen(data.data.states.right.fen, function(message) {
-              if (message == "converted") draw_board("right");
-            });
+            for (var b in boards) {
+              boards[b].gid = data.states[b].gid;
+              boards[b].obj.set_fen(data.states[b].fen, function(message) {
+                if (message == "converted") draw_board(b);
+              });
+            }
           }
 
           // position update
           if (data.fen) {
-            boards["primary"].set_fen(data.fen, function(message) {
-              if (message == "converted") draw_board("primary");
-            });
+            for (var b in boards) {
+              if (boards[b].gid == data.gid) {
+                boards[b].obj.set_fen(data.fen, function(message) {
+                  if (message == "converted") draw_board(b);
+                });
+              }
+            }
           }
         });
       });
@@ -155,20 +161,8 @@ var ib = (function() {
 
   // display functions
 
-  function init_display() {
-    boards["primary"] = new ib.board();
-    boards["left"] = new ib.board();
-    boards["right"] = new ib.board();
-
-    $("#welcome").remove();
-
-    draw_boards();
-  }
-
   function draw_boards() {
-    draw_board("primary");
-    draw_board("left");
-    draw_board("right");
+    for (var b in boards) draw_board(b);
   }
 
   function draw_board(b) {
@@ -176,7 +170,7 @@ var ib = (function() {
     $("#" + b + " > .meta").removeClass("hidden");
 
     // no need for periphal boards to have draggable overhead . . .
-    if (b != "primary") return;
+    if (b != "c") return;
 
     var pieces = $("#" + b + " > .board > .square > .piece")
     pieces.each(function(i, e) {
@@ -185,7 +179,7 @@ var ib = (function() {
         $(this).draggable({ revert: "invalid"
                            , start: function(event, ui) {
                                $(".ui-droppable").droppable("destroy");
-                               display_moves("primary", $(ui.helper[0]), "drag");
+                               display_moves("c", $(ui.helper[0]), "drag");
                            }
                           });
         $(this).click(function() {
@@ -197,31 +191,31 @@ var ib = (function() {
           else {
             $(this).parent().addClass("selected");
             selected = square;
-            display_moves("primary", $(this), "click");
+            display_moves("c", $(this), "click");
           }
         });
       }
     });
   }
 
-  function array2board(board) {
-    var state = boards[board].get_state()
+  function array2board(b) {
+    var state = boards[b].obj.get_state()
       , line = 0
       , ret = "";
 
     // since the index of the square acts as an id, simply state.reverse()ing alters the *position* of the pieces,
     // hence the following:  dirty, but operational
-    if (!flipped[board]) {
+    if (!boards[b].flipped) {
       for (var i = 0, l = state.length; i < l; i++) {
         if (i % 8 == 0) {
           ret += "<div class=\"rank_break\"></div>";
           line++;
         }
-        ret += board_square((((i + line + 1 % 2) % 2 == 0) ? 'light' : 'dark'), board + i.toString(), state[i]);
+        ret += board_square((((i + line + 1 % 2) % 2 == 0) ? 'light' : 'dark'), b + i.toString(), state[i]);
       }
     } else {
       for (var i = state.length - 1; i >= 0; i--) {
-        ret += board_square((((i + line + 1 % 2) % 2 == 0) ? 'light' : 'dark'), board + i.toString(), state[i]);
+        ret += board_square((((i + line + 1 % 2) % 2 == 0) ? 'light' : 'dark'), b + i.toString(), state[i]);
         if (i % 8 == 0 && i != 0) {
           ret += "<div class=\"rank_break\"></div>";
           line++;
@@ -240,7 +234,7 @@ var ib = (function() {
 
   function display_moves(board, piece, method) {
     var piece_location = get_location_from_piece_div(board, piece)
-      , valid = boards[board].get_valid_locations(piece_location)
+      , valid = boards[board].obj.get_valid_locations(piece_location)
       , turn = get_color_from_piece_div(piece);
 
     if (!DEBUG && turn != color) return;
@@ -264,16 +258,16 @@ var ib = (function() {
   }
 
   function register_move(b, from, to, t) {
-    boards[b].update_state( from
-                          , parseInt(to.attr("id").substring(b.length))
-                          , function(message, callback) {
-                              if (message == "promote") display_promotion_dialog(t, callback);
-                              else if (message == "complete") {
-                                draw_board(b);
-                                socket.send({ action: "pos", data: { fen: boards["primary"].get_fen() } });
-                              }
-                            }
-                          );
+    boards[b].obj.update_state( from
+                              , parseInt(to.attr("id").substring(b.length))
+                              , function(message, callback) {
+                                  if (message == "promote") display_promotion_dialog(t, callback);
+                                  else if (message == "complete") {
+                                    draw_board(b);
+                                    socket.send({ action: "pos", data: { fen: boards["c"].obj.get_fen() } });
+                                  }
+                                }
+                              );
   }
 
   function show_hold_dialog() {
@@ -301,10 +295,12 @@ var ib = (function() {
                               $(this).removeClass("hidden");
                              }
                            , beforeClose: function(event, ui) {
-                               if (promotion_piece == "") return false;
+                               if (!promotion_piece) return false;
                              }
                            , close: function(event, ui) {
                                callback(promotion_piece);
+                               promotion_piece = null;
+
                                $(this).addClass("hidden");
                                $(this).dialog("destroy");
                              }
