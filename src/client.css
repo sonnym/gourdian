@@ -137,6 +137,9 @@ input[type=text] {
 
   padding: 10px 20px;
 }
+.ui-dialog {
+  margin: auto auto;
+}
 #promotion {
   padding: 15px 30px;
 }
