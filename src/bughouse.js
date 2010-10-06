@@ -2,7 +2,10 @@
  // private variables //
 ///////////////////////
 var log = require("./log")
+  , crypto = require("crypto")
   , sys = require("sys")
+
+  , hash = function(d) { return crypto.createHash("sha1").update(d).digest("hex") }
 
   , clients = {}
   , client_count = 0
@@ -17,25 +20,27 @@ var games = (function() {
 
   return {
     new : function(w, b) {
-      nodes[w + b] = { next: null
-                     , prev: null
-                     , data:
-                        { state: { white: w, black: b, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
-                        , watchers: []
-                        }
-                     };
+      var game = hash(w + b);
+
+      nodes[game] = { next: null
+                    , prev: null
+                    , data:
+                       { state: { white: w, black: b, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
+                       , watchers: []
+                       }
+                    };
 
       if (length == 0) {
-        this.head = nodes[w + b];
-        this.tail = nodes[w + b];
+        this.head = nodes[game];
+        this.tail = nodes[game];
       } else {
-        this.tail.next = nodes[w + b];
-        this.tail = nodes[w + b];
+        this.tail.next = nodes[game];
+        this.tail = nodes[game];
       }
 
       this.length++;
 
-      return w + b;
+      return game;
     }
   , update : function(game, sid, fen) {
       nodes[game].data.state.fen = fen;
@@ -87,7 +92,7 @@ exports.join = function(sid, name) {
     var game = (color == "w") ? games.new(sid, opp) : games.new(opp, sid);
     clients[sid].game = clients[opp].game = game;
 
-    log.info("game " + game + "created");
+    log.info("game " + game + " created for " + sid + " and " + opp);
 
     ret.game = game;
     ret.opp = opp;
