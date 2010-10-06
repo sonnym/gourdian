@@ -1,5 +1,5 @@
 var ib = (function() {
-  DEBUG = false;
+  DEBUG = true;
 
     ///////////////////////
    // private variables //
@@ -94,6 +94,8 @@ var ib = (function() {
         socket.send({ action: action, data: { name: name } });
 
         socket.on("message", function(data) {
+          if (DEBUG) console.log(data);
+
           if (data.hold) {
             show_hold_dialog();
           }

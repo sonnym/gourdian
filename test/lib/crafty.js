@@ -23,7 +23,7 @@ exports.move = function(fen, uuid, callback) {
   crafty.on("exit", function() {
     log.debug("crafty exit");
 
-    fs.readFile(parseInt(uuid) + ".txt", "ascii", function(err, data) {
+    fs.readFile(uuid + ".txt", "ascii", function(err, data) {
       if (err) {
         log.debug("error");
         log.error("encountered error: " + err);

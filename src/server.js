@@ -42,9 +42,10 @@ socket.on("connection", function(client) {
   client.on("message", function(obj) {
     log.debug("websocket hit: " + JSON.stringify(obj));
 
+    var sid = client.sessionId;
+
     if (obj.action == "join") {
       var name = obj.data.name
-        , sid = client.sessionId
 
         , data = bughouse.join(sid, name);
 
@@ -64,12 +65,11 @@ socket.on("connection", function(client) {
         client.send({hold: 1});
       }
     } else if (obj.action == "kibitz") {
-      var game = Math.floor(Math.random() * games.length);
+      var game = bughouse.kibitz(sid, obj.data.name);
 
       client.send({kibitz: 1, game: game});
     } else if (obj.action == "pos") {
       var fen = obj.data.fen
-        , sid = client.sessionId
         , data = bughouse.update(sid, fen);
 
       if (!data) return; // client disconnected during an update

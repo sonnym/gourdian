@@ -6,29 +6,88 @@ var log = require("./log")
 
   , clients = {}
   , client_count = 0
-  , games = []
   , waiting = [];
 
-var game = function(w, b) {
-}
+// linked list with lookup via hash key
+var games = (function() {
+  var length = 0
+    , nodes = {}
+    , head = null
+    , tail = null;
+
+  return {
+    new : function(w, b) {
+      nodes[w + b] = { next: null
+                     , prev: null
+                     , data:
+                        { state: { white: w, black: b, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
+                        , watchers: []
+                        }
+                     };
+
+      if (length == 0) {
+        this.head = nodes[w + b];
+        this.tail = nodes[w + b];
+      } else {
+        this.tail.next = nodes[w + b];
+        this.tail = nodes[w + b];
+      }
+
+      this.length++;
+
+      return w + b;
+    }
+  , update : function(game, sid, fen) {
+      nodes[game].data.state.fen = fen;
+
+      var w = nodes[game].data.state.white
+        , b = nodes[game].data.state.black;
+
+      return (sid == w) ? b : w;
+    }
+  , rm : function(game) {
+      var node = nodes[game];
+
+      if (node == null) return; // opponent already quit
+
+      if (node.next == null) {
+        this.tail = node.prev;
+      } else if (node.prev == null) {
+          this.head = node.next
+      } else {
+        node.prev.next = node.next
+        node.next.prev = node.prev
+      }
+
+      delete nodes[game];
+      length--;
+    }
+  , length : function() {
+     return this.length
+    }
+  }
+})();
 
   ////////////////////
  // public methods //
 ////////////////////
 exports.join = function(sid, name) {
+  if (!clients[sid]) add_client(sid, name);
+
   if (waiting.length > 0) {
     var opp = waiting.pop()
       , color = (Math.floor(Math.random() * 2) == 0) ? "w" : "b"
       , ret = {}
 
-    add_client(sid, name);
-
     if (opp == sid) {
-      waiting.push(sid);
+      waiting.push(sid); // get back in line
       return;
     }
 
-    game = (color == "w") ? new_game(sid, opp) : new_game(opp, sid);
+    var game = (color == "w") ? games.new(sid, opp) : games.new(opp, sid);
+    clients[sid].game = clients[opp].game = game;
+
+    log.info("game " + game + "created");
 
     ret.game = game;
     ret.opp = opp;
@@ -36,7 +95,6 @@ exports.join = function(sid, name) {
 
     return ret;
   } else {
-    add_client(sid, name);
     waiting.push(sid);
 
     return null;
@@ -44,32 +102,37 @@ exports.join = function(sid, name) {
 }
 
 exports.update = function(sid, fen) {
-  log.debug(client_count + " current clients: " + sys.inspect(clients));
-
   if (!clients[sid]) return; // client disconnected during an update
-
-  var game_id = clients[sid].game
-    , game = games[game_id]
-    , opp_id = (game.white == sid) ? game.black : game.white;
-
-  game.fen = fen;
 
   // TODO: validate fen changes
 
-  return { game: game_id, opp_id: opp_id }
+  var game = clients[sid].game
+    , opp_id = games.update(game, sid, fen);
+
+  return { game: game, opp_id: opp_id }
+}
+
+exports.kibitz = function(sid, name) {
+  add_client(sid, name);
+
+  log.info("added client; count: " + parseInt(client_count));
+
+  return Math.floor(Math.random() * games.length);
 }
 
 exports.quit = function(sid) {
-  var client = clients[sid]
-    , game_id = client.game
+  var game = clients[sid].game
     , data = null;
 
-  if (game_id > 0) {
-    data = { game: game_id, opp_id: ((game.white == sid) ? game.black : game.white) };
-    rm_game(game_id);
+  if (game) {
+    var opp_id = games.rm(game);
+    if (opp_id && clients[opp_id].game) delete clients[opp_id].game; // else opponent already quit
+
+    data = { game: game, opp_id: opp_id };
   }
 
-  rm_client(sid);
+  client_count--;
+
   return data;
 }
 
@@ -79,22 +142,11 @@ exports.quit = function(sid) {
 function add_client(sid, name) {
   if (clients[sid]) return;
 
-  clients[sid] = { name: name, game: 0 };
+  clients[sid] = { name: name };
   client_count++;
 }
 
 function rm_client(sid) {
   delete clients[sid];
   client_count--;
-}
-
-function new_game(w, b) {
-  games.push({ white: w, black: b, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1" });
-  w.game = b.game = games.length - 1;
-
-  return games.length - 1;
-}
-
-function rm_game(index) {
-  games.splice(num, 1) = null;
 }
