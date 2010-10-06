@@ -31,7 +31,7 @@ exports.move = function(fen, uuid, callback) {
       }
 
       // crafty breaks the last 4 parts of the fen; manually provide them
-      var fen_parts = data.split(" ")
+      var fen_parts = data.split(" ") // breaks sometimes thinking data is an object
           new_fen = fen_parts[1] + " " + fen_parts[2] + " KQkq - 0 1";
 
       fs.unlink(parseInt(uuid) + ".txt"); // deletes file

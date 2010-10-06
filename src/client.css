@@ -44,7 +44,7 @@ input[type=text] {
   z-index: 1;
 }
 
-#left, #right {
+#l, #r {
   position: absolute;
   width: 30%;
   height: 100%
@@ -52,14 +52,14 @@ input[type=text] {
   z-index: 2;
 }
 
-#left {
+#l {
   left: 0px;
 }
-#right {
+#r {
   right: 0px;
 }
 
-#primary {
+#c {
   position: absolute;
   left: 30%;
   width: 40%;
@@ -70,7 +70,7 @@ input[type=text] {
   vertical-align: middle;
 }
 
-#primary .board {
+#c .board {
   width: 95%;
   color: #000;
 }
@@ -84,23 +84,23 @@ input[type=text] {
   text-align: center;
 }
 
-#primary .board .square {
+#c .board .square {
   width: 12%;
   font-size: 34pt;
 }
 
-#left .board, #right .board {
+#l .board, #r .board {
   width: 95%;
   color: #000;
 }
 
-#left .board .square, #right .board .square {
+#l .board .square, #r .board .square {
   width: 11%;
   font-size: 28pt;
 }
 
-#primary .meta { width: 86%; }
-#left .meta, #right .meta { width: 76%; }
+#c .meta { width: 86%; }
+#l .meta, #r .meta { width: 76%; }
 
 .light {
   background: #979452;
