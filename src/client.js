@@ -118,8 +118,14 @@ var ib = (function() {
 
           // kibitz set up
           if (data.kibitz) {
-            boards["primary"].set_fen(data.fen, function(message) {
+            boards["primary"].set_fen(data.data.states.primary.fen, function(message) {
               if (message == "converted") draw_board("primary");
+            });
+            boards["left"].set_fen(data.data.states.left.fen, function(message) {
+              if (message == "converted") draw_board("left");
+            });
+            boards["right"].set_fen(data.data.states.right.fen, function(message) {
+              if (message == "converted") draw_board("right");
             });
           }
 

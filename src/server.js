@@ -65,9 +65,9 @@ socket.on("connection", function(client) {
         client.send({hold: 1});
       }
     } else if (obj.action == "kibitz") {
-      var game = bughouse.kibitz(sid, obj.data.name);
+      var data = bughouse.kibitz(sid, obj.data.name);
 
-      client.send({kibitz: 1, game: game});
+      client.send({ kibitz: 1, data: data });
     } else if (obj.action == "pos") {
       var fen = obj.data.fen
         , data = bughouse.update(sid, fen);

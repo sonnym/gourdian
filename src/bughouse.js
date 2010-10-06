@@ -20,55 +20,96 @@ var games = (function() {
 
   return {
     new : function(w, b) {
-      var game = hash(w + b);
+      var game_id = hash(w + b);
 
-      nodes[game] = { next: null
-                    , prev: null
-                    , data:
-                       { state: { white: w, black: b, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
-                       , watchers: []
-                       }
-                    };
+      nodes[game_id] = { next: null
+                       , prev: null
+                       , id: game_id
+                       , data:
+                          { state: { white: w, black: b, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
+                          , watchers: []
+                          }
+                       };
 
       if (length == 0) {
-        this.head = nodes[game];
-        this.tail = nodes[game];
+        head = nodes[game_id];
+        tail = nodes[game_id];
       } else {
-        this.tail.next = nodes[game];
-        this.tail = nodes[game];
+        tail.next = nodes[game_id];
+        tail = nodes[game_id];
       }
 
-      this.length++;
+      length++;
 
-      return game;
+      return game_id;
     }
-  , update : function(game, sid, fen) {
-      nodes[game].data.state.fen = fen;
+  , update : function(game_id, sid, fen) {
+      nodes[game_id].data.state.fen = fen;
 
-      var w = nodes[game].data.state.white
-        , b = nodes[game].data.state.black;
+      var w = nodes[game_id].data.state.white
+        , b = nodes[game_id].data.state.black;
 
       return (sid == w) ? b : w;
     }
-  , rm : function(game) {
-      var node = nodes[game];
+  , rm : function(game_id) {
+      var node = nodes[game_id];
 
       if (node == null) return; // opponent already quit
 
       if (node.next == null) {
-        this.tail = node.prev;
+        tail = node.prev;
       } else if (node.prev == null) {
-          this.head = node.next
+        head = node.next
       } else {
         node.prev.next = node.next
         node.next.prev = node.prev
       }
 
-      delete nodes[game];
+      delete nodes[game_id];
       length--;
     }
-  , length : function() {
-     return this.length
+
+  // etc
+  , get_head : function() {
+      return head;
+    }
+  , add_watcher : function(game, sid) {
+      if (nodes[game]) nodes[game].data.watchers.push(sid);
+    }
+  , get_states : function(game) {
+      var node = nodes[game]
+        , states = {};
+
+      if (!node) return;
+
+      states["primary"] = node.data.state;
+
+      if (node.next) states["right"] = node.next.data.state;
+      else if (head) states["right"] = head.data.state;
+      else return;
+
+      if (node.prev) states["left"] = node.prev.data.state;
+      else if (tail) states["left"] = tail.data.state;
+      else return;
+
+      return states;
+    }
+  , get_watchers : function(game) {
+      var node = nodes[game];
+
+      if (!node) return;
+
+      var watchers = node.data.watchers;
+
+      if (node.next) array_union(watchers, node.next.data.watchers);
+      else if (head) array_union(watchers, head.data.watchers);
+      else return;
+
+      if (node.prev) array_union(watchers, node.prev.data.watchers);
+      else if (tail) array_union(watchers, tail.data.watchers);
+      else return;
+
+      return watchers;
     }
   }
 })();
@@ -89,12 +130,12 @@ exports.join = function(sid, name) {
       return;
     }
 
-    var game = (color == "w") ? games.new(sid, opp) : games.new(opp, sid);
-    clients[sid].game = clients[opp].game = game;
+    var game_id = (color == "w") ? games.new(sid, opp) : games.new(opp, sid);
+    clients[sid].game = clients[opp].game = game_id;
 
-    log.info("game " + game + " created for " + sid + " and " + opp);
+    log.info("game " + game_id + " created for " + sid + " and " + opp);
 
-    ret.game = game;
+    ret.game = game_id;
     ret.opp = opp;
     ret[sid] = color;
 
@@ -111,29 +152,30 @@ exports.update = function(sid, fen) {
 
   // TODO: validate fen changes
 
-  var game = clients[sid].game
-    , opp_id = games.update(game, sid, fen);
+  var game_id = clients[sid].game
+    , opp_id = games.update(game_id, sid, fen);
 
-  return { game: game, opp_id: opp_id }
+  return { game: game_id, opp_id: opp_id }
 }
 
 exports.kibitz = function(sid, name) {
   add_client(sid, name);
 
-  log.info("added client; count: " + parseInt(client_count));
+  var game = games.get_head();
+  games.add_watcher(game, sid);
 
-  return Math.floor(Math.random() * games.length);
+  return { game: game.id, states: games.get_states(game.id) };
 }
 
 exports.quit = function(sid) {
-  var game = clients[sid].game
+  var game_id = clients[sid].game
     , data = null;
 
-  if (game) {
-    var opp_id = games.rm(game);
+  if (game_id) {
+    var opp_id = games.rm(game_id);
     if (opp_id && clients[opp_id].game) delete clients[opp_id].game; // else opponent already quit
 
-    data = { game: game, opp_id: opp_id };
+    data = { game: game_id, opp_id: opp_id };
   }
 
   client_count--;
@@ -154,4 +196,8 @@ function add_client(sid, name) {
 function rm_client(sid) {
   delete clients[sid];
   client_count--;
+}
+
+function array_union(a1, a2) {
+  for (var i = 0, l = a2.length; i < l; i++) a1.push(a2[i]);
 }
