@@ -83,7 +83,7 @@ var ib = (function() {
     // board is required first
     load_js("board.js", function() {
       // create and display
-      for (var b in boards) boards[b].obj = new ib.board();
+      for (var b in boards) boards[b].obj = new Board();
       $("#welcome").remove();
 
       draw_boards();

@@ -1,4 +1,4 @@
-ib.board = (function() {
+Board = function() {
     ///////////////////////
    // private variables //
   ///////////////////////
@@ -8,57 +8,47 @@ ib.board = (function() {
     , fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     , state = [];
 
-    /////////////////
-   // constructor //
-  /////////////////
-  return function() {
-    this.state = fen2array();
+    ////////////////////////
+   // privileged methods //
+  ////////////////////////
+  this.get_valid_locations = function(loc) {
+    return valid_locations(loc);
+  }
+  this.get_fen = function() {
+    return fen;
+  }
+  this.set_fen = function(f, callback) {
+    var fen_parts = fen.split(" ");
+    fen_parts[0] = f;
+    fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";
+    fen = fen_parts.join(" ");
+    this.state = fen2array(callback);
+  }
+  this.get_state = function() {
+    return state;
+  }
+  // prepare changes to state before calling private function; allows messaging for pawn promotion
+  this.update_state = function(from, to, callback) {
+    var piece = state[from]
+      , valid = valid_locations(from)
+      , capture = (to != "");
 
-      ////////////////////
-     // public methods //
-    ////////////////////
-    return {
-      get_valid_locations : function(loc) {
-        return valid_locations(loc);
-      }
-    , get_fen : function() {
-        return fen;
-      }
-    , set_fen : function(f, callback) {
-        var fen_parts = fen.split(" ");
-        fen_parts[0] = f;
-        fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";
-        fen = fen_parts.join(" ");
-        this.state = fen2array(callback);
-      }
-    , get_state : function() {
-          return state;
-        }
-      // prepare changes to state before calling private function; allows messaging for pawn promotion
-      , update_state : function(from, to, callback) {
+    if (in_array(to, valid)) {
+      // en passant
+      if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
+        if (from > to) state[to + 8] = "";
+        else if (from < to) state[to - 8] = "";
+      } 
 
-          var piece = state[from]
-            , valid = valid_locations(from)
-            , capture = (to != "");
-
-          if (in_array(to, valid)) {
-            // en passant
-            if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
-              if (from > to) state[to + 8] = "";
-              else if (from < to) state[to - 8] = "";
-            }
-
-            // pawn promotion
-            if ((piece == "p" && to > 55 && from < 64) || (piece == "P" && to >= 0 && to < 8)) {
-              if (callback) callback("promote", function(new_piece) {
-                piece = new_piece;
-                update_state(piece, from, to, capture, callback);
-            });
-          } else update_state(piece, from, to, capture, callback);
-        }
-      }
-    };
-  };
+      // pawn promotion
+      if ((piece == "p" && to > 55 && from < 64) || (piece == "P" && to >= 0 && to < 8)) {
+        if (callback) callback("promote", function(new_piece) {
+          piece = new_piece;
+          update_state(piece, from, to, capture, callback);
+        });
+      } else update_state(piece, from, to, capture, callback);
+    }
+  }
 
     /////////////////////
    // private methods //
@@ -268,4 +258,9 @@ ib.board = (function() {
       return e == needle;
     }).length > 0;
   }
-})();
+
+  fen2array();
+};
+
+// for server and client
+if (exports) exports.Board = Board;

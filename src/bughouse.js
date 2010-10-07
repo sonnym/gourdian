@@ -1,8 +1,9 @@
   ///////////////////////
  // private variables //
 ///////////////////////
-var log = require("./log")
+var board = require("./board")
   , crypto = require("crypto")
+  , log = require("./log")
   , sys = require("sys")
 
   , hash = function(d) { return crypto.createHash("sha1").update(d).digest("hex") }
@@ -25,7 +26,7 @@ var games = (function() {
       nodes[gid] = { next: null
                        , prev: null
                        , data:
-                          { state: { private: { white: w, black: b }
+                          { state: { private: { white: w, black: b, board: new Board() }
                                    , public: { id: gid, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
                                    }
                           , watchers: []
