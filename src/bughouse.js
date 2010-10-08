@@ -24,14 +24,14 @@ var games = (function() {
       var gid = hash(w + b);
 
       nodes[gid] = { next: null
-                       , prev: null
-                       , data:
-                          { state: { private: { white: w, black: b, board: new board() }
-                                   , public: { gid: gid, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
-                                   }
-                          , watchers: []
-                          }
-                       };
+                   , prev: null
+                   , data:
+                      { state: { private: { white: w, black: b, board: new board() }
+                               , public: { gid: gid, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
+                               }
+                      , watchers: []
+                      }
+                   };
 
       if (length == 0) {
         head = nodes[gid];
@@ -161,6 +161,7 @@ exports.update = function(sid, from, to, callback) {
 
   board.update_state(from, to, function(message) {
     if (message == "invalid") {
+      log.info("client " + sid + " performed an invalid move; from: " + from + "; to: " + to + "; fen: " + board.get_fen());
       // TODO: handle invalid moves?
     } else if (message == "complete") {
 
