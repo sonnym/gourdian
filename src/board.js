@@ -17,6 +17,12 @@ Board = function() {
   this.get_fen = function() {
     return fen;
   }
+  this.set_position = function(p, callback) {
+    var fen_parts = fen.split(" ");
+    fen_parts[0] = p;
+    fen = fen_parts.join(" ");
+    this.state = fen2array();
+  }
   this.set_fen = function(f, callback) {
     var fen_parts = fen.split(" ");
     fen_parts[0] = f;
@@ -26,6 +32,9 @@ Board = function() {
   }
   this.get_state = function() {
     return state;
+  }
+  this.get_turn = function() {
+    return fen.split(" ")[1];
   }
   // prepare changes to state before calling private function; allows messaging for pawn promotion
   this.update_state = function(from, to, callback) {
@@ -47,7 +56,7 @@ Board = function() {
           update_state(piece, from, to, capture, callback);
         });
       } else update_state(piece, from, to, capture, callback);
-    }
+    } else callback("invalid");
   }
 
     /////////////////////
@@ -68,7 +77,7 @@ Board = function() {
 
     if (in_array(piece, ["P", "p"])) valid = pawn_check(start, piece, en_passant);
     else if (in_array(piece, ["B", "b"])) valid = mult_check(turn, start, [7, 9]);
-    else if (in_array(piece, ["N", "n"])) $.merge(valid, $.merge(mult_check(turn, start, [6, 10], 1, 1), mult_check(turn, start, [15, 17], 1, 2)));
+    else if (in_array(piece, ["N", "n"])) obj_merge(valid, obj_merge(mult_check(turn, start, [6, 10], 1, 1), mult_check(turn, start, [15, 17], 1, 2)));
     else if (in_array(piece, ["R", "r"])) valid = mult_check(turn, start, [1, 8]);
     else if (in_array(piece, ["Q", "q"])) valid = mult_check(turn, start, [1, 7, 8, 9]);
     else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1, 7, 8, 9], 1);
@@ -81,7 +90,7 @@ Board = function() {
     var valid = [];
 
     if (piece == "p") {
-      var comp = function(a, b) { return a + b; }
+      var comp = function(a, b) { return parseInt(a) + parseInt(b); }
         , pieces = black_pieces
         , start_rank = [7, 16];
     } else if (piece == "P") {
@@ -254,13 +263,17 @@ Board = function() {
 
    // etc
   function in_array(needle, haystack) {
-    return $.grep(haystack, function(e, i) {
-      return e == needle;
-    }).length > 0;
+    for (var i = 0, l = haystack.length; i < l; i++) {
+      if (haystack[i] == needle) return true;
+    }
+    return false;
   }
 
+  function obj_merge(a, b) {
+    for (var key in b) a[key] = b[key];
+  }
+  
   fen2array();
-};
+}
 
-// for server and client
-if (exports) exports.Board = Board;
+if (exports) exports.Board = Board

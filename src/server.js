@@ -58,8 +58,8 @@ socket.on("connection", function(client) {
 
         log.info("user with name " + name + ", sid " + sid + " joined; assigned: " + color + "; oppnent: " + opp_id + " " + opp_color);
 
-        opp.send({game: game, color: opp_color});
-        client.send({game: game, color: color});
+        opp.send({gid: game, color: opp_color});
+        client.send({gid: game, color: color});
       } else {
         log.info("user with name " + name + " joined; held");
         client.send({hold: 1});
@@ -69,23 +69,25 @@ socket.on("connection", function(client) {
 
       client.send({ kibitz: 1, states: states });
     } else if (obj.action == "pos") {
-      var fen = obj.data.fen
-        , data = bughouse.update(sid, fen);
+      var from = obj.data.f
+        , to = obj.data.t;
 
-      if (!data) return; // client disconnected during an update
+      bughouse.update(sid, from, to, function(data) {
+        if (!data) return; // client disconnected during an update
 
-      var opp_id = data.opp_id
-        , opp = socket.getClient(opp_id)
-        , watchers = data.watchers;
+        var opp_id = data.opp_id
+          , opp = socket.getClient(opp_id)
+          , watchers = data.watchers;
 
-      opp.send({game: data.game, fen: fen});
+        opp.send({gid: data.gid, fen: data.fen});
 
-      for (var i = 0, l = watchers.length; i < l; i++) {
-        var watcher = socket.getClient(watchers[i]);
-        if (watcher) watcher.send({game: data.game, fen: fen});
-      }
+        for (var i = 0, l = watchers.length; i < l; i++) {
+          var watcher = socket.getClient(watchers[i]);
+          if (watcher) watcher.send({gid: data.gid, fen: data.fen});
+        }
 
-      log.info("recieved updated fen for client with sid: " + sid + " ; fen: " + fen + "; opp " + opp_id);
+        log.info("recieved move from client with sid: " + sid + "; from " + from + " to " + to + "; opp " + opp_id);
+      });
     }
   });
 });

@@ -1,7 +1,7 @@
   ///////////////////////
  // private variables //
 ///////////////////////
-var board = require("./board")
+var board = require("./board").Board
   , crypto = require("crypto")
   , log = require("./log")
   , sys = require("sys")
@@ -26,8 +26,8 @@ var games = (function() {
       nodes[gid] = { next: null
                        , prev: null
                        , data:
-                          { state: { private: { white: w, black: b, board: new Board() }
-                                   , public: { id: gid, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
+                          { state: { private: { white: w, black: b, board: new board() }
+                                   , public: { gid: gid, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
                                    }
                           , watchers: []
                           }
@@ -46,14 +46,6 @@ var games = (function() {
       length++;
 
       return gid;
-    }
-  , update : function(gid, sid, fen) {
-      nodes[gid].data.state.public.fen = fen;
-
-      var w = nodes[gid].data.state.private.white
-        , b = nodes[gid].data.state.private.black;
-
-      return (sid == w) ? b : w;
     }
   , rm : function(gid) {
       var node = nodes[gid];
@@ -74,12 +66,15 @@ var games = (function() {
     }
 
   // etc
+  , get_node : function(gid) {
+      return nodes[gid];
+    }
   , add_watcher : function(sid) {
       if (head) head.data.watchers.push(sid);
 
       log.debug("added watcher " + sid + " to game " + head.data.state.public.id);
 
-      return head.data.state.public.id;
+      return head.data.state.public.gid;
     }
   , get_states : function(gid) {
       var node = nodes[gid]
@@ -141,7 +136,7 @@ exports.join = function(sid, name) {
     }
 
     var gid = (color == "w") ? games.new(sid, opp) : games.new(opp, sid);
-    clients[sid].game = clients[opp].game = gid;
+    clients[sid].gid = clients[opp].gid = gid;
 
     log.info("game " + gid + " created for " + sid + " and " + opp);
 
@@ -157,16 +152,29 @@ exports.join = function(sid, name) {
   }
 }
 
-exports.update = function(sid, fen) {
+exports.update = function(sid, from, to, callback) {
   if (!clients[sid]) return; // client disconnected during an update
 
-  // TODO: validate fen changes
+  var gid = clients[sid].gid
+    , node = games.get_node(gid)
+    , board = node.data.state.private.board;
 
-  var gid = clients[sid].game
-    , opp_id = games.update(gid, sid, fen)
-    , watchers = games.get_watchers(gid);
+  board.update_state(from, to, function(message) {
+    if (message == "invalid") {
+      // TODO: handle invalid moves?
+    } else if (message == "complete") {
 
-  return { gid: gid, opp_id: opp_id, watchers: watchers }
+      // TODO: promotions, carry over captured pieces
+
+      var fen = games.get_node(gid).data.state.public.fen = board.get_fen();
+
+      var w = games.get_node(gid).data.state.private.white
+        , b = games.get_node(gid).data.state.private.black
+        , opp_id = (sid == w) ? b : w
+        , watchers = games.get_watchers(gid);
+      callback({ gid: gid, opp_id: opp_id, watchers: watchers, fen: fen});
+    }
+  });
 }
 
 exports.kibitz = function(sid, name) {
@@ -177,12 +185,12 @@ exports.kibitz = function(sid, name) {
 }
 
 exports.quit = function(sid) {
-  var gid = clients[sid].game
+  var gid = clients[sid].gid
     , data = null;
 
   if (gid) {
     var opp_id = games.rm(gid);
-    if (opp_id && clients[opp_id].game) delete clients[opp_id].game; // else opponent already quit
+    if (opp_id && clients[opp_id].gid) delete clients[opp_id].gid; // else opponent already quit
 
     // TODO: notify watchers
 

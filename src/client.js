@@ -110,6 +110,7 @@ var ib = (function() {
           // join response/color assignment
           if (data.color) {
             color = data.color;
+            boards["c"].gid = data.gid;
 
             if (data.color == "b") {
               toggle_flip_board();
@@ -124,6 +125,7 @@ var ib = (function() {
           // kibitz set up
           if (data.kibitz) {
             for (var b in boards) {
+              console.log(data);
               boards[b].gid = data.states[b].gid;
               boards[b].obj.set_fen(data.states[b].fen, function(message) {
                 if (message == "converted") draw_board(b);
@@ -174,8 +176,8 @@ var ib = (function() {
 
     var pieces = $("#" + b + " > .board > .square > .piece")
     pieces.each(function(i, e) {
-      // . . . or when held or for oponent's pieces
-      if (get_color_from_piece_div($(pieces[i])) == color) {
+      // . . . or when on hold or for oponent's pieces or when it is opponent's turn
+      if (get_color_from_piece_div($(pieces[i])) == color && color == boards["c"].obj.get_turn) {
         $(this).draggable({ revert: "invalid"
                            , start: function(event, ui) {
                                $(".ui-droppable").droppable("destroy");
@@ -264,7 +266,7 @@ var ib = (function() {
                                   if (message == "promote") display_promotion_dialog(t, callback);
                                   else if (message == "complete") {
                                     draw_board(b);
-                                    socket.send({ action: "pos", data: { fen: boards["c"].obj.get_fen() } });
+                                    socket.send({ action: "pos", data: { f: from, t: to } });
                                   }
                                 }
                               );

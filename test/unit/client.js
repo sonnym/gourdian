@@ -1,13 +1,13 @@
 var assert = require("assert")
-  , crafty = require("./../lib/crafty")
   , http = require("http")
+  , player = require("./../lib/player")
   , sys = require("sys")
   , WebSocket = require("./../lib/node-websocket-client/lib/websocket").WebSocket
 
   , client_http = http.createClient(8124)
 
   , join_message = function(name) { return { action: "join", data: { name: ((name) ? name :  "anonymous") } } }
-  , update_position_message = function(fen) { return { action: "pos", data: { fen: fen } } };
+  , move_message = function(from, to) { return { action: "pos", data: { f: from, t: to } } };
 
 exports.can_fetch_index = function() {
   var request = client_http.request("GET", "/");
@@ -97,10 +97,9 @@ exports.two_players_can_play_a_game = function() {
     if (obj.color && obj.color == "w") {
       socket_send(sock, "j", update_position_message("rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq e3 0 1"));
     } else if (obj.fen) {
-      crafty.move( obj.fen
-                 , obj.game
-                 , function(new_fen) {
-                     socket_send(sock, "j", update_position_message(new_fen));
+      player.move( obj.fen
+                 , function(from, to) {
+                    socket_send(sock, "j", move_message(from, to));
                    }
                  );
     }
@@ -124,15 +123,12 @@ exports.twenty_players_can_play = function() {
         var obj = message_parse(m)
           , sock = this;
 
-        if (obj.color && obj.color == "w") {
-          socket_send(sock, "j", update_position_message("rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq e3 0 1"));
-        } else if (obj.fen) {
-          crafty.move( obj.fen
-                     , obj.game
-                     , function(new_fen) {
-                         socket_send(sock, "j", update_position_message(new_fen));
-                       }
-                     );
+        if ((obj.color && obj.color == "w") || obj.fen) {
+          player.move( obj.fen
+                      , function(from, to) {
+                          setTimeout(socket_send, 2500 - (Math.floor(Math.random() * 1000)), sock, "j", move_message(from, to));
+                        }
+                      );
         }
       }
     }(clients.length));
