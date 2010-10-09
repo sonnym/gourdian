@@ -8,7 +8,8 @@ Board = function() {
     , black_pieces = ["k", "q", "r", "b", "n", "p"]
 
     , fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    , state = [];
+    , state = []
+    , stash = {w: "", b: ""};
 
     ////////////////////////
    // privileged methods //
@@ -34,6 +35,13 @@ Board = function() {
   }
   this.get_state = function() {
     return state;
+  }
+  this.get_stash = function() {
+    return stash;
+  }
+  this.set_stash = function(c, s) {
+    if (c == "w") stash.w = s;
+    else if (c == "b") stash.b = s;
   }
   this.get_turn = function() {
     return fen.split(" ")[1];
@@ -72,7 +80,7 @@ Board = function() {
   /////////////////////
 
   // validations
-  
+
   function valid_locations(start) {
     var valid = []
       , fen_parts = fen.split(" ")
@@ -193,7 +201,7 @@ Board = function() {
         }
 
         current++;
-      } while((iter(current, distance) && (!depth || current <= depth)) || (blocked[0] && blocked[1]))
+      } while(iter(current, distance) && (!depth || current <= depth) && (blocked[0] || blocked[1]))
     }
 
     if (DEBUG) console.log("multi_check end; turn: " + turn + "; start: " + start + "; distances: " + distances + "; valid: " + valid.toString());
@@ -202,8 +210,16 @@ Board = function() {
 
   // updates the state array and fen string
   function update_state(piece, from, to, capture, callback) {
-    // relocate piece
-    var captured = capture ? state[to] : null;
+    // stash storage
+    if (capture) {
+      var c_piece = state[to]
+        , ascii = c_piece.charCodeAt(0)
+      if (ascii > 64 && ascii < 91) {
+        stash.b += c_piece;
+      } else if (ascii > 96 && ascii < 123) {
+        stash.w += c_piece;
+      }
+    }
 
     state[to] = piece;
     state[from] = "";
@@ -232,7 +248,7 @@ Board = function() {
 
     fen = fen_parts.join(" ");
 
-    callback("complete", captured);
+    callback("complete");
   }
 
   // fen conversions

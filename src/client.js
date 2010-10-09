@@ -19,9 +19,9 @@ var ib = (function() {
                      , "p": "&#9823;"
                      }
     , pieces = {}
-    , boards = { "l" : { flipped: true, gid: null, obj: null } // flipped with respect to fen
-               , "c" : { flipped: false, gid: null, obj: null }
-               , "r" : { flipped: true, gid: null, obj: null }
+    , boards = { "l" : { flipped: true, gid: null, obj: null, stash_b: "", stash_w: "" } // flipped with respect to fen
+               , "c" : { flipped: false, gid: null, obj: null, stash_b: "", stash_w: "" }
+               , "r" : { flipped: true, gid: null, obj: null, stash_b: "", stash_w: "" }
                }
     , name = null
     , color = null
@@ -108,14 +108,15 @@ var ib = (function() {
           }
 
           // join response/color assignment
-          if (data.color) {
+          if (data.play) {
             color = data.color;
-            boards["c"].gid = data.gid;
 
             if (data.color == "b") {
               toggle_flip_board();
               draw_boards();
             }
+
+            parse_states(data.states);
 
             var hold = $("#hold");
             hold.dialog("destroy");
@@ -124,20 +125,14 @@ var ib = (function() {
 
           // kibitz set up
           if (data.kibitz) {
-            for (var b in boards) {
-              console.log(data);
-              boards[b].gid = data.states[b].gid;
-              boards[b].obj.set_fen(data.states[b].fen, function(message) {
-                if (message == "converted") draw_board(b);
-              });
-            }
+            parse_states(data.states);
           }
 
           // position update
-          if (data.fen) {
+          if (data.state) {
             for (var b in boards) {
-              if (boards[b].gid == data.gid) {
-                boards[b].obj.set_fen(data.fen, function(message) {
+              if (boards[b].gid == data.state.gid) {
+                boards[b].obj.set_fen(data.state.fen, function(message) {
                   if (message == "converted") draw_board(b);
                 });
               }
@@ -159,6 +154,18 @@ var ib = (function() {
     } else $.getScript(file, function(data, textStatus) {
                                if (callback) callback();
                              });
+  }
+
+  function parse_states(s) {
+    for (var b in boards) {
+      boards[b].gid = s[b].gid;
+      boards[b].obj.set_stash("w", s[b].s_w);
+      boards[b].obj.set_stash("b", s[b].s_b);
+
+      boards[b].obj.set_fen(s[b].fen, function(message) {
+        if (message == "converted") draw_board(b);
+      });
+    }
   }
 
   // display functions

@@ -118,13 +118,23 @@ exports.twenty_players_can_play = function() {
 
       // play
       client_sock.onmessage = function(m) {
-        if (m.data.substr(7,3) == "~h~") socket_send(this, "h", m.data.substr(10));
+        if (m.data.substr(7,3) == "~h~") {
+          socket_send(this, "h", m.data.substr(10));
+          return;
+        }
 
         var obj = message_parse(m)
-          , sock = this;
+          , sock = this
+          , fen = null;
 
-        if ((obj.color && obj.color == "w") || obj.fen) {
-          player.move( obj.fen
+        if ((obj.play && obj.color == "w") || obj.state) {
+          if (obj.play) {
+            fen = obj.states["c"].fen;
+          } else if (obj.state) {
+            fen = obj.state.fen;
+          }
+
+          player.move( fen
                       , function(from, to) {
                           setTimeout(socket_send, 2000 - (Math.floor(Math.random() * 1000)), sock, "j", move_message(from, to));
                           //socket_send(sock, "j", move_message(from, to));

@@ -45,20 +45,19 @@ socket.on("connection", function(client) {
 
     if (obj.action == "join") {
       var name = obj.data.name
-
         , data = bughouse.join(sid, name);
 
       if (data) {
-        var game = data.game
+        var gid = data.gid
           , opp_id = data.opp
           , opp = socket.getClient(opp_id)
           , color = data[sid]
           , opp_color = color == "w" ? "b" : "w";
 
-        log.info("user with name " + name + ", sid " + sid + " joined; assigned: " + color + "; oppnent: " + opp_id + " " + opp_color);
+        log.info("user with name " + name + ", sid " + sid + " joined; assigned: " + color + "; opponent: " + opp_id + " " + opp_color);
 
-        opp.send({gid: game, color: opp_color});
-        client.send({gid: game, color: color});
+        client.send({play: 1, gid: gid, color: color, states: data.states});
+        opp.send({play: 1, gid: gid, color: opp_color, states: data.states});
       } else {
         log.info("user with name " + name + " joined; held");
         client.send({hold: 1});
@@ -74,15 +73,17 @@ socket.on("connection", function(client) {
       bughouse.update(sid, from, to, function(data) {
         if (!data) return; // client disconnected during an update
 
-        var opp_id = data.opp_id
+        var gid = data.gid
+          , opp_id = data.opp_id
           , opp = socket.getClient(opp_id)
+          , state = data.state
           , watchers = data.watchers;
 
-        opp.send({gid: data.gid, fen: data.fen});
+        opp.send({state: state });
 
         for (var i = 0, l = watchers.length; i < l; i++) {
           var watcher = socket.getClient(watchers[i]);
-          if (watcher) watcher.send({gid: data.gid, fen: data.fen});
+          if (watcher) watcher.send({state: state});
         }
 
         log.info("recieved move from client with sid: " + sid + "; from " + from + " to " + to + "; opp " + opp_id);

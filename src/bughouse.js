@@ -21,18 +21,33 @@ var games = (function() {
 
   return {
     new : function(w, b) {
-      var gid = hash(w + b);
+      var gid = hash(w + b)
+        , hash_l = 6;
 
+      // shorten gid
+      while(nodes[gid.substring(0, hash_l)] > -1) hash_l++;
+      gid = gid.substring(0, hash_l);
+
+      // create game object in two parts for closure
       nodes[gid] = { next: null
                    , prev: null
-                   , data:
-                      { state: { private: { white: w, black: b, board: new board() }
-                               , public: { gid: gid, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: "", stash_b: "" }
-                               }
-                      , watchers: []
-                      }
+                   , state: { private: { white: w
+                                       , black: b
+                                       , board: new board()
+                                       , watchers: []
+                                       }
+                            , public: null
+                            }
                    };
+      nodes[gid].state.public = { gid: gid
+                                , fen: nodes[gid].state.private.board.get_fen()
+                                , b: clients[nodes[gid].state.private.black].name
+                                , w: clients[nodes[gid].state.private.white].name
+                                , s_w: nodes[gid].state.private.board.get_stash().w
+                                , s_b: nodes[gid].state.private.board.get_stash().b
+                                };
 
+      // structural changes
       if (length == 0) {
         head = nodes[gid];
         tail = nodes[gid];
@@ -42,7 +57,6 @@ var games = (function() {
 
         tail = nodes[gid];
       }
-
       length++;
 
       return gid;
@@ -70,11 +84,14 @@ var games = (function() {
       return nodes[gid];
     }
   , add_watcher : function(sid) {
-      if (head) head.data.watchers.push(sid);
+      if (head) head.state.private.watchers.push(sid);
 
-      log.debug("added watcher " + sid + " to game " + head.data.state.public.id);
+      log.debug("added watcher " + sid + " to game " + head.state.public.id);
 
-      return head.data.state.public.gid;
+      return head.state.public.gid;
+    }
+  , set_board : function(gid, board) {
+      nodes[gid].state.private.board = board;
     }
   , get_states : function(gid) {
       var node = nodes[gid]
@@ -82,17 +99,15 @@ var games = (function() {
 
       if (!node) return;
 
-      states["c"] = node.data.state.public;
+      states["c"] = node.state.public;
 
-      if (node.next) states["r"] = node.next.data.state.public;
-      else if (head) states["r"] = head.data.state.public;
-      else return;
+      if (node.next) states["r"] = node.next.state.public;
+      else if (head && head.state.public.gid != node.state.public.gid) states["r"] = head.state.public;
+      else states["r"] = null;
 
-      if (node.prev) states["l"] = node.prev.data.state.public;
-      else if (tail) states["l"] = tail.data.state.public;
-      else return;
-
-      // TODO: add names to states
+      if (node.prev) states["l"] = node.prev.state.public;
+      else if (tail && tail.state.public.gid != node.state.public.gid) states["l"] = tail.state.public;
+      else states["l"] = null;
 
       return states;
     }
@@ -102,17 +117,15 @@ var games = (function() {
 
       if (!node) return;
 
-      array_union(watchers, node.data.watchers);
+      array_union(watchers, node.state.private.watchers);
 
       // TODO: add adjacent players
 
-      if (node.next) array_union(watchers, node.next.data.watchers);
-      else if (head) array_union(watchers, head.data.watchers);
-      else return;
+      if (node.next) array_union(watchers, node.next.state.private.watchers);
+      else if (head) array_union(watchers, head.state.private.watchers);
 
-      if (node.prev) array_union(watchers, node.prev.data.watchers);
-      else if (tail) array_union(watchers, tail.data.watchers);
-      else return;
+      if (node.prev) array_union(watchers, node.prev.state.private.watchers);
+      else if (tail) array_union(watchers, tail.state.private.watchers);
 
       return watchers;
     }
@@ -136,13 +149,13 @@ exports.join = function(sid, name) {
     }
 
     var gid = (color == "w") ? games.new(sid, opp) : games.new(opp, sid);
-    clients[sid].gid = clients[opp].gid = gid;
 
-    log.info("game " + gid + " created for " + sid + " and " + opp);
-
-    ret.game = gid;
+    ret.gid = clients[sid].gid = clients[opp].gid = gid;
+    ret.states = games.get_states(gid);
     ret.opp = opp;
     ret[sid] = color;
+
+    log.info("game " + gid + " created for " + sid + " and " + opp);
 
     return ret;
   } else {
@@ -157,35 +170,24 @@ exports.update = function(sid, from, to, callback) {
 
   var gid = clients[sid].gid
     , node = games.get_node(gid)
-    , board = node.data.state.private.board;
+    , board = node.state.private.board;
 
-  board.update_state(from, to, function(message, captured) {
+  board.update_state(from, to, function(message) {
     // TODO: promotions
 
     if (message == "invalid") {
       log.info("client " + sid + " performed an invalid move; from: " + from + "; to: " + to + "; fen: " + board.get_fen());
-      //log.debug("piece at from was " + board.get_state()[from]);
       // TODO: handle invalid moves?
     } else if (message == "complete") {
-      // piece carry over
-      if (captured) {
-        var ascii = captured.charCodeAt(0)
-
-        if (ascii > 64 && ascii < 91) {
-          node.data.state.public.stash_b += captured;
-        } else if (ascii > 96 && ascii < 123) {
-          node.data.state.public.stash_w += captured;
-        }
-      }
-
-      var fen = node.data.state.public.fen = board.get_fen();
-
-      var w = node.data.state.private.white
-        , b = node.data.state.private.black
+      var w = node.state.private.white
+        , b = node.state.private.black
         , opp_id = (sid == w) ? b : w
-        , watchers = games.get_watchers(gid);
+        , watchers = games.get_watchers(gid)
 
-      callback({ gid: gid, opp_id: opp_id, watchers: watchers, fen: fen});
+      games.set_board(gid, board);
+      games.get_node(gid).state.public.fen = board.get_fen();
+
+      callback({ gid: gid, opp_id: opp_id, watchers: watchers, state: games.get_node(gid).state.public });
     }
   });
 }
@@ -199,7 +201,7 @@ exports.kibitz = function(sid, name) {
 
 exports.quit = function(sid) {
   var gid = clients[sid].gid
-    , data = null;
+    , ret = null;
 
   if (gid) {
     var opp_id = games.rm(gid);
@@ -207,12 +209,12 @@ exports.quit = function(sid) {
 
     // TODO: notify watchers
 
-    data = { game: gid, opp_id: opp_id };
+    ret = { game: gid, opp_id: opp_id };
   }
 
   client_count--;
 
-  return data;
+  return ret;
 }
 
   /////////////////////
