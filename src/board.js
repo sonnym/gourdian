@@ -1,4 +1,6 @@
 Board = function() {
+  DEBUG = false;
+
     ///////////////////////
    // private variables //
   ///////////////////////
@@ -42,6 +44,8 @@ Board = function() {
       , valid = valid_locations(from)
       , capture = (to != "");
 
+    if (DEBUG) console.log(from + " " + to + " " + piece + " " + valid);
+
     if (in_array(to, valid)) {
       // en passant
       if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
@@ -55,8 +59,12 @@ Board = function() {
           piece = new_piece;
           update_state(piece, from, to, capture, callback);
         });
-      } else update_state(piece, from, to, capture, callback);
-    } else callback("invalid");
+      } else {
+        update_state(piece, from, to, capture, callback);
+      }
+    } else {
+      callback("invalid");
+    }
   }
 
     /////////////////////
@@ -75,25 +83,27 @@ Board = function() {
 
     if (piece == "" || (turn == "w" && !in_array(piece, white_pieces)) || turn == "b" && !in_array(piece, black_pieces)) return [];
 
-    if (in_array(piece, ["P", "p"])) valid = pawn_check(start, piece, en_passant);
+    if (in_array(piece, ["P", "p"])) valid = pawn_check(turn, start, en_passant);
     else if (in_array(piece, ["B", "b"])) valid = mult_check(turn, start, [7, 9]);
     else if (in_array(piece, ["N", "n"])) obj_merge(valid, obj_merge(mult_check(turn, start, [6, 10], 1, 1), mult_check(turn, start, [15, 17], 1, 2)));
     else if (in_array(piece, ["R", "r"])) valid = mult_check(turn, start, [1, 8]);
     else if (in_array(piece, ["Q", "q"])) valid = mult_check(turn, start, [1, 7, 8, 9]);
     else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1, 7, 8, 9], 1);
 
+    if (DEBUG) console.log("valid from " + start + " where piece is " + piece + " is/are " + valid + "; fen:" + fen + ";state:" + state);
+
     return valid;
   }
 
   // handles edge cases for pawn movement
-  function pawn_check(start, piece, ep) {
+  function pawn_check(turn, start, ep) {
     var valid = [];
 
-    if (piece == "p") {
+    if (turn == "b") {
       var comp = function(a, b) { return parseInt(a) + parseInt(b); }
         , pieces = black_pieces
         , start_rank = [7, 16];
-    } else if (piece == "P") {
+    } else if (turn == "w") {
       var comp = function(a, b) { return a - b; }
         , pieces = white_pieces
         , start_rank = [47, 56];
@@ -124,25 +134,38 @@ Board = function() {
   // and cannot wrap around the board, except in the case of the knight which *must* appear to wrap into the next rank or the one after
   function mult_check(turn, start, distances, depth, wrap) {
     var valid = []
-      , iter = (start < 31) ? function(cur, dist) { return start + (dist * cur) < 64; } : function(cur, dist) { return start - (dist * cur) >= 0; };
+      , iter = (start < 32) ? function(cur, dist) { return start + (dist * cur) < 64 } : function(cur, dist) { return start - (dist * cur) >= 0 };
+
+    if (DEBUG) console.log("\n\nmulti_check start\n turn: " + turn + "; start: " + start + "; distances: " + distances + "; iter: " + iter + "; depth: " + depth + "; wrap: " + wrap);
 
     for (var d in distances) {
       var distance = distances[d]
         , blocked = [false, false]
         , current = 1;
 
+      if (DEBUG) console.log("  for; d: " + d + "; distance: " + distance + "; blocked: " + blocked + "; current: " + current);
+
       do {
-        // traversing an array; indices is literal
-        var indices = [start + (distance * current), start - (distance * current)]
-          , prev_indices = [start + (distance * (current - 1)), start - (distance * (current - 1))]; // do: [start, start]
+        // traversing an array; indices is literal; equidistant from start position; target locations
+        var indices = [parseInt(start) + parseInt((distance * current)), start - (distance * current)]
+          , prev_indices = [parseInt(start) + parseInt((distance * (current - 1))), start - (distance * (current - 1))]; // do: [start, start]
+
+        if (DEBUG) console.log("   (distance * current):" + (distance * current));
+        if (DEBUG) console.log("   do; indices: " + indices + "; prev_indices: " + prev_indices);
 
         for (var i in indices) {
           var index = indices[i]
             , prev_index = prev_indices[i];
 
+          if (DEBUG) console.log("    for; i: " + i + "; index: " + index + "; prev_index: " + prev_index);
+
           if (index < 64 && index >= 0 && !blocked[i]) {
+            if (DEBUG) console.log("     index < 64 && index >= 0 && !blocked[i])");
+
             // ensure minimum number of wraps => essential for knights
             if (wrap && Math.abs(position2row(prev_index) - position2row(index)) != wrap) continue;
+
+            if (DEBUG) console.log("     wrap && Math.abs(position2row(prev_index) - position2row(index)) == wrap");
 
             // distance == 8 => traversing board file; ignore wrapping conditions
             // distance == 1 => traversing board rank; check if rank switch occurs
@@ -152,6 +175,8 @@ Board = function() {
                            (Math.abs(position2col(prev_index) - position2col(index)) != 1 ||
                             Math.abs(position2row(prev_index) - position2row(index)) != 1))) blocked[i] = true;
 
+            if (DEBUG) console.log("     blocked[i]: " + blocked[i]);
+
             if (!blocked[i]) {
               var piece_in_target = state[index];
 
@@ -160,22 +185,26 @@ Board = function() {
                 // allow capture on first block if opposing piece in way
                 if (turn == "w" && in_array(piece_in_target, black_pieces) || turn == "b" && in_array(piece_in_target, white_pieces)) valid.push(index);
                 blocked[i] = true;
+
+                if (DEBUG) console.log("     if; piece_in_target;");
               }
             }
           }
         }
 
         current++;
-        prev_indices = indices;
-      } while(iter(current, distance) && (!depth || current <= depth))
+      } while((iter(current, distance) && (!depth || current <= depth)) || (blocked[0] && blocked[1]))
     }
 
+    if (DEBUG) console.log("multi_check end; turn: " + turn + "; start: " + start + "; distances: " + distances + "; valid: " + valid.toString());
     return valid;
   }
 
   // updates the state array and fen string
   function update_state(piece, from, to, capture, callback) {
     // relocate piece
+    var captured = capture ? state[to] : null;
+
     state[to] = piece;
     state[from] = "";
 
@@ -203,7 +232,7 @@ Board = function() {
 
     fen = fen_parts.join(" ");
 
-    callback("complete");
+    callback("complete", captured);
   }
 
   // fen conversions

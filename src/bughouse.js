@@ -27,7 +27,7 @@ var games = (function() {
                    , prev: null
                    , data:
                       { state: { private: { white: w, black: b, board: new board() }
-                               , public: { gid: gid, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: null, stash_b: null }
+                               , public: { gid: gid, fen: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", stash_w: "", stash_b: "" }
                                }
                       , watchers: []
                       }
@@ -159,20 +159,32 @@ exports.update = function(sid, from, to, callback) {
     , node = games.get_node(gid)
     , board = node.data.state.private.board;
 
-  board.update_state(from, to, function(message) {
+  board.update_state(from, to, function(message, captured) {
+    // TODO: promotions
+
     if (message == "invalid") {
       log.info("client " + sid + " performed an invalid move; from: " + from + "; to: " + to + "; fen: " + board.get_fen());
+      //log.debug("piece at from was " + board.get_state()[from]);
       // TODO: handle invalid moves?
     } else if (message == "complete") {
+      // piece carry over
+      if (captured) {
+        var ascii = captured.charCodeAt(0)
 
-      // TODO: promotions, carry over captured pieces
+        if (ascii > 64 && ascii < 91) {
+          node.data.state.public.stash_b += captured;
+        } else if (ascii > 96 && ascii < 123) {
+          node.data.state.public.stash_w += captured;
+        }
+      }
 
-      var fen = games.get_node(gid).data.state.public.fen = board.get_fen();
+      var fen = node.data.state.public.fen = board.get_fen();
 
-      var w = games.get_node(gid).data.state.private.white
-        , b = games.get_node(gid).data.state.private.black
+      var w = node.data.state.private.white
+        , b = node.data.state.private.black
         , opp_id = (sid == w) ? b : w
         , watchers = games.get_watchers(gid);
+
       callback({ gid: gid, opp_id: opp_id, watchers: watchers, fen: fen});
     }
   });

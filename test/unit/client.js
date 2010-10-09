@@ -126,7 +126,8 @@ exports.twenty_players_can_play = function() {
         if ((obj.color && obj.color == "w") || obj.fen) {
           player.move( obj.fen
                       , function(from, to) {
-                          setTimeout(socket_send, 2500 - (Math.floor(Math.random() * 1000)), sock, "j", move_message(from, to));
+                          setTimeout(socket_send, 2000 - (Math.floor(Math.random() * 1000)), sock, "j", move_message(from, to));
+                          //socket_send(sock, "j", move_message(from, to));
                         }
                       );
         }
