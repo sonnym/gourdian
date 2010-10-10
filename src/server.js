@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
   ///////////////
  // constants //
 ///////////////
@@ -8,10 +10,17 @@ PORT = 8124;
  // private variables //
 ///////////////////////
 
-var starttime = (new Date()).getTime()
-  , handler = require("./handler")
-  , log = require("./log")
+var fs = require("fs")
+  , repl = require("repl")
+  , starttime = (new Date()).getTime();
+
+// set cwd to file path
+var file = process.argv[1];
+process.chdir(file.substring(0, file.lastIndexOf("/")));
+
+var handler = require("./handler")
   , io = require("./lib/socket.io")
+  , log = require("./log")
 
   , bughouse = require("./bughouse");
 
@@ -101,3 +110,6 @@ socket.on("clientDisconnect", function(client) {
 
   // TODO: send resignation updates
 });
+
+
+repl.start("bugd> ");
