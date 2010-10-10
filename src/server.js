@@ -62,10 +62,6 @@ socket.on("connection", function(client) {
         log.info("user with name " + name + " joined; held");
         client.send({hold: 1});
       }
-    } else if (obj.action == "kibitz") {
-      var states = bughouse.kibitz(sid, obj.data.name);
-
-      client.send({ kibitz: 1, states: states });
     } else if (obj.action == "pos") {
       var from = obj.data.f
         , to = obj.data.t;
@@ -88,6 +84,14 @@ socket.on("connection", function(client) {
 
         log.info("recieved move from client with sid: " + sid + "; from " + from + " to " + to + "; opp " + opp_id);
       });
+    } else if (obj.action == "kibitz") {
+      var states = bughouse.kibitz(sid, obj.data.name);
+
+      client.send({ kibitz: 1, states: states });
+    } else if (obj.action == "rot") {
+      var data = bughouse.mv_watcher(sid, obj.t);
+
+      client.send({ rotate: 1, states: data.states });
     }
   });
 });

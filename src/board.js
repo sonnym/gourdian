@@ -317,8 +317,10 @@ Board = function() {
   function obj_merge(a, b) {
     for (var key in b) a[key] = b[key];
   }
-  
+
   fen2array();
 }
 
-if (exports) exports.Board = Board
+try {
+  exports.Board = Board
+} catch(e) { }

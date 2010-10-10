@@ -1,5 +1,5 @@
 var ib = (function() {
-  DEBUG = true;
+  DEBUG = false;
 
     ///////////////////////
    // private variables //
@@ -19,9 +19,9 @@ var ib = (function() {
                      , "p": "&#9823;"
                      }
     , pieces = {}
-    , boards = { "l" : { flipped: true, gid: null, obj: null, stash_b: "", stash_w: "" } // flipped with respect to fen
-               , "c" : { flipped: false, gid: null, obj: null, stash_b: "", stash_w: "" }
-               , "r" : { flipped: true, gid: null, obj: null, stash_b: "", stash_w: "" }
+    , boards = { "l" : { flipped: true, gid: null, obj: null, black: "", white: "", stash_b: "", stash_w: "" } // flipped with respect to fen
+               , "c" : { flipped: false, gid: null, obj: null, black: "", white: "", stash_b: "", stash_w: "" }
+               , "r" : { flipped: true, gid: null, obj: null, black: "", white: "", stash_b: "", stash_w: "" }
                }
     , name = null
     , color = null
@@ -59,6 +59,18 @@ var ib = (function() {
     }
   , redraw_boards : function() {
       draw_boards();
+    }
+  , head : function() {
+      rotate("h");
+    }
+  , prev : function() {
+      rotate("l");
+    }
+  , next : function() {
+      rotate("r");
+    }
+  , tail : function() {
+      rotate("t");
     }
   };
 
@@ -107,7 +119,7 @@ var ib = (function() {
             show_hold_dialog();
           }
 
-          // join response/color assignment
+          // join color assignment
           if (data.play) {
             color = data.color;
 
@@ -116,16 +128,36 @@ var ib = (function() {
               draw_boards();
             }
 
-            parse_states(data.states);
-
             var hold = $("#hold");
             hold.dialog("destroy");
             hold.addClass("hidden");
           }
 
-          // kibitz set up
+          // kibitz init
           if (data.kibitz) {
-            parse_states(data.states);
+            $("#kibitz").removeClass("hidden");
+          }
+
+          // join/kibitz/rotate states
+          if (data.states) {
+            for (var b in boards)
+              if (data.states[b]) {
+                boards[b].gid = data.states[b].gid;
+                boards[b].black = data.states[b].b;
+                boards[b].white = data.states[b].w;
+                boards[b].obj.set_stash("b", data.states[b].s_b);
+                boards[b].obj.set_stash("w", data.states[b].s_w);
+
+                boards[b].obj.set_fen(data.states[b].fen, function(message) {
+                  if (message == "converted") draw_board(b);
+
+                  if (data.rotate) ib.toggle_flip_board();
+                });
+              } else {
+                boards[b].gid = null
+                $("#" + b + " > .board").html("");
+                $("#" + b + " > .meta").addClass("hidden");
+              }
           }
 
           // position update
@@ -156,27 +188,27 @@ var ib = (function() {
                              });
   }
 
-  function parse_states(s) {
-    for (var b in boards) {
-      boards[b].gid = s[b].gid;
-      boards[b].obj.set_stash("w", s[b].s_w);
-      boards[b].obj.set_stash("b", s[b].s_b);
-
-      boards[b].obj.set_fen(s[b].fen, function(message) {
-        if (message == "converted") draw_board(b);
-      });
-    }
-  }
-
   // display functions
 
+  function show_hold_dialog() {
+    $("#hold").dialog({ autoOpen: true
+                      , closeText: ""
+                      , draggable: false
+                      , modal: true
+                      , title: "Please Hold"
+                      , open: function(event, ui) {
+                         $(this).removeClass("hidden");
+                        }
+                      });
+  }
+
   function draw_boards() {
-    for (var b in boards) draw_board(b);
+    for (var b in boards) if (boards[b].gid) draw_board(b);
   }
 
   function draw_board(b) {
     $("#" + b + " > .board").html(array2board(b));
-    $("#" + b + " > .meta").removeClass("hidden");
+    draw_meta(b);
 
     // no need for periphal boards to have draggable overhead . . .
     if (b != "c") return;
@@ -241,6 +273,24 @@ var ib = (function() {
     else return "<div class=\"square " + color + "\" id=\"" + id + "\"><div class=\"piece\">" + pieces[piece] + "<span class=\"hidden\">" + piece + "</span></div></div>";
   }
 
+  function draw_meta(b) {
+    var m = $("#" + b + " > .meta")
+      , m_f = m.first()
+      , m_l = m.last()
+      , board = boards[b];
+
+    m.removeClass("hidden");
+
+    if (boards[b].flipped) {
+    }
+  }
+
+  function rotate(to) {
+    socket.send({action: "rot", t: to});
+  }
+
+  // moving
+
   function display_moves(board, piece, method) {
     var piece_location = get_location_from_piece_div(board, piece)
       , valid = boards[board].obj.get_valid_locations(piece_location)
@@ -279,17 +329,7 @@ var ib = (function() {
                               );
   }
 
-  function show_hold_dialog() {
-    $("#hold").dialog({ autoOpen: true
-                      , closeText: ""
-                      , draggable: false
-                      , modal: true
-                      , title: "Please Hold"
-                      , open: function(event, ui) {
-                         $(this).removeClass("hidden");
-                        }
-                      });
-  }
+  // promotion
 
   function display_promotion_dialog(turn, callback) {
     $("#promotion").dialog({ autoOpen: true
@@ -328,6 +368,8 @@ var ib = (function() {
 
     return ret;
   }
+
+  // helpers
 
   function get_location_from_piece_div(board, d) {
     return parseInt(d.parent()[0].id.substring(board.length));

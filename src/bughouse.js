@@ -20,7 +20,7 @@ var games = (function() {
     , tail = null;
 
   return {
-    new : function(w, b) {
+    mk : function(w, b) {
       var gid = hash(w + b)
         , hash_l = 6;
 
@@ -31,6 +31,7 @@ var games = (function() {
       // create game object in two parts for closure
       nodes[gid] = { next: null
                    , prev: null
+                   , gid: gid
                    , state: { private: { white: w
                                        , black: b
                                        , board: new board()
@@ -84,11 +85,51 @@ var games = (function() {
       return nodes[gid];
     }
   , add_watcher : function(sid) {
-      if (head) head.state.private.watchers.push(sid);
+      if (head) {
+        head.state.private.watchers.push(sid);
 
-      log.debug("added watcher " + sid + " to game " + head.state.public.id);
+        log.debug("added watcher " + sid + "; game_id " + head.state.public.gid);
 
-      return head.state.public.gid;
+        return head.state.public.gid;
+      } else {
+        log.debug("added watcher " + sid + "; no games to watch");
+
+        return null
+      }
+    }
+  , mv_watcher : function(sid, from, to) {
+      var node = games.get_node(clients[sid].watch)
+        , watchers = node.state.private.watchers
+        , watcher_index = watchers.indexOf(sid)
+        , new_gid = null;
+
+      if (watcher_index > -1) node.state.private.watchers = watchers.splice(watcher_index, 1);
+
+      if (to == "h") {
+        head.state.private.watchers.push(sid);
+        new_gid = head.gid;
+      } else if (to == "l") {
+        if (node.prev) {
+          node.prev.state.private.watchers.push(sid);
+          new_gid = node.prev.gid;
+        } else {
+          tail.state.private.watchers.push(sid);
+          new_gid = tail.gid;
+        }
+      } else if (to == "r") {
+        if (node.next) {
+          node.next.state.private.watchers.push(sid);
+          new_gid = node.next.gid;
+        } else {
+          head.state.private.watchers.push(sid);
+          new_gid = head.gid;
+        }
+      } else if (to == "t") {
+        tail.state.private.watchers.push(sid);
+        new_gid = tail.gid;
+      }
+
+      return new_gid;
     }
   , set_board : function(gid, board) {
       nodes[gid].state.private.board = board;
@@ -102,11 +143,11 @@ var games = (function() {
       states["c"] = node.state.public;
 
       if (node.next) states["r"] = node.next.state.public;
-      else if (head && head.state.public.gid != node.state.public.gid) states["r"] = head.state.public;
+      else if (head && head.gid != node.gid && (node.prev && head.gid != node.prev.gid)) states["r"] = head.state.public;
       else states["r"] = null;
 
       if (node.prev) states["l"] = node.prev.state.public;
-      else if (tail && tail.state.public.gid != node.state.public.gid) states["l"] = tail.state.public;
+      else if (tail && tail.gid != node.gid && (node.next && tail.gid != node.next.gid)) states["l"] = tail.state.public;
       else states["l"] = null;
 
       return states;
@@ -148,7 +189,7 @@ exports.join = function(sid, name) {
       return;
     }
 
-    var gid = (color == "w") ? games.new(sid, opp) : games.new(opp, sid);
+    var gid = (color == "w") ? games.mk(sid, opp) : games.mk(opp, sid);
 
     ret.gid = clients[sid].gid = clients[opp].gid = gid;
     ret.states = games.get_states(gid);
@@ -193,14 +234,28 @@ exports.update = function(sid, from, to, callback) {
 }
 
 exports.kibitz = function(sid, name) {
-  add_client(sid, name);
   var gid = games.add_watcher(sid);
+
+  add_client(sid, name, gid);
 
   return games.get_states(gid);
 }
 
+exports.mv_watcher = function(sid, to) {
+  if (!clients[sid]) return;
+
+  var client = clients[sid]
+    , watch = clients[sid].watch
+    , new_gid = games.mv_watcher(sid, watch, to);
+
+  client.watch = new_gid;
+
+  return { states: games.get_states(new_gid) };
+}
+
 exports.quit = function(sid) {
   var gid = clients[sid].gid
+    , watch = clients[sid].gid
     , ret = null;
 
   if (gid) {
@@ -210,8 +265,12 @@ exports.quit = function(sid) {
     // TODO: notify watchers
 
     ret = { game: gid, opp_id: opp_id };
+  } else if (watch) {
+    var idx = games.get_node(watch).state.private.watchers.indexOf(sid);
+    if (idx > -1) games.get_node(gid).state.private.watchers = games.get_node(gid).watchers.splice(idx, 1);
   }
 
+  delete clients[sid];
   client_count--;
 
   return ret;
@@ -220,16 +279,14 @@ exports.quit = function(sid) {
   /////////////////////
  // private methods //
 /////////////////////
-function add_client(sid, name) {
+function add_client(sid, name, watch) {
   if (clients[sid]) return;
 
   clients[sid] = { name: name };
-  client_count++;
-}
 
-function rm_client(sid) {
-  delete clients[sid];
-  client_count--;
+  if (watch) clients[sid].watch = watch;
+
+  client_count++;
 }
 
 function array_union(a1, a2) {
