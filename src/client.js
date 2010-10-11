@@ -145,8 +145,8 @@ var ib = (function() {
                 boards[b].gid = data.states[b].gid;
                 boards[b].black = data.states[b].b;
                 boards[b].white = data.states[b].w;
-                boards[b].obj.set_stash("b", data.states[b].s_b);
-                boards[b].obj.set_stash("w", data.states[b].s_w);
+                boards[b].stash_b = data.states[b].s_b;
+                boards[b].stash_w = data.states[b].s_w;
 
                 boards[b].obj.set_fen(data.states[b].fen, function(message) {
                   if (message == "converted") draw_board(b);
@@ -277,11 +277,17 @@ var ib = (function() {
     var m = $("#" + b + " > .meta")
       , m_f = m.first()
       , m_l = m.last()
-      , board = boards[b];
+      , board = boards[b]
+      , message = function(player, stash) { return '<span>' + escape(player) + '</span><span class="stash">' + stash + '</span>'};
 
     m.removeClass("hidden");
 
     if (boards[b].flipped) {
+      m_f.html(message(board.black, board.stash_b));
+      m_l.html(message(board.white, board.stash_w));
+    } else {
+      m_f.html(message(board.white, board.stash_w));
+      m_l.html(message(board.black, board.stash_b));
     }
   }
 

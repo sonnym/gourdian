@@ -44,8 +44,8 @@ var games = (function() {
                                 , fen: nodes[gid].state.private.board.get_fen()
                                 , b: clients[nodes[gid].state.private.black].name
                                 , w: clients[nodes[gid].state.private.white].name
-                                , s_w: nodes[gid].state.private.board.get_stash().w
-                                , s_b: nodes[gid].state.private.board.get_stash().b
+                                , s_w: ""
+                                , s_b: ""
                                 };
 
       // structural changes
@@ -84,6 +84,11 @@ var games = (function() {
   , get_node : function(gid) {
       return nodes[gid];
     }
+  , get_position : function(gid) {
+      if (nodes[gid].prev) return this.get_position(nodes[gid].prev.gid) + 1;
+      else return 1;
+    }
+
   , add_watcher : function(sid) {
       if (head) {
         head.state.private.watchers.push(sid);
@@ -131,8 +136,30 @@ var games = (function() {
 
       return new_gid;
     }
+
   , set_board : function(gid, board) {
       nodes[gid].state.private.board = board;
+    }
+  , carry_over : function(gid, piece) {
+      var ascii = piece.charCodeAt(0)
+        , node = nodes[gid]
+        , to_gid;
+
+      if (node.next) {
+        to_node = node.next;
+      } else if (head.gid != gid) {
+        to_node = head;
+      }
+
+      if (to_node) {
+        if (ascii > 64 && ascii < 91) {
+          to_node.state.public.s_w += piece;
+        } else if (ascii > 96 && ascii < 123) {
+          to_node.state.public.s_b += piece;
+        }
+      } else {
+        log.debug("piece captured in game " + gid + "; failed to find destination game");
+      }
     }
   , get_states : function(gid) {
       var node = nodes[gid]
@@ -213,7 +240,7 @@ exports.update = function(sid, from, to, callback) {
     , node = games.get_node(gid)
     , board = node.state.private.board;
 
-  board.update_state(from, to, function(message) {
+  board.update_state(from, to, function(message, captured) {
     // TODO: promotions
 
     if (message == "invalid") {
@@ -224,6 +251,10 @@ exports.update = function(sid, from, to, callback) {
         , b = node.state.private.black
         , opp_id = (sid == w) ? b : w
         , watchers = games.get_watchers(gid)
+
+      if (captured) {
+        games.carry_over(gid, captured);
+      }
 
       games.set_board(gid, board);
       games.get_node(gid).state.public.fen = board.get_fen();

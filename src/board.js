@@ -8,8 +8,7 @@ Board = function() {
     , black_pieces = ["k", "q", "r", "b", "n", "p"]
 
     , fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    , state = []
-    , stash = {w: "", b: ""};
+    , state = [];
 
     ////////////////////////
    // privileged methods //
@@ -35,13 +34,6 @@ Board = function() {
   }
   this.get_state = function() {
     return state;
-  }
-  this.get_stash = function() {
-    return stash;
-  }
-  this.set_stash = function(c, s) {
-    if (c == "w") stash.w = s;
-    else if (c == "b") stash.b = s;
   }
   this.get_turn = function() {
     return fen.split(" ")[1];
@@ -210,17 +202,10 @@ Board = function() {
 
   // updates the state array and fen string
   function update_state(piece, from, to, capture, callback) {
-    // stash storage
-    if (capture) {
-      var c_piece = state[to]
-        , ascii = c_piece.charCodeAt(0)
-      if (ascii > 64 && ascii < 91) {
-        stash.b += c_piece;
-      } else if (ascii > 96 && ascii < 123) {
-        stash.w += c_piece;
-      }
-    }
+    // save captured piece for later
+    var captured = (capture) ? state[to] : null;
 
+    // stash storage
     state[to] = piece;
     state[from] = "";
 
@@ -248,7 +233,7 @@ Board = function() {
 
     fen = fen_parts.join(" ");
 
-    callback("complete");
+    callback("complete", captured);
   }
 
   // fen conversions

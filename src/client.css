@@ -91,6 +91,9 @@ input[type=text] {
 .meta {
   margin: 5px 0px;
 }
+.stash {
+  float: right;
+}
 
 .square {
   float: left;
