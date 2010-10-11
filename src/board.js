@@ -111,7 +111,7 @@ Board = function() {
 
     // forward movement
     if (!state[comp(start, 8)]) valid.push(comp(start, 8));
-    if (start > start_rank[0] && start < start_rank[1] && !state[comp(start, 16)]) valid.push(comp(start, 16));
+    if (start > start_rank[0] && start < start_rank[1] && !state[comp(start, 8)] && !state[comp(start, 16)]) valid.push(comp(start, 16));
 
     // capture
     if (state[comp(start, 7)] && !in_array(state[comp(start, 7)], pieces) && Math.abs(position2row(start) - position2row(comp(start, 7))) == 1) valid.push(comp(start, 7));
@@ -288,7 +288,7 @@ Board = function() {
   }
 
   function square2position(s) {
-    return ((parseInt(s.charAt(1)) - 1) * 8) + (s.charCodeAt(0) - 97)
+    return ((8 - parseInt(s.charAt(1))) * 8) + (s.charCodeAt(0) - 97)
   }
 
    // etc

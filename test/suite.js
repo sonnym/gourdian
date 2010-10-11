@@ -34,7 +34,7 @@
             pass();
           } catch(e) {
             if (e.name && e.name == "AssertionError") {
-              messages.push(test_name + " failed; " + e.expected + " " + e.operator + " " + e.actual);
+              messages.push(test_name + " failed; expected: " + e.expected + "; actual: " + e.actual + "; operator: " + e.operator);
               fail();
             } else {
               messages.push(test_name + " error; " + e.message);
@@ -45,7 +45,9 @@
         }
       }
 
-      if (messages.length > 0) console.log("\n\n" + messages.join("\n\n"));
+      console.log();
+
+      if (messages.length > 0) console.log("\n" + messages.join("\n\n"));
     });
   }
 })();
