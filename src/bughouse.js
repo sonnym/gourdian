@@ -153,9 +153,9 @@ var games = (function() {
 
       if (to_node) {
         if (ascii > 64 && ascii < 91) {
-          to_node.state.public.s_w += piece;
-        } else if (ascii > 96 && ascii < 123) {
           to_node.state.public.s_b += piece;
+        } else if (ascii > 96 && ascii < 123) {
+          to_node.state.public.s_w += piece;
         }
       } else {
         log.debug("piece captured in game " + gid + "; failed to find destination game");

@@ -39,7 +39,15 @@
    	 <a class="awesome blue large" onclick="ib.next()">&rarr;</a>
    	 <a class="awesome blue large" onclick="ib.tail()">&#x21ac;</a>
    	</div>
-   	<div id="play"></div>
+   	<div id="play" class="hidden">
+     <label>
+       Show Moves
+       <input type="checkbox" onchange="ib.toggle_show_moves(this.checked);" checked>
+     </label>
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     <a class="awesome blue" onclick="ib.toggle_flip_board();">Flip Boards</a>
+     <a class="awesome blue" onclick="ib.redraw_boards();">Redraw Boards</a>
+   	</div>
    </div>
    <div id="games">
     <div id="l">
@@ -50,17 +58,7 @@
     <div id="c">
      <div class="meta hidden"></div>
      <div class="board"></div>
-     <div class="meta hidden">
-      <div class="options">
-        <label>
-          Show Moves
-          <input type="checkbox" onchange="ib.toggle_show_moves(this.checked);" checked>
-        </label>
-        <br>
-        <a href="#" onclick="ib.toggle_flip_board();">Flip boards</a> | 
-        <a href="#" onclick="ib.redraw_boards();">Redraw boards</a>
-      </div>
-     </div>
+     <div class="meta hidden"></div>
     </div>
     <div id="r">
      <div class="meta hidden"></div>

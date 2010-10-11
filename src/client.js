@@ -131,6 +131,8 @@ var ib = (function() {
             var hold = $("#hold");
             hold.dialog("destroy");
             hold.addClass("hidden");
+
+            $("#play").removeClass("hidden");
           }
 
           // kibitz init
@@ -278,17 +280,34 @@ var ib = (function() {
       , m_f = m.first()
       , m_l = m.last()
       , board = boards[b]
-      , message = function(player, stash) { return '<span>' + escape(player) + '</span><span class="stash">' + stash + '</span>'};
+      , message = function(player, stash) { return '<span>' + escape(player) + '</span><span class="stash">' + stash + '</span>'}
+      , precedence = ["P", "B", "N", "Q"]
+      , stash_w = stash_b = "";
 
-    m.removeClass("hidden");
+    for (var i = 0, l = precedence.length; i < l; i++) {
+      var piece_b = precedence[i]
+        , piece_w = String.fromCharCode(parseInt(piece_b.charCodeAt(0)) + 32)
+        , re_b = new RegExp(piece_b, "g")
+        , re_w = new RegExp(piece_w, "g")
+        , match_b = board.stash_b.match(re_b)
+        , match_w = board.stash_w.match(re_w);
+
+      if (match_b) {
+        console.log("match_b was not null");
+        for (var j = 0, l_j = match_b.length; j < l_j; j++) stash_b += pieces[piece_b];
+      }
+      if (match_w) for (var k = 0, l_k = match_w.length; k < l_k; k++) stash_w += pieces[piece_w];
+    }
 
     if (boards[b].flipped) {
-      m_f.html(message(board.black, board.stash_b));
-      m_l.html(message(board.white, board.stash_w));
+      m_f.html(message(board.black, stash_b));
+      m_l.html(message(board.white, stash_w));
     } else {
-      m_f.html(message(board.white, board.stash_w));
-      m_l.html(message(board.black, board.stash_b));
+      m_f.html(message(board.white, stash_w));
+      m_l.html(message(board.black, stash_b));
     }
+
+    m.removeClass("hidden");
   }
 
   function rotate(to) {
