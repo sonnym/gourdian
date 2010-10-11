@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // was uninspired by the offerings
 (function() {
   var fs = require("fs")
