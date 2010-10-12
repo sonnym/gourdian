@@ -31,6 +31,7 @@ input[type=text] {
   border: solid 4px #979452;
   border-radius: 40px;
   -moz-border-radius: 40px;
+  -webkit-border-radius: 40px;
   padding: 20px;
 
   z-index: 3;
@@ -152,6 +153,7 @@ input[type=text] {
   border: solid 2px #979452;
   border-radius: 20px;
   -moz-border-radius: 20px;
+  -webkit-border-radius: 20px;
 
   padding: 10px 20px;
 }
