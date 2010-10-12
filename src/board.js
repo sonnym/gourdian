@@ -51,7 +51,7 @@ Board = function() {
       if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
         if (from > to) state[to + 8] = "";
         else if (from < to) state[to - 8] = "";
-      } 
+      }
 
       // pawn promotion
       if ((piece == "p" && to > 55 && from < 64) || (piece == "P" && to >= 0 && to < 8)) {
@@ -90,7 +90,7 @@ Board = function() {
     else if (in_array(piece, ["Q", "q"])) valid = mult_check(turn, start, [1, 7, 8, 9]);
     else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1, 7, 8, 9], 1);
 
-    if (DEBUG) console.log("valid from " + start + " where piece is " + piece + " is/are " + valid + "; fen:" + fen + ";state:" + state);
+    if (DEBUG) console.log("valid from " + start + " where piece is " + piece + " is/are " + valid + "; fen:" + fen + "; state:" + state);
 
     return valid;
   }
@@ -136,7 +136,7 @@ Board = function() {
     var valid = []
       , iter = (start < 32) ? function(cur, dist) { return start + (dist * cur) < 64 } : function(cur, dist) { return start - (dist * cur) >= 0 };
 
-    if (DEBUG) console.log("\n\nmulti_check start\n turn: " + turn + "; start: " + start + "; distances: " + distances + "; iter: " + iter + "; depth: " + depth + "; wrap: " + wrap);
+    if (DEBUG) console.log("\n\nmult_check start\n turn: " + turn + "; start: " + start + "; distances: " + distances + "; iter: " + iter + "; depth: " + depth + "; wrap: " + wrap);
 
     for (var d in distances) {
       var distance = distances[d]
@@ -193,10 +193,10 @@ Board = function() {
         }
 
         current++;
-      } while(iter(current, distance) && (!depth || current <= depth) && (blocked[0] || blocked[1]))
+      } while(iter(current, distance) && (!depth || current <= depth) && !(blocked[0] && blocked[1]))
     }
 
-    if (DEBUG) console.log("multi_check end; turn: " + turn + "; start: " + start + "; distances: " + distances + "; valid: " + valid.toString());
+    if (DEBUG) console.log("mult_check end; turn: " + turn + "; start: " + start + "; distances: " + distances + "; valid: " + valid.toString());
     return valid;
   }
 

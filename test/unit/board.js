@@ -16,10 +16,13 @@ exports.pawn_moves = function() {
 }
 
 exports.bishop_moves = function() {
-  test_board.set_position("3BB3/8/4K3/8/4k3/8/8/3bb3 w - - 0 1");
+  test_board.set_position("3BB3/8/4K3/8/4k3/8/8/8 w - - 0 1");
 
   assert.equal(test_board.get_valid_locations(3).length, 7);
   assert.equal(test_board.get_valid_locations(4).length, 7);
+
+  test_board.set_position("8/8/4K3/8/4k3/8/8/3bb3 b - - 0 1");
+
   assert.equal(test_board.get_valid_locations(59).length, 7);
   assert.equal(test_board.get_valid_locations(60).length, 7);
 }
