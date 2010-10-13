@@ -1,4 +1,5 @@
 body {
+  z-index: 0;
   padding: 0px;
   background: #041410;
   color: #979564;
@@ -103,9 +104,12 @@ input[type=text] {
   text-align: center;
 }
 
+.under {
+  z-index: -1;
+}
+
 #c .board .square {
   width: 12%;
-  font-size: 34pt;
 }
 
 #l .board, #r .board {
@@ -115,7 +119,6 @@ input[type=text] {
 
 #l .board .square, #r .board .square {
   width: 11%;
-  font-size: 28pt;
 }
 
 #c .meta { width: 86%; }

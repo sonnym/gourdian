@@ -92,6 +92,8 @@ var ib = (function() {
 
     $.extend(pieces, black_pieces, white_pieces, {"": "&nbsp;"});
 
+    squarify();
+
     // board is required first
     load_js("board.js", function() {
       // create and display
@@ -177,12 +179,47 @@ var ib = (function() {
     });
   }
 
+  function squarify() {
+    var data_lr = squarify_helper("l")
+      , data_c = squarify_helper("c");
+
+    var style = document.createElement("style");
+    style.setAttribute("type", "text/css");
+    style.innerText = "#l .board .square, #r .board .square { height: " + data_lr[0] + "px; font-size: " + data_lr[1] + "px; } #c .board .square { height: " + data_c[0] + "px; font-size: " + data_c[1] + "px; }";
+
+    $("head").append(style);
+  }
+
+  function squarify_helper(board) {
+    var square = document.createElement("div");
+    square.setAttribute("id", "calc_square");
+    square.setAttribute("class", "square under")
+    square.innerHTML = "<div class=\"piece\">" + pieces["b"] + "</div>";
+
+    $("#" + board + " > .board").append(square);
+
+    var square_obj = $("#calc_square")
+      , piece = square_obj.children(":first-child")
+      , size_str = piece.css("font-size")
+      , size = parseInt(size_str.substring(0, size_str.length - 2))
+      , width = square_obj.width();
+
+    for (; square_obj.height() < width && piece.height() <= square_obj.height(); size++) {
+      piece.css("font-size", size + "px");
+    }
+
+    square_obj.remove();
+
+    return [width, size];
+  }
+
   function load_js(file, callback) {
     if (DEBUG) {
-      var f = document.createElement("script");
-      f.setAttribute("type","text/javascript");
-      f.setAttribute("src", file);
-      document.getElementsByTagName("head")[0].appendChild(f)
+      var script = document.createElement("script");
+      script.setAttribute("type", "text/javascript");
+      script.setAttribute("src", file);
+
+      $("head").append(script)
 
       if (callback) setTimeout(callback, 1000);
     } else $.getScript(file, function(data, textStatus) {
@@ -292,10 +329,7 @@ var ib = (function() {
         , match_b = board.stash_b.match(re_b)
         , match_w = board.stash_w.match(re_w);
 
-      if (match_b) {
-        console.log("match_b was not null");
-        for (var j = 0, l_j = match_b.length; j < l_j; j++) stash_b += pieces[piece_b];
-      }
+      if (match_b) for (var j = 0, l_j = match_b.length; j < l_j; j++) stash_b += pieces[piece_b];
       if (match_w) for (var k = 0, l_k = match_w.length; k < l_k; k++) stash_w += pieces[piece_w];
     }
 
