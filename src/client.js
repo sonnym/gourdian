@@ -377,11 +377,12 @@ var ib = (function() {
     }
   }
 
-  function register_move(b, from, to, t) {
+  function register_move(b, from, to_square, turn) {
+    var to = parseInt(to_square.attr("id").substring(1));
     boards[b].obj.update_state( from
-                              , parseInt(to.attr("id").substring(b.length))
+                              , to
                               , function(message, callback) {
-                                  if (message == "promote") display_promotion_dialog(t, callback);
+                                  if (message == "promote") display_promotion_dialog(turn, callback);
                                   else if (message == "complete") {
                                     draw_board(b);
                                     socket.send({ action: "pos", data: { f: from, t: to } });
