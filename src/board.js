@@ -1,6 +1,4 @@
 Board = function() {
-  DEBUG = false;
-
     ///////////////////////
    // private variables //
   ///////////////////////
@@ -43,8 +41,6 @@ Board = function() {
     var piece = state[from]
       , valid = valid_locations(from)
       , capture = (to != "");
-
-    if (DEBUG) console.log(from + " " + to + " " + piece + " " + valid);
 
     if (in_array(to, valid)) {
       // en passant
@@ -90,8 +86,6 @@ Board = function() {
     else if (in_array(piece, ["Q", "q"])) valid = mult_check(turn, start, [1], 0).concat(mult_check(turn, start, [7, 8, 9], 1));
     else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1], 0, 1).concat(mult_check(turn, start, [7, 8, 9], 1, 1));
 
-    if (DEBUG) console.log("valid from " + start + " where piece is " + piece + " is/are " + valid + "; fen:" + fen + "; state:" + state);
-
     return valid;
   }
 
@@ -136,37 +130,24 @@ Board = function() {
     var valid = []
       , iter = (start < 32) ? function(cur, dist) { return start + (dist * cur) < 64 } : function(cur, dist) { return start - (dist * cur) >= 0 };
 
-    if (DEBUG) console.log("\n\nmult_check start\n turn: " + turn + "; start: " + start + "; distances: " + distances + "; iter: " + iter + "; depth: " + depth + "; wrap: " + wrap);
-
     for (var d in distances) {
       var distance = distances[d]
         , blocked = [false, false]
         , current = 1;
-
-      if (DEBUG) console.log("  for; d: " + d + "; distance: " + distance + "; blocked: " + blocked + "; current: " + current);
 
       do {
         // traversing an array; indices is literal; equidistant from start position; target locations
         var indices = [parseInt(start) + parseInt((distance * current)), start - (distance * current)]
           , prev_indices = [parseInt(start) + parseInt((distance * (current - 1))), start - (distance * (current - 1))]; // do: [start, start]
 
-        if (DEBUG) console.log("   (distance * current):" + (distance * current));
-        if (DEBUG) console.log("   do; indices: " + indices + "; prev_indices: " + prev_indices);
-
         for (var i in indices) {
           var index = indices[i]
             , prev_index = prev_indices[i]
             , row_diff = Math.abs(position2row(prev_index) - position2row(index));
 
-          if (DEBUG) console.log("    for; i: " + i + "; index: " + index + "; prev_index: " + prev_index + "; row_diff: " + row_diff);
-
           if (index < 64 && index >= 0 && !blocked[i]) {
-            if (DEBUG) console.log("     index < 64 && index >= 0 && !blocked[i])");
-
             // if exact number of wraps is not met, ignore location (accounts for edge wrapping and knight minimums)
             if (row_diff != wrap) blocked[i] = true;
-
-            if (DEBUG) console.log("     blocked[i]: " + blocked[i]);
 
             if (!blocked[i]) {
               var piece_in_target = state[index];
@@ -176,8 +157,6 @@ Board = function() {
                 // allow capture on first block if opposing piece in way
                 if (turn == "w" && in_array(piece_in_target, black_pieces) || turn == "b" && in_array(piece_in_target, white_pieces)) valid.push(index);
                 blocked[i] = true;
-
-                if (DEBUG) console.log("     if; piece_in_target;");
               }
             }
           }
@@ -187,7 +166,6 @@ Board = function() {
       } while(iter(current, distance) && (!depth || current <= depth) && !(blocked[0] && blocked[1]))
     }
 
-    if (DEBUG) console.log("mult_check end; turn: " + turn + "; start: " + start + "; distances: " + distances + "; valid: " + valid.toString());
     return valid;
   }
 

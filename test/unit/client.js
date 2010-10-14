@@ -108,7 +108,6 @@ exports.two_players_can_play_a_game = function() {
 }
 
 exports.twenty_players_can_play = function() {
-  /*
   var clients = [];
 
   while (clients.length < 20) {
@@ -145,7 +144,6 @@ exports.twenty_players_can_play = function() {
       }
     }(clients.length));
   }
-  */
 }
 
 // helpers
