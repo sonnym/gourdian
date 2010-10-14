@@ -84,11 +84,11 @@ Board = function() {
     if (piece == "" || (turn == "w" && !in_array(piece, white_pieces)) || turn == "b" && !in_array(piece, black_pieces)) return [];
 
     if (in_array(piece, ["P", "p"])) valid = pawn_check(turn, start, en_passant);
-    else if (in_array(piece, ["B", "b"])) valid = mult_check(turn, start, [7, 9]);
-    else if (in_array(piece, ["N", "n"])) obj_merge(valid, obj_merge(mult_check(turn, start, [6, 10], 1, 1), mult_check(turn, start, [15, 17], 1, 2)));
-    else if (in_array(piece, ["R", "r"])) valid = mult_check(turn, start, [1, 8]);
-    else if (in_array(piece, ["Q", "q"])) valid = mult_check(turn, start, [1, 7, 8, 9]);
-    else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1, 7, 8, 9], 1);
+    else if (in_array(piece, ["N", "n"])) valid = mult_check(turn, start, [6, 10], 1, 1).concat(mult_check(turn, start, [15, 17], 2, 1));
+    else if (in_array(piece, ["B", "b"])) valid = mult_check(turn, start, [7, 9], 1);
+    else if (in_array(piece, ["R", "r"])) valid = mult_check(turn, start, [1], 0).concat(mult_check(turn, start, [8], 1));
+    else if (in_array(piece, ["Q", "q"])) valid = mult_check(turn, start, [1], 0).concat(mult_check(turn, start, [7, 8, 9], 1));
+    else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1], 0, 1).concat(mult_check(turn, start, [7, 8, 9], 1, 1));
 
     if (DEBUG) console.log("valid from " + start + " where piece is " + piece + " is/are " + valid + "; fen:" + fen + "; state:" + state);
 
@@ -132,7 +132,7 @@ Board = function() {
   //
   // the main idea here is:  when numbering the pieces of a chess board from 0 to 63, all pieces move multiples of certain integers from their starting position,
   // and cannot wrap around the board, except in the case of the knight which *must* appear to wrap into the next rank or the one after
-  function mult_check(turn, start, distances, depth, wrap) {
+  function mult_check(turn, start, distances, wrap, depth) {
     var valid = []
       , iter = (start < 32) ? function(cur, dist) { return start + (dist * cur) < 64 } : function(cur, dist) { return start - (dist * cur) >= 0 };
 
@@ -155,25 +155,16 @@ Board = function() {
 
         for (var i in indices) {
           var index = indices[i]
-            , prev_index = prev_indices[i];
+            , prev_index = prev_indices[i]
+            , row_diff = Math.abs(position2row(prev_index) - position2row(index));
 
-          if (DEBUG) console.log("    for; i: " + i + "; index: " + index + "; prev_index: " + prev_index);
+          if (DEBUG) console.log("    for; i: " + i + "; index: " + index + "; prev_index: " + prev_index + "; row_diff: " + row_diff);
 
           if (index < 64 && index >= 0 && !blocked[i]) {
             if (DEBUG) console.log("     index < 64 && index >= 0 && !blocked[i])");
 
-            // ensure minimum number of wraps => essential for knights
-            if (wrap && Math.abs(position2row(prev_index) - position2row(index)) != wrap) continue;
-
-            if (DEBUG) console.log("     wrap && Math.abs(position2row(prev_index) - position2row(index)) == wrap");
-
-            // distance == 8 => traversing board file; ignore wrapping conditions
-            // distance == 1 => traversing board rank; check if rank switch occurs
-            // for other pieces (moving diagonally); ensure moving by one in each row and col
-            if (!wrap && distance != 8 &&
-                          ((distance == 1 && position2row(start) - position2row(index) != 0) ||
-                           (Math.abs(position2col(prev_index) - position2col(index)) != 1 ||
-                            Math.abs(position2row(prev_index) - position2row(index)) != 1))) blocked[i] = true;
+            // if exact number of wraps is not met, ignore location (accounts for edge wrapping and knight minimums)
+            if (row_diff != wrap) blocked[i] = true;
 
             if (DEBUG) console.log("     blocked[i]: " + blocked[i]);
 
@@ -297,10 +288,6 @@ Board = function() {
       if (haystack[i] == needle) return true;
     }
     return false;
-  }
-
-  function obj_merge(a, b) {
-    for (var key in b) a[key] = b[key];
   }
 
   fen2array();

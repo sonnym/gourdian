@@ -15,10 +15,18 @@ exports.pawn_moves = function() {
   assert.equal(test_board.get_valid_locations(30).length, 2);
 }
 
+exports.knight_moves = function() {
+  test_board.set_position("7k/8/8/8/8/8/8/1N5K w - - 0 1");
+  assert.deepEqual(test_board.get_valid_locations(57).sort(), [40, 42, 51]);
+
+  test_board.set_position("7k/8/8/8/N7/8/8/7K w - - 0 1");
+  assert.deepEqual(test_board.get_valid_locations(32).sort(), [17, 26, 42, 49]);
+}
+
 exports.bishop_moves = function() {
   test_board.set_position("3BB3/8/4K3/8/4k3/8/8/8 w - - 0 1");
 
-  assert.equal(test_board.get_valid_locations(3).length, 7);
+  assert.deepEqual(test_board.get_valid_locations(3).sort(), [10, 12, 17, 21, 24, 30, 39]);
   assert.equal(test_board.get_valid_locations(4).length, 7);
 
   test_board.set_position("8/8/4K3/8/4k3/8/8/3bb3 b - - 0 1");
@@ -41,7 +49,8 @@ exports.queen_moves = function() {
 
 exports.king_moves = function() {
   test_board.set_position("8/8/1K6/8/4k3/8/8/8 w - - 0 1");
-
   assert.equal(test_board.get_valid_locations(17).length, 8);
+
+  test_board.set_position("8/8/1K6/8/4k3/8/8/8 b - - 0 1");
   assert.equal(test_board.get_valid_locations(36).length, 8);
 }
