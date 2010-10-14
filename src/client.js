@@ -126,13 +126,15 @@ var ib = (function() {
             color = data.color;
 
             if (data.color == "b") {
-              toggle_flip_board();
+              ib.toggle_flip_board();
               draw_boards();
             }
 
             var hold = $("#hold");
-            hold.dialog("destroy");
-            hold.addClass("hidden");
+            if (hold.hasClass("ui-dialog-content")) { // prevent exception when trying to destroy uninitialized dialog
+              hold.dialog("destroy");
+              hold.addClass("hidden");
+            }
 
             $("#play").removeClass("hidden");
           }
