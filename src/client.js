@@ -256,8 +256,8 @@ var ib = (function() {
 
     var pieces = $("#" + b + " > .board > .square > .piece")
     pieces.each(function(i, e) {
-      // . . . or when on hold or for oponent's pieces or when it is opponent's turn
-      if (get_color_from_piece_div($(pieces[i])) == color && color == boards["c"].obj.get_turn) {
+      // . . . or for oponent's pieces or when it is opponent's turn
+      if (get_color_from_piece_div($(pieces[i])) == color && color == boards["c"].obj.get_turn()) {
         $(this).draggable({ revert: "invalid"
                            , start: function(event, ui) {
                                $(".ui-droppable").droppable("destroy");
