@@ -80,8 +80,7 @@ Board = function() {
 
     } else if (in_array(piece, ["N", "n"])) {
       if (check_for_check) {
-        var test_state = state
-          , all_valid = [];
+        var test_state = state;
         test_state[start] = "";  // knight opens all lines through a point
 
         if (is_state_check(test_state, turn)) {
@@ -99,8 +98,18 @@ Board = function() {
 
     } else if (in_array(piece, ["Q", "q"])) {
       return mult_check(state, turn, start, [1], 0).concat(mult_check(state, turn, start, [7, 8, 9], 1));
+
     } else if (in_array(piece, ["K", "k"])) {
-      return mult_check(state, turn, start, [1], 0, 1).concat(mult_check(state, turn, start, [7, 8, 9], 1, 1));
+      var gross_valid = mult_check(state, turn, start, [1], 0, 1).concat(mult_check(state, turn, start, [7, 8, 9], 1, 1))
+        , next_turn = (turn == "w") ? "b" : "w"
+        , valid = [];
+
+      for (var i = 0, l = gross_valid.length; i < l; i++) {
+        if (!in_array, valid_locations(fen + " " + (turn == "w" ? "b" : "w"))) {
+          valid.push(gross_valid[i]);
+        }
+      }
+      return valid;
     }
   }
 

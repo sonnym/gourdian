@@ -15,6 +15,8 @@
     , pass = function() { sys.print("\x1B[1;32mP\x1B[0m") }
     , fail = function() { sys.print("\x1B[1;31mF\x1B[0m") }
 
+    , count_e = count_p = count_f = 0
+
     , messages = [];
 
   for (var d = 0, l_d = assertion_dirs.length; d < l_d; d++) {
@@ -32,13 +34,16 @@
           try {
             test_file[test_name]();
             pass();
+            count_p++;
           } catch(e) {
             if (e.name && e.name == "AssertionError") {
               messages.push(test_name + " failed; expected: " + e.expected + "; actual: " + e.actual + "; operator: " + e.operator);
               fail();
+              count_f++;
             } else {
               messages.push(test_name + " error; " + e.message);
               error();
+              count_e++;
             }
             messages[messages.length - 1] += "\n" + e.stack;
           }
@@ -48,6 +53,8 @@
       console.log();
 
       if (messages.length > 0) console.log("\n" + messages.join("\n\n"));
+
+      console.log("\nPass: " + count_p + "; Error: " + count_e + "; Fail: " + count_f + "\n");
     });
   }
 })();
