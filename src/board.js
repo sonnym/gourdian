@@ -6,13 +6,13 @@ Board = function() {
     , black_pieces = ["k", "q", "r", "b", "n", "p"]
 
     , fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-    , state = [];
+    , state = fen2array(fen);
 
     ////////////////////////
    // privileged methods //
   ////////////////////////
-  this.get_valid_locations = function(loc) {
-    return valid_locations(loc);
+  this.get_valid_locations = function(to) {
+    return valid_locations(fen, to, true);
   }
   this.get_fen = function() {
     return fen;
@@ -21,14 +21,11 @@ Board = function() {
     var fen_parts = fen.split(" ");
     fen_parts[0] = p;
     fen = fen_parts.join(" ");
-    this.state = fen2array();
+    this.state = fen2array(fen);
   }
   this.set_fen = function(f, callback) {
-    var fen_parts = fen.split(" ");
-    fen_parts[0] = f;
-    fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";
-    fen = fen_parts.join(" ");
-    this.state = fen2array(callback);
+    fen = f;
+    state = fen2array(fen, callback);
   }
   this.get_state = function() {
     return state;
@@ -39,7 +36,7 @@ Board = function() {
   // prepare changes to state before calling private function; allows messaging for pawn promotion
   this.update_state = function(from, to, callback) {
     var piece = state[from]
-      , valid = valid_locations(from)
+      , valid = valid_locations(fen, from, true)
       , capture = (to != "");
 
     if (in_array(to, valid)) {
@@ -69,28 +66,85 @@ Board = function() {
 
   // validations
 
-  function valid_locations(start) {
-    var valid = []
-      , fen_parts = fen.split(" ")
+  function valid_locations(fen, start, check_for_check) {
+    var fen_parts = fen.split(" ")
       , turn = fen_parts[1]
       , castle = fen_parts[2]
-      , en_passant = (fen_parts[3] == "-") ? null : square2position(fen_parts[3])
+      , en_passant = (!fen_parts[3] || fen_parts[3] == "-") ? null : square2position(fen_parts[3])
       , piece = state[start];
 
     if (piece == "" || (turn == "w" && !in_array(piece, white_pieces)) || turn == "b" && !in_array(piece, black_pieces)) return [];
 
-    if (in_array(piece, ["P", "p"])) valid = pawn_check(turn, start, en_passant);
-    else if (in_array(piece, ["N", "n"])) valid = mult_check(turn, start, [6, 10], 1, 1).concat(mult_check(turn, start, [15, 17], 2, 1));
-    else if (in_array(piece, ["B", "b"])) valid = mult_check(turn, start, [7, 9], 1);
-    else if (in_array(piece, ["R", "r"])) valid = mult_check(turn, start, [1], 0).concat(mult_check(turn, start, [8], 1));
-    else if (in_array(piece, ["Q", "q"])) valid = mult_check(turn, start, [1], 0).concat(mult_check(turn, start, [7, 8, 9], 1));
-    else if (in_array(piece, ["K", "k"])) valid = mult_check(turn, start, [1], 0, 1).concat(mult_check(turn, start, [7, 8, 9], 1, 1));
+    if (in_array(piece, ["P", "p"])) {
+      return pawn_check(state, turn, start, en_passant);
 
-    return valid;
+    } else if (in_array(piece, ["N", "n"])) {
+      if (check_for_check) {
+        var test_state = state
+          , all_valid = [];
+        test_state[start] = "";  // knight opens all lines through a point
+
+        if (is_state_check(test_state, turn)) {
+          return [];
+        } else {
+          return mult_check(state, turn, start, [6, 10], 1, 1).concat(mult_check(state, turn, start, [15, 17], 2, 1));
+        }
+      } else return mult_check(state, turn, start, [6, 10], 1, 1).concat(mult_check(state, turn, start, [15, 17], 2, 1));
+
+    } else if (in_array(piece, ["B", "b"])) {
+      return mult_check(state, turn, start, [7, 9], 1);
+
+    } else if (in_array(piece, ["R", "r"])) {
+        return mult_check(state, turn, start, [1], 0).concat(mult_check(state, turn, start, [8], 1));
+
+    } else if (in_array(piece, ["Q", "q"])) {
+      return mult_check(state, turn, start, [1], 0).concat(mult_check(state, turn, start, [7, 8, 9], 1));
+    } else if (in_array(piece, ["K", "k"])) {
+      return mult_check(state, turn, start, [1], 0, 1).concat(mult_check(state, turn, start, [7, 8, 9], 1, 1));
+    }
+  }
+
+  // turn refers to the player making the move
+  function is_state_check(altered_state, turn) {
+    var next_turn = (turn == "w") ? "b" : "w"
+      , king = null
+      , turn_validator = function (piece, t) {
+          if (piece == "") return false;
+
+          var ascii = piece.charCodeAt(0);
+
+          if (t == "w") return ascii > 64 && ascii < 91;
+          else return ascii > 96 && ascii < 123;
+        };
+
+    for (var i = 0; i < 64; i++) {
+      if (turn_validator(altered_state[i], turn) && (next_turn == "b" ? (altered_state[i] == "K") : (altered_state[i] == "k"))) {
+        king = i;
+        i = 64;
+      }
+    }
+
+    if (king == null) return; // eh, why not?
+
+    for (var i = 0; i < 64; i++) {
+      if (turn_validator(altered_state[i], next_turn)) {
+        var valid = valid_locations(array2fen(altered_state) + " " + next_turn, i, false);
+
+        for (var j = 0, l = valid.length; j < l; j++) {
+          var test_state = altered_state;
+          test_state[i] = "";
+          test_state[valid[j]] = altered_state[i];
+
+          if (in_array(king, valid)) return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   // handles edge cases for pawn movement
-  function pawn_check(turn, start, ep) {
+  function pawn_check(state, turn, start, ep) {
     var valid = [];
 
     if (turn == "b") {
@@ -126,7 +180,7 @@ Board = function() {
   //
   // the main idea here is:  when numbering the pieces of a chess board from 0 to 63, all pieces move multiples of certain integers from their starting position,
   // and cannot wrap around the board, except in the case of the knight which *must* appear to wrap into the next rank or the one after
-  function mult_check(turn, start, distances, wrap, depth) {
+  function mult_check(state, turn, start, distances, wrap, depth) {
     var valid = []
       , iter = (start < 32) ? function(cur, dist) { return start + (dist * cur) < 64 } : function(cur, dist) { return start - (dist * cur) >= 0 };
 
@@ -207,8 +261,9 @@ Board = function() {
 
   // fen conversions
 
-  function fen2array(callback) {
+  function fen2array(fen, callback) {
     var position = fen.split(" ")[0].replace(/\//g, "")
+      , state = []
       , offset = 0;
 
     for (var i = 0, l = position.length; i < l; i++) {
@@ -217,6 +272,8 @@ Board = function() {
       if (isNaN(char)) state[i + offset] = char;
       else for (var j = 0; j < char; j++) state[i + ((j == char - 1) ? offset : offset++)] = "";
     }
+
+    return state;
 
     if (callback) callback("converted");
   }
@@ -267,8 +324,6 @@ Board = function() {
     }
     return false;
   }
-
-  fen2array();
 }
 
 try {
