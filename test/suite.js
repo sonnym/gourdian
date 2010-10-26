@@ -1,36 +1,41 @@
 #!/usr/bin/env node
 
 // was uninspired by the offerings
-(function() {
-  var fs = require("fs")
-    , path = require("path")
-    , spawn = require("child_process").spawn
-    , sys = require("sys");
+var fs = require("fs")
+  , path = require("path")
+  , sys = require("sys")
 
-  // test server needs to run from src directory
-  var assertion_dirs = ["unit"]
-    , run_dirs = ["performance"]
+  , assertion_dirs = ["unit"]
+  , run_dirs = ["performance"]
 
-    , error = function() { sys.print("\x1B[1;37mE\x1B[0m") }
-    , pass = function() { sys.print("\x1B[1;32mP\x1B[0m") }
-    , fail = function() { sys.print("\x1B[1;31mF\x1B[0m") }
+  , error = function() { sys.print("\x1B[1;37mE\x1B[0m") }
+  , pass = function() { sys.print("\x1B[1;32mP\x1B[0m") }
+  , fail = function() { sys.print("\x1B[1;31mF\x1B[0m") }
 
-    , count_e = count_p = count_f = 0
+  , count_e = count_p = count_f = 0
 
-    , messages = [];
+  , messages = []
+  
+  // command line arguments
+  , name;
 
-  for (var d = 0, l_d = assertion_dirs.length; d < l_d; d++) {
-    var dir = assertion_dirs[d];
+if (process.argv[2] == "-n" && process.argv.length > 3) {
+  name = process.argv[3];
+}
 
-    fs.readdir(dir, function(err, files) {
-      if (!files) continue;
+for (var d = 0, l_d = assertion_dirs.length; d < l_d; d++) {
+  var dir = assertion_dirs[d];
 
-      for (var f = 0, l_f = files.length; f < l_f; f++) {
-        var file = files[f];
-        if (file.substring(file.length - 2) != "js") continue;
+  fs.readdir(dir, function(err, files) {
+    if (!files) continue;
 
-        var test_file = require("." + path.join("/", dir, file)) // path.join(".", dir, file) does not work as expected
-        for (var test_name in test_file) {
+    for (var f = 0, l_f = files.length; f < l_f; f++) {
+      var file = files[f];
+      if (file.substring(file.length - 2) != "js") continue;
+
+      var test_file = require("." + path.join("/", dir, file)) // path.join(".", dir, file) does not work as expected
+      for (var test_name in test_file) {
+        if (!name || test_name == name) {
           try {
             test_file[test_name]();
             pass();
@@ -49,12 +54,12 @@
           }
         }
       }
+    }
 
-      console.log();
+    console.log();
 
-      if (messages.length > 0) console.log("\n" + messages.join("\n\n"));
+    if (messages.length > 0) console.log("\n" + messages.join("\n\n"));
 
-      console.log("\nPass: " + count_p + "; Error: " + count_e + "; Fail: " + count_f + "\n");
-    });
-  }
-})();
+    console.log("\nPass: " + count_p + "; Error: " + count_e + "; Fail: " + count_f + "\n");
+  });
+}
