@@ -38,7 +38,7 @@ Board = function() {
   this.update_state = function(from, to, callback) {
     var piece = state[from]
       , valid = valid_locations(fen, from, true)
-      , capture = (to != "");
+      , capture = (state[to] != "");
 
     if (in_array(to, valid)) {
       // en passant
@@ -52,14 +52,14 @@ Board = function() {
         if (callback) callback("promote", function(new_piece) {
           piece = new_piece;
           if (update_state(piece, from, to, capture) && callback) callback("complete");
-          else callback("fail");
+          else if (callback) callback("fail");
         });
       } else {
         if (update_state(piece, from, to, capture, callback) && callback) callback("complete");
-        else callback("fail");
+        else if (callback) callback("fail");
       }
     } else {
-      callback("invalid");
+      if (callback) callback("invalid");
     }
   }
 
@@ -256,9 +256,6 @@ Board = function() {
 
   // updates the state array and fen string
   function update_state(piece, from, to, capture) {
-    // save captured piece for later
-    var captured = (capture) ? state[to] : null;
-
     // stash storage
     state[to] = piece;
     state[from] = "";
@@ -266,9 +263,11 @@ Board = function() {
     // updating fen is also dependent upon valid drop
     var fen_parts = fen.split(" ");
 
-    fen_parts[0] = array2fen(state);                                                                                                                         // position
-    fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                                                                       // turn
-    if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                                                                    // castle
+    fen_parts[0] = array2fen(state);                                                                         // position
+
+    fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                      // turn
+
+    if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                  // castle
       if (piece == "k") fen_parts[2].replace(/[kq]/g, "");
       else if (piece == "K") fen_parts[2].replace(/[KQ]/g, "");
       else if (piece == "r") {
@@ -281,9 +280,16 @@ Board = function() {
 
       if (fen_parts[2].length == 0) fen_parts[2] = "-";
     }
-    fen_parts[3] = (in_array(piece, ["p", "P"]) && Math.abs(from - to) == 16) ? position2file(from) + position2row(Math.min(from, to) + 8) : "-"; // en passant
-    fen_parts[4] = (in_array(piece, ["p", "P"]) || capture) ? 0 : fen_parts[4] + 1;                                                              // half move number
-    if (fen_parts[1] == "w") fen_parts[5]++;                                                                                                    // full move number
+
+    if (in_array(piece, ["p", "P"]) && Math.abs(from - to) == 16) {                                // en passant
+      fen_parts[3] = position2file(from);
+      if (from > to) fen_parts[3] += position2rank(from - 8);
+      else fen_parts[3] += position2rank(from + 8);
+    } else fen_parts[3] = "-";
+
+    fen_parts[4] = (in_array(piece, ["p", "P"]) || capture) ? 0 : parseInt(fen_parts[4]) + 1; // half move number
+
+    if (fen_parts[1] == "w") fen_parts[5]++;                                                // full move number
 
     fen = fen_parts.join(" ");
 
@@ -330,8 +336,8 @@ Board = function() {
     return Math.floor(p / 8) + 1;
   }
 
-  function position2rank(p) { // yagni, but incorrect terminology was irksome
-    return 9 - position2row;
+  function position2rank(p) {
+    return 9 - position2row(p);
   }
 
   function position2col(p) {

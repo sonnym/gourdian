@@ -2,6 +2,19 @@ var assert = require("assert")
   , board = require("./../../src/board.js")
   , test_board = new Board();
 
+exports.fen_updates = function() {
+  test_board.set_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+
+  test_board.update_state(52, 36);
+  assert.equal(test_board.get_fen(), "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1");
+
+  test_board.update_state(10, 26); // sicilian
+  assert.equal(test_board.get_fen(), "rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2");
+
+  test_board.update_state(62, 45);
+  assert.equal(test_board.get_fen(), "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
+}
+
 exports.pawn_moves = function() {
   test_board.set_fen("8/7p/4K2P/8/4k3/8/8/8 w - - 0 1");
   assert.equal(test_board.get_valid_locations(15).length, 0);
@@ -14,6 +27,12 @@ exports.pawn_moves = function() {
 
   test_board.set_fen("8/8/4K3/6Pp/4k3/8/8/8 w - h6 0 1");
   assert.deepEqual(test_board.get_valid_locations(30).sort(), [22, 23]);
+
+  // en passant square updating correctly
+  test_board.set_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
+  test_board.update_state(52, 36);
+  assert.deepEqual(test_board.get_valid_locations(11).sort(), [19, 27].sort());
+
 }
 
 exports.knight_moves = function() {

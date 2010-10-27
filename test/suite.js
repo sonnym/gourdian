@@ -15,7 +15,7 @@ var fs = require("fs")
   , count_e = count_p = count_f = 0
 
   , messages = []
-  
+
   // command line arguments
   , name;
 
