@@ -357,7 +357,7 @@ var ib = (function() {
       , valid = boards[board].obj.get_valid_locations(piece_location)
       , turn = get_color_from_piece_div(piece);
 
-    if (!DEBUG && turn != color) return;
+    if ((!DEBUG && turn != color) || valid.length == 0) return;
 
     for (var i = 0, l = valid.length; i < l; i++) {
       var square = $("#" + board + valid[i]);
