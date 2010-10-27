@@ -28,11 +28,13 @@ exports.pawn_moves = function() {
   test_board.set_fen("8/8/4K3/6Pp/4k3/8/8/8 w - h6 0 1");
   assert.deepEqual(test_board.get_valid_locations(30).sort(), [22, 23]);
 
+  test_board.set_fen("4k3/8/8/3p4/4P3/8/8/4K3 w - - 0 1");
+  assert.deepEqual(test_board.get_valid_locations(36).sort(), [27, 28]);
+
   // en passant square updating correctly
   test_board.set_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
   test_board.update_state(52, 36);
   assert.deepEqual(test_board.get_valid_locations(11).sort(), [19, 27].sort());
-
 }
 
 exports.knight_moves = function() {

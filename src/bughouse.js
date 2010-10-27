@@ -153,9 +153,9 @@ var games = (function() {
 
       if (to_node) {
         if (ascii > 64 && ascii < 91) {
-          to_node.state.public.s_b += piece;
-        } else if (ascii > 96 && ascii < 123) {
           to_node.state.public.s_w += piece;
+        } else if (ascii > 96 && ascii < 123) {
+          to_node.state.public.s_b += piece;
         }
       } else {
         log.debug("piece captured in game " + gid + "; failed to find destination game");
@@ -259,7 +259,7 @@ exports.update = function(sid, from, to, callback) {
       games.set_board(gid, board);
       games.get_node(gid).state.public.fen = board.get_fen();
 
-      callback({ gid: gid, opp_id: opp_id, watchers: watchers, state: games.get_node(gid).state.public });
+      if (callback) callback({ gid: gid, opp_id: opp_id, watchers: watchers, state: games.get_node(gid).state.public });
     }
   });
 }

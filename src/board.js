@@ -38,7 +38,8 @@ Board = function() {
   this.update_state = function(from, to, callback) {
     var piece = state[from]
       , valid = valid_locations(fen, from, true)
-      , capture = (state[to] != "");
+      , capture = (state[to] != "")
+      , captured = capture ? state[to] : null;
 
     if (in_array(to, valid)) {
       // en passant
@@ -48,14 +49,14 @@ Board = function() {
       }
 
       // pawn promotion
-      if ((piece == "p" && to > 55 && from < 64) || (piece == "P" && to >= 0 && to < 8)) {
+      if ((piece == "p" && to > 55 && to < 64) || (piece == "P" && to >= 0 && to < 8)) {
         if (callback) callback("promote", function(new_piece) {
           piece = new_piece;
-          if (update_state(piece, from, to, capture) && callback) callback("complete");
+          if (update_state(piece, from, to, capture) && callback) callback("complete", captured);
           else if (callback) callback("fail");
         });
       } else {
-        if (update_state(piece, from, to, capture, callback) && callback) callback("complete");
+        if (update_state(piece, from, to, capture, callback) && callback) callback("complete", captured);
         else if (callback) callback("fail");
       }
     } else {
