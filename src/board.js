@@ -21,15 +21,15 @@ Board = function() {
     var fen_parts = fen.split(" ");
     fen_parts[0] = p;
     fen = fen_parts.join(" ");
-    this.state = fen2array(fen);
+    state = fen2array(fen);
   }
   this.set_fen = function(f, callback) {
     fen = f;
-    this.state = fen2array(fen);
+    state = fen2array(fen);
     if (callback) callback("converted");
   }
   this.get_state = function() {
-    return this.state;
+    return state;
   }
   this.get_turn = function() {
     return fen.split(" ")[1];
@@ -51,10 +51,12 @@ Board = function() {
       if ((piece == "p" && to > 55 && from < 64) || (piece == "P" && to >= 0 && to < 8)) {
         if (callback) callback("promote", function(new_piece) {
           piece = new_piece;
-          update_state(piece, from, to, capture, callback);
+          if (update_state(piece, from, to, capture) && callback) callback("complete");
+          else callback("fail");
         });
       } else {
-        update_state(piece, from, to, capture, callback);
+        if (update_state(piece, from, to, capture, callback) && callback) callback("complete");
+        else callback("fail");
       }
     } else {
       callback("invalid");
@@ -253,7 +255,7 @@ Board = function() {
   }
 
   // updates the state array and fen string
-  function update_state(piece, from, to, capture, callback) {
+  function update_state(piece, from, to, capture) {
     // save captured piece for later
     var captured = (capture) ? state[to] : null;
 
@@ -285,7 +287,7 @@ Board = function() {
 
     fen = fen_parts.join(" ");
 
-    callback("complete", captured);
+    return true;
   }
 
   // fen conversions

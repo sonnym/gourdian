@@ -107,76 +107,76 @@ var ib = (function() {
       if (!name) name = "anonymous";
 
       // open socket
-      load_js("lib/socket.io.js", function() {
-        socket = new io.Socket(null, {port: 8124});
-        socket.connect();
+      socket = new io.Socket(null, {port: 8124});
+      socket.connect();
 
+      socket.on("connect", function(response) {
         socket.send({ action: action, data: { name: name } });
+      });
 
-        socket.on("message", function(data) {
-          if (DEBUG) console.log(data);
+      socket.on("message", function(data) {
+        if (DEBUG) console.log(data);
 
-          // hold
-          if (data.hold) {
-            show_hold_dialog();
+        // hold
+        if (data.hold) {
+          show_hold_dialog();
+        }
+
+        // join color assignment
+        if (data.play) {
+          color = data.color;
+
+          if (data.color == "b") {
+            ib.toggle_flip_board();
+            draw_boards();
           }
 
-          // join color assignment
-          if (data.play) {
-            color = data.color;
+          var hold = $("#hold");
+          if (hold.hasClass("ui-dialog-content")) { // prevent exception when trying to destroy uninitialized dialog
+            hold.dialog("destroy");
+            hold.addClass("hidden");
+          }
 
-            if (data.color == "b") {
-              ib.toggle_flip_board();
-              draw_boards();
+          $("#play").removeClass("hidden");
+        }
+
+        // kibitz init
+        if (data.kibitz) {
+          $("#kibitz").removeClass("hidden");
+        }
+
+        // join/kibitz/rotate states
+        if (data.states) {
+          for (var b in boards)
+            if (data.states[b]) {
+              boards[b].gid = data.states[b].gid;
+              boards[b].black = data.states[b].b;
+              boards[b].white = data.states[b].w;
+              boards[b].stash_b = data.states[b].s_b;
+              boards[b].stash_w = data.states[b].s_w;
+
+              boards[b].obj.set_fen(data.states[b].fen, function(message) {
+                if (message == "converted") draw_board(b);
+
+                if (data.rotate) ib.toggle_flip_board();
+              });
+            } else {
+              boards[b].gid = null
+              $("#" + b + " > .board").html("");
+              $("#" + b + " > .meta").addClass("hidden");
             }
+        }
 
-            var hold = $("#hold");
-            if (hold.hasClass("ui-dialog-content")) { // prevent exception when trying to destroy uninitialized dialog
-              hold.dialog("destroy");
-              hold.addClass("hidden");
-            }
-
-            $("#play").removeClass("hidden");
-          }
-
-          // kibitz init
-          if (data.kibitz) {
-            $("#kibitz").removeClass("hidden");
-          }
-
-          // join/kibitz/rotate states
-          if (data.states) {
-            for (var b in boards)
-              if (data.states[b]) {
-                boards[b].gid = data.states[b].gid;
-                boards[b].black = data.states[b].b;
-                boards[b].white = data.states[b].w;
-                boards[b].stash_b = data.states[b].s_b;
-                boards[b].stash_w = data.states[b].s_w;
-
-                boards[b].obj.set_fen(data.states[b].fen, function(message) {
-                  if (message == "converted") draw_board(b);
-
-                  if (data.rotate) ib.toggle_flip_board();
-                });
-              } else {
-                boards[b].gid = null
-                $("#" + b + " > .board").html("");
-                $("#" + b + " > .meta").addClass("hidden");
-              }
-          }
-
-          // position update
-          if (data.state) {
-            for (var b in boards) {
-              if (boards[b].gid == data.state.gid) {
-                boards[b].obj.set_fen(data.state.fen, function(message) {
-                  if (message == "converted") draw_board(b);
-                });
-              }
+        // position update
+        if (data.state) {
+          for (var b in boards) {
+            if (boards[b].gid == data.state.gid) {
+              boards[b].obj.set_fen(data.state.fen, function(message) {
+                if (message == "converted") draw_board(b);
+              });
             }
           }
-        });
+        }
       });
     });
   }
@@ -366,29 +366,29 @@ var ib = (function() {
         square.droppable({ tolerance: "fit"
                          , activeClass: (show_moves) ? "droppable" : ""
                          , hoverClass: "selected"
-                         , drop: function(event, ui) { register_move(board, piece_location, $(this), turn) }
+                         , drop: function(event, ui) { register_move(piece_location, $(this), turn) }
                          });
       } else if (method == "click") {
         if (show_moves) square.addClass("droppable");
         square.click(function() {
-          if (selected) register_move(board, piece_location, $(this), turn);
+          if (selected) register_move(piece_location, $(this), turn);
         });
       }
     }
   }
 
-  function register_move(b, from, to_square, turn) {
+  function register_move(from, to_square, turn) {
     var to = parseInt(to_square.attr("id").substring(1));
-    boards[b].obj.update_state( from
-                              , to
-                              , function(message, callback) {
-                                  if (message == "promote") display_promotion_dialog(turn, callback);
-                                  else if (message == "complete") {
-                                    draw_board(b);
-                                    socket.send({ action: "pos", data: { f: from, t: to } });
+    boards["c"].obj.update_state( from
+                                , to
+                                , function(message, callback) {
+                                    if (message == "promote") display_promotion_dialog(turn, callback);
+                                    else if (message == "complete") {
+                                      draw_board("c");
+                                      socket.send({ action: "pos", data: { f: from, t: to } });
+                                    }
                                   }
-                                }
-                              );
+                                );
   }
 
   // promotion
