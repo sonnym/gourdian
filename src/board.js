@@ -25,10 +25,11 @@ Board = function() {
   }
   this.set_fen = function(f, callback) {
     fen = f;
-    state = fen2array(fen, callback);
+    this.state = fen2array(fen);
+    if (callback) callback("converted");
   }
   this.get_state = function() {
-    return state;
+    return this.state;
   }
   this.get_turn = function() {
     return fen.split(" ")[1];
@@ -66,8 +67,9 @@ Board = function() {
 
   // validations
 
-  function valid_locations(fen, start, check_for_check) {
+  function valid_locations(fen, start, check_for_check) { // do not check for check when checking for check, lest check for check ad infinitum
     var fen_parts = fen.split(" ")
+      , state = fen2array(fen)
       , turn = fen_parts[1]
       , castle = fen_parts[2]
       , en_passant = (!fen_parts[3] || fen_parts[3] == "-") ? null : square2position(fen_parts[3])
@@ -81,7 +83,7 @@ Board = function() {
     } else if (in_array(piece, ["N", "n"])) {
       if (check_for_check) {
         var test_state = state;
-        test_state[start] = "";  // knight opens all lines through a point
+        test_state[start] = "";  // knight move opens all lines through a point
 
         if (is_state_check(test_state, turn)) {
           return [];
@@ -91,13 +93,16 @@ Board = function() {
       } else return mult_check(state, turn, start, [6, 10], 1, 1).concat(mult_check(state, turn, start, [15, 17], 2, 1));
 
     } else if (in_array(piece, ["B", "b"])) {
-      return mult_check(state, turn, start, [7, 9], 1);
+      if (check_for_check) return exclude_blocking_check(state, turn, start, [7, 9]);
+      else return mult_check(state, turn, start, [7, 9], 1);
 
     } else if (in_array(piece, ["R", "r"])) {
-        return mult_check(state, turn, start, [1], 0).concat(mult_check(state, turn, start, [8], 1));
+      if (check_for_check) return exclude_blocking_check(state, turn, start, [1, 8]);
+      else return mult_check(state, turn, start, [1], 0).concat(mult_check(state, turn, start, [8], 1));
 
     } else if (in_array(piece, ["Q", "q"])) {
-      return mult_check(state, turn, start, [1], 0).concat(mult_check(state, turn, start, [7, 8, 9], 1));
+      if (check_for_check) return exclude_blocking_check(state, turn, start, [1, 7, 8, 9]);
+      else return mult_check(state, turn, start, [1], 0).concat(mult_check(state, turn, start, [7, 8, 9], 1));
 
     } else if (in_array(piece, ["K", "k"])) {
       var gross_valid = mult_check(state, turn, start, [1], 0, 1).concat(mult_check(state, turn, start, [7, 8, 9], 1, 1))
@@ -113,9 +118,9 @@ Board = function() {
     }
   }
 
-  // turn refers to the player making the move
-  function is_state_check(altered_state, turn) {
-    var next_turn = (turn == "w") ? "b" : "w"
+  // the player whom may be in check
+  function is_state_check(altered_state, whom) {
+    var turn = (whom == "w") ? "b" : "w"
       , king = null
       , turn_validator = function (piece, t) {
           if (piece == "") return false;
@@ -127,7 +132,7 @@ Board = function() {
         };
 
     for (var i = 0; i < 64; i++) {
-      if (turn_validator(altered_state[i], turn) && (next_turn == "b" ? (altered_state[i] == "K") : (altered_state[i] == "k"))) {
+      if (turn_validator(altered_state[i], whom) && (whom == "b" ? (altered_state[i] == "k") : (altered_state[i] == "K"))) {
         king = i;
         i = 64;
       }
@@ -135,22 +140,37 @@ Board = function() {
 
     if (king == null) return; // eh, why not?
 
-    for (var i = 0; i < 64; i++) {
-      if (turn_validator(altered_state[i], next_turn)) {
-        var valid = valid_locations(array2fen(altered_state) + " " + next_turn, i, false);
-
-        for (var j = 0, l = valid.length; j < l; j++) {
-          var test_state = altered_state;
-          test_state[i] = "";
-          test_state[valid[j]] = altered_state[i];
-
-          if (in_array(king, valid)) return true;
-        }
-      }
+    for (var i = 0; i < 64; i++)  if (turn_validator(altered_state[i], turn)) {
+      var valid = valid_locations(array2fen(altered_state) + " " + turn, i, false);
+      if (in_array(king, valid)) return true;
     }
 
     return false;
   }
+
+  // check if moving a piece along a path results in check
+  // unlike mult_check, encapsulates its own wrap conditions
+  function exclude_blocking_check(state, turn, start, paths) {
+    var piece = state[start]
+      , valid = []
+
+    for (var p in paths) {
+      var valid_d = mult_check(state, turn, start, [paths[p]], (paths[p] == 1 ? 0 : 1));
+
+      if (valid_d.length > 0) {
+        var state_d = state.slice(); // assign by value
+        state_d[valid_d[0]] = piece;
+        state_d[start] = "";
+
+        if (!is_state_check(state_d, turn)) {
+          valid = valid.concat(valid_d);
+        }
+      }
+    }
+
+    return valid;
+  }
+
 
   // handles edge cases for pawn movement
   function pawn_check(state, turn, start, ep) {
@@ -244,7 +264,7 @@ Board = function() {
     // updating fen is also dependent upon valid drop
     var fen_parts = fen.split(" ");
 
-    fen_parts[0] = array2fen();                                                                                                                              // position
+    fen_parts[0] = array2fen(state);                                                                                                                    // position
     fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                                                                       // turn
     if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                                                                    // castle
       if (piece == "k") fen_parts[2].replace(/[kq]/g, "");
@@ -283,11 +303,9 @@ Board = function() {
     }
 
     return state;
-
-    if (callback) callback("converted");
   }
 
-  function array2fen() {
+  function array2fen(state) {
     var ret = "";
 
     for (var i = 0, l = state.length; i < l; i++) {
