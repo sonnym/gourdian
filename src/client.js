@@ -185,9 +185,9 @@ var ib = (function() {
     var data_lr = squarify_helper("l")
       , data_c = squarify_helper("c");
 
-    var style = document.createElement("style");
-    style.setAttribute("type", "text/css");
-    style.innerText = "#l .board .square, #r .board .square { height: " + data_lr[0] + "px; font-size: " + data_lr[1] + "px; } #c .board .square { height: " + data_c[0] + "px; font-size: " + data_c[1] + "px; }";
+    var style = $("<style>")
+    style.attr("type", "text/css");
+    style.html(inner = "#l .board .square, #r .board .square { height: " + data_lr[0] + "px; font-size: " + data_lr[1] + "px; } #c .board .square { height: " + data_c[0] + "px; font-size: " + data_c[1] + "px; }");
 
     $("head").append(style);
   }
