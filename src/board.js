@@ -264,7 +264,7 @@ Board = function() {
     // updating fen is also dependent upon valid drop
     var fen_parts = fen.split(" ");
 
-    fen_parts[0] = array2fen(state);                                                                                                                    // position
+    fen_parts[0] = array2fen(state);                                                                                                                         // position
     fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                                                                       // turn
     if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                                                                    // castle
       if (piece == "k") fen_parts[2].replace(/[kq]/g, "");
