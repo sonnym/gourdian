@@ -19,6 +19,7 @@ var fs = require("fs")
   // command line arguments
   , name;
 
+// getopt would be far superior
 if (process.argv[2] == "-n" && process.argv.length > 3) {
   name = process.argv[3];
 }
@@ -27,7 +28,7 @@ for (var d = 0, l_d = assertion_dirs.length; d < l_d; d++) {
   var dir = assertion_dirs[d];
 
   fs.readdir(dir, function(err, files) {
-    if (!files) continue;
+    if (!files) return;
 
     for (var f = 0, l_f = files.length; f < l_f; f++) {
       var file = files[f];
