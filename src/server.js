@@ -59,7 +59,7 @@ socket.on("connection", function(client) {
       if (data) {
         var gid = data.gid
           , opp_id = data.opp
-          , opp = socket.getClient(opp_id)
+          , opp = socket.clients[opp_id]
           , color = data[sid]
           , opp_color = color == "w" ? "b" : "w";
 
@@ -80,14 +80,14 @@ socket.on("connection", function(client) {
 
         var gid = data.gid
           , opp_id = data.opp_id
-          , opp = socket.getClient(opp_id)
+          , opp = socket.clients[opp_id]
           , state = data.state
           , watchers = data.watchers;
 
         opp.send({state: state });
 
         for (var i = 0, l = watchers.length; i < l; i++) {
-          var watcher = socket.getClient(watchers[i]);
+          var watcher = socket.clients[watchers[i]];
           if (watcher) watcher.send({state: state});
         }
 
