@@ -19,7 +19,7 @@ var file = process.argv[1];
 process.chdir(file.substring(0, file.lastIndexOf("/")));
 
 var handler = require("./handler")
-  , io = require("./lib/socket.io")
+  , io = require("socket.io")
   , log = require("./log")
 
   , bughouse = require("./bughouse");
@@ -39,7 +39,7 @@ handler.get("/board.js", handler.staticHandler("board.js"));
 handler.get("/client.js", handler.staticHandler("client.js"));
 handler.get("/client.css", handler.staticHandler("client.css"));
 
-handler.get("/lib/socket.io.js", handler.staticHandler("lib/socket.io/support/socket.io-client/socket.io.js"));
+handler.get("/lib/socket.io.js", handler.staticHandler("./../node_modules/socket.io/support/socket.io-client/socket.io.js"));
 
 handler.get("/lib/jquery-1.4.2.min.js", handler.staticHandler("lib/jquery-1.4.2.min.js"));
 handler.get("/lib/jquery-ui-1.8.5.custom.min.js", handler.staticHandler("lib/jquery-ui-1.8.5.custom.min.js"));

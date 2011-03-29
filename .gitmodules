@@ -1,9 +1,6 @@
 [submodule "src/lib/socket.io"]
-	path = src/lib/socket.io
+	path = node_modules/socket.io
 	url = http://github.com/LearnBoost/Socket.IO.git
-[submodule "src/lib/web-socket-js"]
-	path = src/lib/web-socket-js
-	url = http://github.com/gimite/web-socket-js.git
 [submodule "test/lib/node-websocket-client"]
-	path = test/lib/node-websocket-client
+	path = tnode_modules/node-websocket-client
 	url = http://github.com/pgriess/node-websocket-client.git
