@@ -2,7 +2,7 @@ var assert = require("assert")
   , http = require("http")
   , player = require("./../lib/player")
   , sys = require("sys")
-  , WebSocket = require("./../lib/node-websocket-client/lib/websocket").WebSocket
+  , WebSocket = require("node-websocket-client/lib/websocket").WebSocket
 
   , client_http = http.createClient(8124)
 

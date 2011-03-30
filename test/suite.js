@@ -25,7 +25,7 @@ if (process.argv[2] == "-n" && process.argv.length > 3) {
 }
 
 for (var d = 0, l_d = assertion_dirs.length; d < l_d; d++) {
-  var dir = assertion_dirs[d];
+  var dir = path.join(__dirname, assertion_dirs[d]);
 
   fs.readdir(dir, function(err, files) {
     if (!files) return;
@@ -34,7 +34,7 @@ for (var d = 0, l_d = assertion_dirs.length; d < l_d; d++) {
       var file = files[f];
       if (file.substring(file.length - 2) != "js") continue;
 
-      var test_file = require("." + path.join("/", dir, file)) // path.join(".", dir, file) does not work as expected
+      var test_file = require(path.join(dir, file));
       for (var test_name in test_file) {
         if (!name || test_name == name) {
           try {

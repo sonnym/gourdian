@@ -1,14 +1,14 @@
 var assert = require("assert")
-  , loc = "./../../src/bughouse.js"
-  , bughouse = require(loc);
+  , bughouse = require("./../../src/bughouse.js");
+
 
 exports.one_can_join = function() {
-  bughouse = require(loc);
   assert.equal(bughouse.join("sid0", "client0"), null);
+
+  bughouse.quit("sid0");
 }
 
 exports.two_make_a_game = function() {
-  bughouse = require(loc);
   assert.equal(bughouse.join("sid0", "client0"), null);
 
   var response = bughouse.join("sid1", "client1");
@@ -18,12 +18,13 @@ exports.two_make_a_game = function() {
   assert.ok(response.states.c);
 
   assert.ok(!(response.states.l && response.states.r));
+
+  // only one player needs to quit to remove the game
+  bughouse.quit("sid0");
 }
 
 exports.piece_carry_over = function() {
   var response, sid_1_w, sid_1_b, sid_2_w, sid_2_b;
-
-  bughouse = require(loc);
 
   // game 1
   assert.equal(bughouse.join("sid0", "client0"), null);
@@ -77,6 +78,9 @@ exports.piece_carry_over = function() {
   bughouse.update(sid_2_w, 36, 27);
 
   bughouse.update(sid_1_b, 8, 16, function(result) {
-    assert.equal(result.state.s_b, "p");
+    assert.equal(result.state.s_b, "p"); // fails when test is run along side others
   });
+
+  bughouse.quit("sid0");
+  bughouse.quit("sid3");
 }
