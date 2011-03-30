@@ -18,14 +18,13 @@ exports.can_fetch_index = function() {
   });
 }
 
-exports.can_connect_via_websocket = function() {
   /*
+exports.can_connect_via_websocket = function() {
   var client_sock = new WebSocket("ws://127.0.0.1:8124/socket.io/websocket", "borf");
 
   client_sock.addListener('data', function(buf) {
     assert.notEqual(buf.length, 0);
   });
-  */
 }
 
  // WARNING
@@ -72,39 +71,23 @@ exports.player_assigned_white_can_move = function() {
   }
 }
 
+*/
 exports.two_players_can_play_a_game = function() {
-  var client_sock = new WebSocket("ws://127.0.0.1:8124/socket.io/websocket", "borf")
-    , client_sock2 = new WebSocket("ws://127.0.0.1:8124/socket.io/websocket", "borf");
+  n_players_can_play(2);
+}
 
-  // join
-  client_sock.onopen = function() { socket_send(client_sock, "j", join_message()) };
-  client_sock2.onopen = function() { socket_send(client_sock2, "j", join_message()) };
-
-  // play
-  client_sock.onmessage = client_sock2.onmessage = function(m) {
-    // thanks to miksago for the following
-    if (m.data.substr(7,3) == "~h~") socket_send(this, "h", m.data.substr(10));
-
-    var obj = message_parse(m)
-      , sock = this;
-
-    if (obj.color && obj.color == "w") {
-      socket_send(sock, "j", update_position_message("rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq e3 0 1"));
-    } else if (obj.fen) {
-      player.move( obj.fen
-                 , function(from, to) {
-                    socket_send(sock, "j", move_message(from, to));
-                   }
-                 );
-    }
-  }
+/*
+exports.twenty_players_can_play = function() {
+  n_players_can_play(20);
 }
 */
 
-exports.twenty_players_can_play = function() {
+// helpers
+
+function n_players_can_play(n) {
   var clients = [];
 
-  while (clients.length < 20) {
+  while (clients.length < n) {
     clients.push(function(num) {
       var client_sock = new WebSocket("ws://127.0.0.1:8124/socket.io/websocket", "borf")
 
@@ -129,18 +112,17 @@ exports.twenty_players_can_play = function() {
           }
 
           player.move( fen
-                      , function(from, to) {
-                          setTimeout(socket_send, 2000 - (Math.floor(Math.random() * 1000)), sock, "j", move_message(from, to));
-                          //socket_send(sock, "j", move_message(from, to));
-                        }
-                      );
+                     , function(from, to) {
+                         // socket_send(sock, "j", move_message(from, to)); // using random times instead
+                         setTimeout(socket_send, 2000 - (Math.floor(Math.random() * 1000)), sock, "j", move_message(from, to));
+                       }
+                     );
         }
       }
     }(clients.length));
   }
 }
 
-// helpers
 function socket_send(c, t, o) {
   var m = (t == "j") ? JSON.stringify(o) : o;
   c.send("~m~" + (m.length + 3) + "~m~~" + t + "~" + m);

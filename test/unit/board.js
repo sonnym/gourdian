@@ -2,6 +2,7 @@ var assert = require("assert")
   , board = require("./../../src/board.js")
   , test_board = new Board();
 
+// state updates
 exports.fen_updates = function() {
   test_board.set_fen("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 
@@ -15,6 +16,7 @@ exports.fen_updates = function() {
   assert.equal(test_board.get_fen(), "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
 }
 
+// piece moves
 exports.pawn_moves = function() {
   test_board.set_fen("8/7p/4K2P/8/4k3/8/8/8 w - - 0 1");
   assert.equal(test_board.get_valid_locations(15).length, 0);
@@ -85,4 +87,13 @@ exports.king_moves = function() {
 
   test_board.set_fen("8/8/8/1q6/3K1k2/8/8/2r5 w - - 0 1");
   assert.equal(test_board.get_valid_locations(33).length, 0);
+}
+
+// etc
+
+exports.example_incident_of_valid_move_not_recognized_by_the_server = function() {
+  test_board.set_fen("rnbq1bnr/p1pppk2/8/Pp1P4/5ppp/1PN4N/1BP1PPPP/R2QKBR1 b KQkq - 1 11");
+  test_board.update_state(7, 31, function(result) {
+    assert.equal(result, "complete")
+  });
 }

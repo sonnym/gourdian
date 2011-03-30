@@ -3,10 +3,14 @@
 // was uninspired by the offerings
 var fs = require("fs")
   , path = require("path")
+  , spawn = require("child_process").spawn
   , sys = require("sys")
 
   , assertion_dirs = ["unit"]
   , run_dirs = ["performance"]
+
+  , server_path = path.join(__dirname, "..", "src", "server.js")
+  , server = spawn('node', [ server_path ])
 
   , error = function() { sys.print("\x1B[1;37mE\x1B[0m") }
   , pass = function() { sys.print("\x1B[1;32mP\x1B[0m") }
