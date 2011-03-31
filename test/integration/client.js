@@ -10,6 +10,7 @@ var assert = require("assert")
   , move_message = function(from, to) { return { action: "pos", data: { f: from, t: to } } };
 
 exports.can_fetch_index = function() {
+
   var request = client_http.request("GET", "/");
 
   request.end();
@@ -18,7 +19,6 @@ exports.can_fetch_index = function() {
   });
 }
 
-  /*
 exports.can_connect_via_websocket = function() {
   var client_sock = new WebSocket("ws://127.0.0.1:8124/socket.io/websocket", "borf");
 
@@ -26,6 +26,7 @@ exports.can_connect_via_websocket = function() {
     assert.notEqual(buf.length, 0);
   });
 }
+/*
 
  // WARNING
 // async tests do not work yet, but can be verified from logs
@@ -71,16 +72,14 @@ exports.player_assigned_white_can_move = function() {
   }
 }
 
-*/
 exports.two_players_can_play_a_game = function() {
-  n_players_can_play(2);
+  n_players_can_play(100);
 }
 
-/*
+*/
 exports.twenty_players_can_play = function() {
   n_players_can_play(20);
 }
-*/
 
 // helpers
 

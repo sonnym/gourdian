@@ -16,6 +16,18 @@ exports.fen_updates = function() {
   assert.equal(test_board.get_fen(), "rnbqkbnr/pp1ppppp/8/2p5/4P3/5N2/PPPP1PPP/RNBQKB1R b KQkq - 1 2");
 }
 
+exports.update_state_works_identically_with_integer_and_string_input = function() {
+  test_board.set_fen("rnbq1bnr/p1pppk2/8/Pp1P4/5ppp/1PN4N/1BP1PPPP/R2QKBR1 b KQkq - 1 11");
+  test_board.update_state(7, 31, function(result) {
+    assert.equal(result, "complete")
+  });
+
+  test_board.set_fen("rnbq1bnr/p1pppk2/8/Pp1P4/5ppp/1PN4N/1BP1PPPP/R2QKBR1 b KQkq - 1 11");
+  test_board.update_state("7", "31", function(result) {
+    assert.equal(result, "complete")
+  });
+}
+
 // piece moves
 exports.pawn_moves = function() {
   test_board.set_fen("8/7p/4K2P/8/4k3/8/8/8 w - - 0 1");
@@ -85,15 +97,7 @@ exports.king_moves = function() {
   test_board.set_fen("8/8/1K6/8/4k3/8/8/8 b - - 0 1");
   assert.deepEqual(test_board.get_valid_locations(36).sort(), [27, 28, 29, 35, 37, 43, 44, 45]);
 
+  // diagonal and lateral checks with rook and queen
   test_board.set_fen("8/8/8/1q6/3K1k2/8/8/2r5 w - - 0 1");
   assert.equal(test_board.get_valid_locations(33).length, 0);
-}
-
-// etc
-
-exports.example_incident_of_valid_move_not_recognized_by_the_server = function() {
-  test_board.set_fen("rnbq1bnr/p1pppk2/8/Pp1P4/5ppp/1PN4N/1BP1PPPP/R2QKBR1 b KQkq - 1 11");
-  test_board.update_state(7, 31, function(result) {
-    assert.equal(result, "complete")
-  });
 }

@@ -37,11 +37,11 @@ Board = function() {
   // prepare changes to state before calling private function; allows messaging for pawn promotion
   this.update_state = function(from, to, callback) {
     var piece = state[from]
-      , valid = valid_locations(fen, from, true)
+      , valid = valid_locations(fen, parseInt(from), true)
       , capture = (state[to] != "")
       , captured = capture ? state[to] : null;
 
-    if (in_array(to, valid)) {
+    if (in_array(parseInt(to), valid)) {
       // en passant
       if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
         if (from > to) state[to + 8] = "";
@@ -223,8 +223,8 @@ Board = function() {
 
       do {
         // traversing an array; indices is literal; equidistant from start position; target locations
-        var indices = [parseInt(start) + parseInt((distance * current)), start - (distance * current)]
-          , prev_indices = [parseInt(start) + parseInt((distance * (current - 1))), start - (distance * (current - 1))]; // do: [start, start]
+        var indices = [start + (distance * current), start - (distance * current)]
+          , prev_indices = [start + (distance * (current - 1)), start - (distance * (current - 1))]; // do: [start, start]
 
         for (var i in indices) {
           var index = indices[i]
