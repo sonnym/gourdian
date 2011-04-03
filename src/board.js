@@ -41,26 +41,27 @@ Board = function() {
       , capture = (state[to] != "")
       , captured = capture ? state[to] : null;
 
-    if (in_array(parseInt(to), valid)) {
-      // en passant
-      if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
-        if (from > to) state[to + 8] = "";
-        else if (from < to) state[to - 8] = "";
-      }
-
-      // pawn promotion
-      if ((piece == "p" && to > 55 && to < 64) || (piece == "P" && to >= 0 && to < 8)) {
-        if (callback) callback("promote", function(new_piece) {
-          piece = new_piece;
-          if (update_state(piece, from, to, capture) && callback) callback("complete", captured);
-          else if (callback) callback("fail");
-        });
-      } else {
-        if (update_state(piece, from, to, capture, callback) && callback) callback("complete", captured);
-        else if (callback) callback("fail");
-      }
-    } else {
+    if (!in_array(parseInt(to), valid)) {
       if (callback) callback("invalid");
+      return;
+    }
+
+    // en passant
+    if (in_array(piece, ["p", "P"]) && in_array(Math.abs(from - to), [7, 9]) && state[to] == "") {
+      if (from > to) state[to + 8] = "";
+      else if (from < to) state[to - 8] = "";
+    }
+
+    // pawn promotion
+    if ((piece == "p" && to > 55 && to < 64) || (piece == "P" && to >= 0 && to < 8)) {
+      if (callback) callback("promote", function(new_piece) {
+        piece = new_piece;
+        if (update_state(piece, from, to, capture) && callback) callback("complete", captured);
+        else if (callback) callback("fail");
+      });
+    } else {
+      if (update_state(piece, from, to, capture, callback) && callback) callback("complete", captured);
+      else if (callback) callback("fail");
     }
   }
 
@@ -134,16 +135,15 @@ Board = function() {
           else return ascii > 96 && ascii < 123;
         };
 
-    for (var i = 0; i < 64; i++) {
+    for (var i = 0; i < 64 && !king; i++) {
       if (turn_validator(altered_state[i], whom) && (whom == "b" ? (altered_state[i] == "k") : (altered_state[i] == "K"))) {
         king = i;
-        i = 64;
       }
     }
 
-    if (king == null) return; // eh, why not?
+    if (!king) return; // eh, why not?
 
-    for (var i = 0; i < 64; i++)  if (turn_validator(altered_state[i], turn)) {
+    for (var i = 0; i < 64; i++) if (turn_validator(altered_state[i], turn)) {
       var valid = valid_locations(array2fen(altered_state) + " " + turn, i, false);
       if (in_array(king, valid)) return true;
     }
@@ -173,7 +173,6 @@ Board = function() {
 
     return valid;
   }
-
 
   // handles edge cases for pawn movement
   function pawn_check(state, turn, start, ep) {
@@ -264,11 +263,14 @@ Board = function() {
     // updating fen is also dependent upon valid drop
     var fen_parts = fen.split(" ");
 
-    fen_parts[0] = array2fen(state);                                                                         // position
+    // position
+    fen_parts[0] = array2fen(state);
 
-    fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";                                                      // turn
+    // turn
+    fen_parts[1] = (fen_parts[1] == "w") ? "b" : "w";
 
-    if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {                                  // castle
+    // castling
+    if (fen_parts[2] != "-" && in_array(piece, ["R", "r", "K", "k"])) {
       if (piece == "k") fen_parts[2].replace(/[kq]/g, "");
       else if (piece == "K") fen_parts[2].replace(/[KQ]/g, "");
       else if (piece == "r") {
@@ -282,15 +284,18 @@ Board = function() {
       if (fen_parts[2].length == 0) fen_parts[2] = "-";
     }
 
-    if (in_array(piece, ["p", "P"]) && Math.abs(from - to) == 16) {                                // en passant
+    // en passant
+    if (in_array(piece, ["p", "P"]) && Math.abs(from - to) == 16) {
       fen_parts[3] = position2file(from);
       if (from > to) fen_parts[3] += position2rank(from - 8);
       else fen_parts[3] += position2rank(from + 8);
     } else fen_parts[3] = "-";
 
-    fen_parts[4] = (in_array(piece, ["p", "P"]) || capture) ? 0 : parseInt(fen_parts[4]) + 1; // half move number
+    // half move number
+    fen_parts[4] = (in_array(piece, ["p", "P"]) || capture) ? 0 : parseInt(fen_parts[4]) + 1;
 
-    if (fen_parts[1] == "w") fen_parts[5]++;                                                // full move number
+    // full move number
+    if (fen_parts[1] == "w") fen_parts[5]++;
 
     fen = fen_parts.join(" ");
 
@@ -353,7 +358,7 @@ Board = function() {
     return ((8 - parseInt(s.charAt(1))) * 8) + (s.charCodeAt(0) - 97)
   }
 
-   // etc
+  // etc
   function in_array(needle, haystack) {
     for (var i = 0, l = haystack.length; i < l; i++) {
       if (haystack[i] == needle) return true;
