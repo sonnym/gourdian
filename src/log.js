@@ -6,7 +6,7 @@ var log = exports;
 // public variables
 
 log.level = 'debug';
-log.location = path.join(__dirname, "..", "log", "development.log"); // seems reasonable
+log.location = path.join(__dirname, "..", "log", "development.log");
 log.output = function(msg) {
   fs.open(log.location, 'a', function (err, fd) {
     fs.write(fd, (new Date()).toString() + ": " + msg + "\n", function (err, written) {

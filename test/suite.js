@@ -10,7 +10,8 @@ var fs = require("fs")
   , run_dirs = ["integration"]
 
   , server_path = path.join(__dirname, "..", "src", "server.js")
-  , server = spawn(server_path)
+  , log_path = path.join(__dirname, "..", "log", "test.log")
+  , server = spawn(server_path, ["--logfile=" + log_path])
   , server_stdout = server_stderr = ""
 
   , error = function() { sys.print("\x1B[1;37mE\x1B[0m") }
@@ -18,7 +19,6 @@ var fs = require("fs")
   , fail = function() { sys.print("\x1B[1;31mF\x1B[0m") }
 
   , count_e = count_p = count_f = 0
-
   , messages = []
 
   // command line arguments

@@ -4,3 +4,6 @@
 [submodule "test/lib/node-websocket-client"]
 	path = tnode_modules/node-websocket-client
 	url = http://github.com/pgriess/node-websocket-client.git
+[submodule "node_modules/v8cgi"]
+	path = node_modules/v8cgi
+	url = https://github.com/easel/v8cgi.git

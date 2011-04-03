@@ -12,21 +12,26 @@ PORT = 8124;
 
 var fs = require("fs")
   , repl = require("repl")
-  , starttime = (new Date()).getTime();
 
-// set cwd to file path
-var file = process.argv[1];
-process.chdir(file.substring(0, file.lastIndexOf("/")));
-
-var handler = require("./handler")
+  , bughouse = require("./bughouse")
+  , getopt = require("v8cgi/lib/getopt.js").GetOpt
+  , handler = require("./handler")
   , io = require("socket.io")
-  , log = require("./log")
-
-  , bughouse = require("./bughouse");
+  , log = require("./log");
 
   ////////////////
  // statements //
 ////////////////
+
+// handle options
+var opts = new getopt();
+opts.add("logfile", "Set the location of the log file", "", "l", "logfile", getopt.REQUIRED_ARGUMENT);
+
+opts.parse(process.argv);
+
+if (opts.get("logfile")) {
+  log.location = opts.get("logfile");
+}
 
 // listen
 handler.listen(Number(process.env.PORT || PORT), HOST);
@@ -110,6 +115,5 @@ socket.on("clientDisconnect", function(client) {
 
   // TODO: send resignation updates
 });
-
 
 repl.start("bugd> ");
