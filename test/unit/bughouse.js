@@ -1,6 +1,4 @@
-var assert = require("assert")
-  , bughouse = require("./../../src/bughouse.js");
-
+exports.context = { bughouse: require("./../../src/bughouse.js") };
 
 exports.one_can_join = function() {
   assert.equal(bughouse.join("sid0", "client0"), null);

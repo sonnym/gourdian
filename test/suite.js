@@ -5,6 +5,11 @@ var fs = require("fs")
   , path = require("path")
   , spawn = require("child_process").spawn
   , sys = require("sys")
+  , vm = require("vm")
+
+  , getopt = require("v8cgi/lib/getopt.js").GetOpt
+
+  , self = this
 
   , assertion_dirs = ["unit"]
   , run_dirs = ["integration"]
@@ -21,13 +26,15 @@ var fs = require("fs")
   , count_e = count_p = count_f = 0
   , messages = []
 
+  , integration_tests_complete = final_output_printed = false
+
   // command line arguments
   , name;
 
-// getopt would be far superior
-if (process.argv[2] == "-n" && process.argv.length > 3) {
-  name = process.argv[3];
-}
+// handle options
+var opts = new getopt();
+opts.add("name", "Run only the tests with a specified name", "", "n", "name", getopt.REQUIRED_ARGUMENT);
+opts.parse(process.argv);
 
 // unit tests
 console.log("\nRunning unit tests. . .");
@@ -47,23 +54,22 @@ server.stdout.on('data', function (data) {
     for (var d = 0, l_d = run_dirs.length; d < l_d; d++) {
       decide_run_test(run_dirs[d]);
     }
+    integration_tests_complete = true;
   }
 });
 
-var self = this
-  , loops = 0;
-
 self.stay_alive_loop = function() {
-  setTimeout(function() { return self.stay_alive_loop() } , 500);
-
-  // TODO: use vm module to run async tests, allowing for a real solution for knowing when the tests are complete
-  if (loops == 2) {
+  if (integration_tests_complete && !final_output_printed) {
     if (messages.length > 0) console.log("\n" + messages.join("\n\n"));
+
     console.log("\n----\nPass: " + count_p + "; Error: " + count_e + "; Fail: " + count_f);
     console.log("----\nServer stderr: " + server_stderr);
-    // server.kill("SIGHUP");
+
+    final_output_printed = true;
+    //server.kill("SIGHUP");
   }
-  loops++;
+
+  setTimeout(function() { return self.stay_alive_loop() } , 500);
 }
 self.stay_alive_loop();
 
@@ -78,32 +84,36 @@ function decide_run_test(relative_dir) {
 
   for (var f = 0, l_f = files.length; f < l_f; f++) {
     var file = files[f];
-    if (file.substring(file.length - 2) != "js") continue;
+    if (path.extname(file) != '.js') continue;
 
-    var test_file = require(path.join(dir, file));
+    var test_file = require(path.join(dir, file))
+      , context = test_file.context ? test_file.context : { };
+
+    context["assert"] = require("assert");
+
     for (var test_name in test_file) {
-      run_test(test_file, test_name);
-    }
-  }
-}
+      // only run the test specified by name
+      var name = opts.get("name");
+      if (test_name != "context" && (!name || test_name == name)) {
+        try {
+          var test_function = test_file[test_name].toString()
+          vm.runInNewContext("var t = " + test_function + "; t();" , context, test_file);
 
-function run_test(test_file, test_name) {
-  if (!name || test_name == name) {
-    try {
-      test_file[test_name]();
-      pass();
-      count_p++;
-    } catch(e) {
-      if (e.name && e.name == "AssertionError") {
-        messages.push(test_name + " failed; expected: " + e.expected + "; actual: " + e.actual + "; operator: " + e.operator);
-        fail();
-        count_f++;
-      } else {
-        messages.push(test_name + " error; " + e.message);
-        error();
-        count_e++;
+          pass();
+          count_p++;
+        } catch(e) {
+          if (e.name && e.name == "AssertionError") {
+            messages.push(test_name + " failed; expected: " + e.expected + "; actual: " + e.actual + "; operator: " + e.operator);
+            fail();
+            count_f++;
+          } else {
+            messages.push(test_name + " error; " + e.message);
+            error();
+            count_e++;
+          }
+          messages[messages.length - 1] += "\n" + e.stack;
+        }
       }
-      messages[messages.length - 1] += "\n" + e.stack;
     }
   }
 }

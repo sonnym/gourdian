@@ -1,6 +1,6 @@
-var assert = require("assert")
-  , board = require("./../../src/board.js")
-  , test_board = new Board();
+exports.context = { board: require("./../../src/board.js")
+                  , test_board: new Board()
+                  }
 
 // state updates
 exports.fen_updates = function() {
