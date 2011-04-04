@@ -36,12 +36,15 @@ Board = function() {
   }
   // prepare changes to state before calling private function; allows messaging for pawn promotion
   this.update_state = function(from, to, callback) {
+    from = parseInt(from);
+    to = parseInt(to);
+
     var piece = state[from]
-      , valid = valid_locations(fen, parseInt(from), true)
+      , valid = valid_locations(fen, from, true)
       , capture = (state[to] != "")
       , captured = capture ? state[to] : null;
 
-    if (!in_array(parseInt(to), valid)) {
+    if (!in_array(to, valid)) {
       if (callback) callback("invalid");
       return;
     }
@@ -63,6 +66,31 @@ Board = function() {
       if (update_state(piece, from, to, capture, callback) && callback) callback("complete", captured);
       else if (callback) callback("fail");
     }
+
+    // castling
+    if (piece == "k" && from == 4) {
+      if (to == 2) {
+        state[0] = "";
+        state[2] = "k";
+        state[3] = "r";
+      } else if (to == 6) {
+        state[7] = "";
+        state[6] = "k";
+        state[5] = "r";
+      }
+    } else if (piece == "K" && from == 60) {
+      if (to == 58) {
+        state[56] = "";
+        state[58] = "K";
+        state[59] = "R";
+      } else if (to == 62) {
+        state[63] = "";
+        state[62] = "K";
+        state[61] = "R";
+      }
+    }
+
+    if (callback) callback("complete");
   }
 
     /////////////////////
