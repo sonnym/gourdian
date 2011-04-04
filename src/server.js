@@ -33,6 +33,10 @@ if (opts.get("logfile")) {
   log.location = opts.get("logfile");
 }
 
+// set cwd to file path so static handler can find the files
+var file = process.argv[1];
+process.chdir(file.substring(0, file.lastIndexOf("/")));
+
 // listen
 handler.listen(Number(process.env.PORT || PORT), HOST);
 socket = io.listen(handler.server, { log: log.info, transports: ['websocket', 'xhr-multipart', 'xhr-polling', 'jsonp-polling']});

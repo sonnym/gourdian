@@ -82,11 +82,11 @@ Board = function() {
     if (piece == "" || (turn == "w" && !in_array(piece, white_pieces)) || turn == "b" && !in_array(piece, black_pieces)) return [];
 
     if (in_array(piece, ["P", "p"])) {
-      return pawn_check(state, turn, start, en_passant);
+      return pawn_check(state, turn, start, en_passant, check_for_check);
 
     } else if (in_array(piece, ["N", "n"])) {
       if (check_for_check) {
-        var test_state = state;
+        var test_state = state.slice();
         test_state[start] = "";  // knight move opens all lines through a point
 
         if (is_state_check(test_state, turn)) {
@@ -110,15 +110,81 @@ Board = function() {
 
     } else if (in_array(piece, ["K", "k"])) {
       var gross_valid = mult_check(state, turn, start, [1], 0, 1).concat(mult_check(state, turn, start, [7, 8, 9], 1, 1))
-        , next_turn = (turn == "w") ? "b" : "w"
+        , test_state_a
+        , test_state_b
         , valid = [];
 
-      for (var i = 0, l = gross_valid.length; i < l; i++) {
-        if (!in_array, valid_locations(fen + " " + (turn == "w" ? "b" : "w"))) {
-          valid.push(gross_valid[i]);
+      // castling
+      if (castle) {
+        if (piece == "k" && start == 4) {
+          if (castle.indexOf("k") > -1) {
+            if (state[5] == "" && state[6] == "") {
+              test_state_a = state.slice();
+              test_state_a[4] = "";
+              test_state_a[5] = "k";
+
+              test_state_b = state.slice();
+              test_state_b[4] = "";
+              test_state_b[6] = "k";
+
+              if (!is_state_check(test_state_a, turn) && !is_state_check(test_state_b, turn)) valid.push(6);
+            }
+          }
+          if (castle.indexOf("q") > -1) {
+            if (state[3] == "" && state[2] == "" && state[1] == "") {
+              test_state_a = state.slice();
+              test_state_a[4] = "";
+              test_state_a[3] = "k";
+
+              test_state_b = state.slice();
+              test_state_b[4] = "";
+              test_state_b[2] = "k";
+
+              if (!is_state_check(test_state_a, turn) && !is_state_check(test_state_b, turn)) valid.push(2);
+            }
+          }
+        } else if (piece == "K" && start == 60) {
+          if (castle.indexOf("K") > -1) {
+            if (state[61] == "" && state[62] == "") {
+              test_state_a = state.slice();
+              test_state_a[60] = "";
+              test_state_a[61] = "K";
+
+              test_state_b = state.slice();
+              test_state_b[60] = "";
+              test_state_b[62] = "K";
+
+              if (!is_state_check(test_state_a, turn) && !is_state_check(test_state_b, turn)) valid.push(62);
+            }
+          }
+          if (castle.indexOf("Q") > -1) {
+            if (state[59] == "" && state[58] == "" && state[57] == "") {
+              test_state_a = state.slice();
+              test_state_a[60] = "";
+              test_state_a[59] = "K";
+
+              test_state_b = state.slice();
+              test_state_b[60] = "";
+              test_state_b[58] = "K";
+
+              if (!is_state_check(test_state_a, turn) && !is_state_check(test_state_b, turn)) valid.push(58);
+            }
+          }
         }
       }
-      return valid;
+
+      // filter out checks
+      if (check_for_check) {
+        for (var i = 0, l = gross_valid.length; i < l; i++) {
+          test_state_a = state.slice();
+          test_state_a[start] = "";
+          test_state_a[gross_valid[i]] = piece;
+
+          if (!is_state_check(test_state_a, turn)) valid.push(gross_valid[i])
+        }
+
+        return valid;
+      } else return gross_valid;
     }
   }
 
@@ -175,8 +241,8 @@ Board = function() {
   }
 
   // handles edge cases for pawn movement
-  function pawn_check(state, turn, start, ep) {
-    var valid = [];
+  function pawn_check(state, turn, start, ep, check_for_check) {
+    var gross_valid = [];
 
     if (turn == "b") {
       var comp = function(a, b) { return parseInt(a) + parseInt(b); }
@@ -189,17 +255,30 @@ Board = function() {
     }
 
     // forward movement
-    if (!state[comp(start, 8)]) valid.push(comp(start, 8));
-    if (start > start_rank[0] && start < start_rank[1] && !state[comp(start, 8)] && !state[comp(start, 16)]) valid.push(comp(start, 16));
+    if (!state[comp(start, 8)]) gross_valid.push(comp(start, 8));
+    if (start > start_rank[0] && start < start_rank[1] && !state[comp(start, 8)] && !state[comp(start, 16)]) gross_valid.push(comp(start, 16));
 
     // capture
-    if (state[comp(start, 7)] && !in_array(state[comp(start, 7)], pieces) && Math.abs(position2row(start) - position2row(comp(start, 7))) == 1) valid.push(comp(start, 7));
-    if (state[comp(start, 9)] && !in_array(state[comp(start, 9)], pieces) && Math.abs(position2row(start) - position2row(comp(start, 9))) == 1) valid.push(comp(start, 9));
+    if (state[comp(start, 7)] && !in_array(state[comp(start, 7)], pieces) && Math.abs(position2row(start) - position2row(comp(start, 7))) == 1) gross_valid.push(comp(start, 7));
+    if (state[comp(start, 9)] && !in_array(state[comp(start, 9)], pieces) && Math.abs(position2row(start) - position2row(comp(start, 9))) == 1) gross_valid.push(comp(start, 9));
 
     // en passant
-    if (ep && (comp(start, 7) == ep || comp(start, 9) == ep)) valid.push(ep);
+    if (ep && (comp(start, 7) == ep || comp(start, 9) == ep)) gross_valid.push(ep);
 
-    return valid;
+    // filter out checks
+    if (check_for_check) {
+      var valid = [];
+
+      for (var i = 0, l = gross_valid.length; i < l; i++) {
+        var test_state = state.slice();
+        test_state[gross_valid[i]] = test_state[start];
+        test_state[start] = "";
+
+        if (!is_state_check(test_state, turn)) valid.push(gross_valid[i])
+      }
+
+      return valid;
+    } else return gross_valid;
   }
 
   // returns valid indices from the board array to which a piece can move

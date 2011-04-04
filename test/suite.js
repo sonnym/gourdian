@@ -90,6 +90,8 @@ function decide_run_test(relative_dir) {
       , context = test_file.context ? test_file.context : { };
 
     context["assert"] = require("assert");
+    context["log"] = require("./../src/log");
+    context.log.location = log_path;
 
     for (var test_name in test_file) {
       // only run the test specified by name
