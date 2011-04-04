@@ -13,7 +13,6 @@ exports.can_fetch_index = function() {
   request.end();
   request.on("response", function(response) {
     assert.equal(response.statusCode, 200);
-    console.log("test");
   });
 }
 
