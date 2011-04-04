@@ -201,7 +201,69 @@ var games = (function() {
   ////////////////////
  // public methods //
 ////////////////////
-exports.join = function(sid, name) {
+exports.handle_message = function(client, message) {
+  var sid = client.sessionId;
+
+  if (message.action == "join") {
+    var name = message.data.name
+      , data = join(sid, name);
+
+    if (data) {
+      var gid = data.gid
+        , opp_id = data.opp
+        , opp = socket.clients[opp_id]
+        , color = data[sid]
+        , opp_color = color == "w" ? "b" : "w";
+
+      log.info("user with name " + name + ", sid " + sid + " joined; assigned: " + color + "; opponent: " + opp_id + " " + opp_color);
+
+      client.send({play: 1, gid: gid, color: color, states: data.states});
+      opp.send({play: 1, gid: gid, color: opp_color, states: data.states});
+    } else {
+      log.info("user with name " + name + " joined; held");
+      client.send({hold: 1});
+    }
+  } else if (message.action == "pos") {
+    var from = message.data.f
+      , to = message.data.t;
+
+    update(sid, from, to, function(data) {
+      if (!data) return; // client disconnected during an update
+
+      var gid = data.gid
+        , opp_id = data.opp_id
+        , opp = socket.clients[opp_id]
+        , state = data.state
+        , watchers = data.watchers;
+
+      opp.send({state: state });
+
+      for (var i = 0, l = watchers.length; i < l; i++) {
+        var watcher = socket.clients[watchers[i]];
+        if (watcher) watcher.send({state: state});
+      }
+
+      log.info("recieved move from client with sid: " + sid + "; from " + from + " to " + to + "; opp " + opp_id);
+    });
+  } else if (message.action == "kibitz") {
+    var states = kibitz(sid, message.data.name);
+
+    client.send({ kibitz: 1, states: states });
+  } else if (message.action == "rot") {
+    var data = mv_watcher(sid, message.t);
+
+    client.send({ rotate: 1, states: data.states });
+  }
+}
+
+exports.handle_disconnect = function(sid) {
+  quit(sid);
+};
+
+  /////////////////////
+ // private methods //
+/////////////////////
+function join(sid, name) {
   if (!clients[sid]) add_client(sid, name);
 
   if (waiting.length > 0) {
@@ -231,7 +293,7 @@ exports.join = function(sid, name) {
   }
 }
 
-exports.update = function(sid, from, to, callback) {
+function update(sid, from, to, callback) {
   if (!clients[sid]) return; // client disconnected during an update
 
   var gid = clients[sid].gid
@@ -262,7 +324,7 @@ exports.update = function(sid, from, to, callback) {
   });
 }
 
-exports.kibitz = function(sid, name) {
+function kibitz(sid, name) {
   var gid = games.add_watcher(sid);
 
   add_client(sid, name, gid);
@@ -270,7 +332,7 @@ exports.kibitz = function(sid, name) {
   return games.get_states(gid);
 }
 
-exports.mv_watcher = function(sid, to) {
+function mv_watcher(sid, to) {
   if (!clients[sid]) return;
 
   var client = clients[sid]
@@ -282,7 +344,7 @@ exports.mv_watcher = function(sid, to) {
   return { states: games.get_states(new_gid) };
 }
 
-exports.quit = function(sid) {
+function quit(sid) {
   var gid = clients[sid].gid
     , watch = clients[sid].gid
     , ret = null;
@@ -305,9 +367,6 @@ exports.quit = function(sid) {
   return ret;
 }
 
-  /////////////////////
- // private methods //
-/////////////////////
 function add_client(sid, name, watch) {
   if (clients[sid]) return;
 

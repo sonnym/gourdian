@@ -19,9 +19,9 @@ var fs = require("fs")
   , io = require("socket.io")
   , log = require("./log");
 
-  ////////////////
- // statements //
-////////////////
+  //////////
+ // main //
+//////////
 
 // handle options
 var opts = new getopt();
@@ -37,7 +37,7 @@ if (opts.get("logfile")) {
 var file = process.argv[1];
 process.chdir(file.substring(0, file.lastIndexOf("/")));
 
-// listen
+// listeneners
 handler.listen(Number(process.env.PORT || PORT), HOST);
 socket = io.listen(handler.server, { log: log.info, transports: ['websocket', 'xhr-multipart', 'xhr-polling', 'jsonp-polling']});
 
@@ -58,66 +58,13 @@ handler.get("/lib/awesome-buttons/awesome-buttons.css", handler.staticHandler("l
 socket.on("connection", function(client) {
   client.on("message", function(obj) {
     log.debug("websocket hit: " + JSON.stringify(obj));
-
-    var sid = client.sessionId;
-
-    if (obj.action == "join") {
-      var name = obj.data.name
-        , data = bughouse.join(sid, name);
-
-      if (data) {
-        var gid = data.gid
-          , opp_id = data.opp
-          , opp = socket.clients[opp_id]
-          , color = data[sid]
-          , opp_color = color == "w" ? "b" : "w";
-
-        log.info("user with name " + name + ", sid " + sid + " joined; assigned: " + color + "; opponent: " + opp_id + " " + opp_color);
-
-        client.send({play: 1, gid: gid, color: color, states: data.states});
-        opp.send({play: 1, gid: gid, color: opp_color, states: data.states});
-      } else {
-        log.info("user with name " + name + " joined; held");
-        client.send({hold: 1});
-      }
-    } else if (obj.action == "pos") {
-      var from = obj.data.f
-        , to = obj.data.t;
-
-      bughouse.update(sid, from, to, function(data) {
-        if (!data) return; // client disconnected during an update
-
-        var gid = data.gid
-          , opp_id = data.opp_id
-          , opp = socket.clients[opp_id]
-          , state = data.state
-          , watchers = data.watchers;
-
-        opp.send({state: state });
-
-        for (var i = 0, l = watchers.length; i < l; i++) {
-          var watcher = socket.clients[watchers[i]];
-          if (watcher) watcher.send({state: state});
-        }
-
-        log.info("recieved move from client with sid: " + sid + "; from " + from + " to " + to + "; opp " + opp_id);
-      });
-    } else if (obj.action == "kibitz") {
-      var states = bughouse.kibitz(sid, obj.data.name);
-
-      client.send({ kibitz: 1, states: states });
-    } else if (obj.action == "rot") {
-      var data = bughouse.mv_watcher(sid, obj.t);
-
-      client.send({ rotate: 1, states: data.states });
-    }
+    bughouse.handle_message(client, obj);
   });
 });
 
 socket.on("clientDisconnect", function(client) {
-  bughouse.quit(client.sessionId);
-
-  // TODO: send resignation updates
+  bughouse.handle_disconnect(client.sessionId);
 });
 
+// repl
 repl.start("bugd> ");
