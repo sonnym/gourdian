@@ -7,3 +7,9 @@
 [submodule "node_modules/v8cgi"]
 	path = node_modules/v8cgi
 	url = https://github.com/easel/v8cgi.git
+[submodule "node_modules/node-static"]
+	path = node_modules/node-static
+	url = https://github.com/cloudhead/node-static.git
+[submodule "node_modules/transporter"]
+	path = node_modules/transporter
+	url = https://github.com/kriszyp/transporter.git

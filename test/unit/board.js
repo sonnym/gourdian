@@ -1,4 +1,4 @@
-exports.context = { board: require("./../../src/board.js")
+exports.context = { board: require("./../../lib/board.js")
                   , test_board: new Board()
                   }
 

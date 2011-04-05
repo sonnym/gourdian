@@ -7,14 +7,16 @@ var fs = require("fs")
   , sys = require("sys")
   , vm = require("vm")
 
-  , getopt = require("v8cgi/lib/getopt.js").GetOpt
+  , getopt = require("v8cgi/lib/getopt").GetOpt
+
+  , log = require("./../core/logger")
 
   , self = this
 
   , assertion_dirs = ["unit"]
   , run_dirs = ["integration"]
 
-  , server_path = path.join(__dirname, "..", "src", "server.js")
+  , server_path = path.join(__dirname, "..", "core", "server.js")
   , log_path = path.join(__dirname, "..", "log", "test.log")
   , server = spawn(server_path, ["--logfile=" + log_path])
   , server_stdout = server_stderr = ""
@@ -30,6 +32,18 @@ var fs = require("fs")
 
   // command line arguments
   , name;
+
+/*
+// attempt to kill server if tests fail hard
+process.on("uncaughtException", function(err) {
+  log.fatal("caught exception: " + err + "\n" + err.stack);
+  try {
+    server.kill("SIGHUP");
+  } catch(e) {
+    console.log(e.toString());
+  };
+});
+*/
 
 // handle options
 var opts = new getopt();
@@ -90,7 +104,7 @@ function decide_run_test(relative_dir) {
       , context = test_file.context ? test_file.context : { };
 
     context["assert"] = require("assert");
-    context["log"] = require("./../src/log");
+    context["log"] = log
     context.log.location = log_path;
 
     for (var test_name in test_file) {

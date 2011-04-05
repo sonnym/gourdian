@@ -1,9 +1,8 @@
   ///////////////////////
  // private variables //
 ///////////////////////
-var board = require("./board").Board
+var board = require("./../../lib/board").Board
   , crypto = require("crypto")
-  , log = require("./log")
   , sys = require("sys")
 
   , hash = function(d) { return crypto.createHash("sha1").update(d).digest("hex") }
@@ -93,11 +92,11 @@ var games = (function() {
       if (head) {
         head.state.private.watchers.push(sid);
 
-        log.debug("added watcher " + sid + "; game_id " + head.state.public.gid);
+        //log.debug("added watcher " + sid + "; game_id " + head.state.public.gid);
 
         return head.state.public.gid;
       } else {
-        log.debug("added watcher " + sid + "; no games to watch");
+        //log.debug("added watcher " + sid + "; no games to watch");
 
         return null
       }
@@ -201,69 +200,7 @@ var games = (function() {
   ////////////////////
  // public methods //
 ////////////////////
-exports.handle_message = function(client, message) {
-  var sid = client.sessionId;
-
-  if (message.action == "join") {
-    var name = message.data.name
-      , data = join(sid, name);
-
-    if (data) {
-      var gid = data.gid
-        , opp_id = data.opp
-        , opp = socket.clients[opp_id]
-        , color = data[sid]
-        , opp_color = color == "w" ? "b" : "w";
-
-      log.info("user with name " + name + ", sid " + sid + " joined; assigned: " + color + "; opponent: " + opp_id + " " + opp_color);
-
-      client.send({play: 1, gid: gid, color: color, states: data.states});
-      opp.send({play: 1, gid: gid, color: opp_color, states: data.states});
-    } else {
-      log.info("user with name " + name + " joined; held");
-      client.send({hold: 1});
-    }
-  } else if (message.action == "pos") {
-    var from = message.data.f
-      , to = message.data.t;
-
-    update(sid, from, to, function(data) {
-      if (!data) return; // client disconnected during an update
-
-      var gid = data.gid
-        , opp_id = data.opp_id
-        , opp = socket.clients[opp_id]
-        , state = data.state
-        , watchers = data.watchers;
-
-      opp.send({state: state });
-
-      for (var i = 0, l = watchers.length; i < l; i++) {
-        var watcher = socket.clients[watchers[i]];
-        if (watcher) watcher.send({state: state});
-      }
-
-      log.info("recieved move from client with sid: " + sid + "; from " + from + " to " + to + "; opp " + opp_id);
-    });
-  } else if (message.action == "kibitz") {
-    var states = kibitz(sid, message.data.name);
-
-    client.send({ kibitz: 1, states: states });
-  } else if (message.action == "rot") {
-    var data = mv_watcher(sid, message.t);
-
-    client.send({ rotate: 1, states: data.states });
-  }
-}
-
-exports.handle_disconnect = function(sid) {
-  quit(sid);
-};
-
-  /////////////////////
- // private methods //
-/////////////////////
-function join(sid, name) {
+exports.join = function(sid, name) {
   if (!clients[sid]) add_client(sid, name);
 
   if (waiting.length > 0) {
@@ -283,7 +220,7 @@ function join(sid, name) {
     ret.opp = opp;
     ret[sid] = color;
 
-    log.info("game " + gid + " created for " + sid + " and " + opp);
+    //log.info("game " + gid + " created for " + sid + " and " + opp);
 
     return ret;
   } else {
@@ -293,7 +230,7 @@ function join(sid, name) {
   }
 }
 
-function update(sid, from, to, callback) {
+exports.update = function(sid, from, to, callback) {
   if (!clients[sid]) return; // client disconnected during an update
 
   var gid = clients[sid].gid
@@ -304,7 +241,7 @@ function update(sid, from, to, callback) {
     // TODO: promotions
 
     if (message == "invalid") {
-      log.info("client " + sid + " performed an invalid move; from: " + from + "; to: " + to + "; fen: " + board.get_fen());
+      //log.info("client " + sid + " performed an invalid move; from: " + from + "; to: " + to + "; fen: " + board.get_fen());
       // TODO: handle invalid moves?
     } else if (message == "complete") {
       var w = node.state.private.white
@@ -324,7 +261,7 @@ function update(sid, from, to, callback) {
   });
 }
 
-function kibitz(sid, name) {
+exports.kibitz = function(sid, name) {
   var gid = games.add_watcher(sid);
 
   add_client(sid, name, gid);
@@ -332,7 +269,7 @@ function kibitz(sid, name) {
   return games.get_states(gid);
 }
 
-function mv_watcher(sid, to) {
+exports.mv_watcher = function(sid, to) {
   if (!clients[sid]) return;
 
   var client = clients[sid]
@@ -344,7 +281,7 @@ function mv_watcher(sid, to) {
   return { states: games.get_states(new_gid) };
 }
 
-function quit(sid) {
+exports.quit = function(sid) {
   var gid = clients[sid].gid
     , watch = clients[sid].gid
     , ret = null;
@@ -367,6 +304,9 @@ function quit(sid) {
   return ret;
 }
 
+  ///////////////////////
+ // private functions //
+///////////////////////
 function add_client(sid, name, watch) {
   if (clients[sid]) return;
 

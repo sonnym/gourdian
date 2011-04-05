@@ -95,89 +95,89 @@ var ib = (function() {
     squarify();
 
     // board is required first
-    load_js("board.js", function() {
-      // create and display
-      for (var b in boards) boards[b].obj = new Board();
-      $("#welcome").remove();
+    var board = new Board();
 
-      draw_boards();
+    // create and display
+    for (var b in boards) boards[b].obj = new Board();
+    $("#welcome").remove();
 
-      // set name
-      name = $("#name").val();
-      if (!name) name = "anonymous";
+    draw_boards();
 
-      // open socket
-      socket = new io.Socket(null, {port: 8124});
-      socket.connect();
+    // set name
+    name = $("#name").val();
+    if (!name) name = "anonymous";
 
-      socket.on("connect", function(response) {
-        socket.send({ action: action, data: { name: name } });
-      });
+    // open socket
+    socket = new io.Socket(null, {port: 8124});
+    socket.connect();
 
-      socket.on("message", function(data) {
-        if (DEBUG) console.log(data);
+    socket.on("connect", function(response) {
+      socket.send({ action: action, data: { name: name } });
+    });
 
-        // hold
-        if (data.hold) {
-          show_hold_dialog();
+    socket.on("message", function(data) {
+      if (DEBUG) console.log(data);
+
+      // hold
+      if (data.hold) {
+        show_hold_dialog();
+      }
+
+      // join color assignment
+      if (data.play) {
+        color = data.color;
+
+        if (data.color == "b") {
+          ib.toggle_flip_board();
+          draw_boards();
         }
 
-        // join color assignment
-        if (data.play) {
-          color = data.color;
+        var hold = $("#hold");
+        if (hold.hasClass("ui-dialog-content")) { // prevent exception when trying to destroy uninitialized dialog
+          hold.dialog("destroy");
+          hold.addClass("hidden");
+        }
 
-          if (data.color == "b") {
-            ib.toggle_flip_board();
-            draw_boards();
+        $("#play").removeClass("hidden");
+      }
+
+      // kibitz init
+      if (data.kibitz) {
+        $("#kibitz").removeClass("hidden");
+      }
+
+      // join/kibitz/rotate states
+      if (data.states) {
+        for (var b in boards)
+          if (data.states[b]) {
+            boards[b].gid = data.states[b].gid;
+            boards[b].black = data.states[b].b;
+            boards[b].white = data.states[b].w;
+            boards[b].stash_b = data.states[b].s_b;
+            boards[b].stash_w = data.states[b].s_w;
+
+            boards[b].obj.set_fen(data.states[b].fen, function(message) {
+              if (message == "converted") draw_board(b);
+
+              if (data.rotate) ib.toggle_flip_board();
+            });
+          } else {
+            boards[b].gid = null
+            $("#" + b + " > .board").html("");
+            $("#" + b + " > .meta").addClass("hidden");
           }
+      }
 
-          var hold = $("#hold");
-          if (hold.hasClass("ui-dialog-content")) { // prevent exception when trying to destroy uninitialized dialog
-            hold.dialog("destroy");
-            hold.addClass("hidden");
-          }
-
-          $("#play").removeClass("hidden");
-        }
-
-        // kibitz init
-        if (data.kibitz) {
-          $("#kibitz").removeClass("hidden");
-        }
-
-        // join/kibitz/rotate states
-        if (data.states) {
-          for (var b in boards)
-            if (data.states[b]) {
-              boards[b].gid = data.states[b].gid;
-              boards[b].black = data.states[b].b;
-              boards[b].white = data.states[b].w;
-              boards[b].stash_b = data.states[b].s_b;
-              boards[b].stash_w = data.states[b].s_w;
-
-              boards[b].obj.set_fen(data.states[b].fen, function(message) {
-                if (message == "converted") draw_board(b);
-
-                if (data.rotate) ib.toggle_flip_board();
-              });
-            } else {
-              boards[b].gid = null
-              $("#" + b + " > .board").html("");
-              $("#" + b + " > .meta").addClass("hidden");
-            }
-        }
-
-        // position update
-        if (data.state) {
-          for (var b in boards) {
-            if (boards[b].gid == data.state.gid) {
-              boards[b].obj.set_fen(data.state.fen, function(message) {
-                if (message == "converted") draw_board(b);
-              });
-            }
+      // position update
+      if (data.state) {
+        for (var b in boards) {
+          if (boards[b].gid == data.state.gid) {
+            boards[b].obj.set_fen(data.state.fen, function(message) {
+              if (message == "converted") draw_board(b);
+            });
           }
         }
-      });
+      }
     });
   }
 

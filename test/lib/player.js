@@ -1,7 +1,6 @@
 TMPDIR = "/tmp";
 
-var board = require("./../../src/board") 
-  , log = require("./../../src/log");
+var board = require("./../../lib/board");
 
 exports.move = function(fen, callback) {
   // setup
