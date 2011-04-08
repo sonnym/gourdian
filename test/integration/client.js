@@ -13,10 +13,13 @@ ClientTest = module.exports = function() {
       var client_http = http.createClient(8124)
         , request = client_http.request("GET", "/");
 
-      request.end();
-      request.on("response", function(response) {
+      var assertion = gourdian.curriedRequestOn(request, function(response) {
         assert.equal(response.statusCode, 200);
       });
+
+      request.end();
+
+      return assertion;
 
     }, can_connect_via_websocket: function() {
       var client_sock = new WebSocket("ws://127.0.0.1:8124/socket.io/websocket", "borf");
