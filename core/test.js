@@ -24,10 +24,11 @@ var fs = require("fs")
   , pass = function() { sys.print("\x1B[1;32mP\x1B[0m") }
   , fail = function() { sys.print("\x1B[1;31mF\x1B[0m") }
 
+  , futures = {}
   , count_e = count_p = count_f = 0
   , messages = []
 
-  , integration_tests_complete = final_output_printed = false;
+  , integration_tests_run = false;
 
 // attempt to kill server if tests fail hard
 process.on("uncaughtException", function(err) {
@@ -72,23 +73,26 @@ if (!opts.get("unit-only")) {
       for (var d = 0, l_d = run_dirs.length; d < l_d; d++) {
         decide_run_test(run_dirs[d]);
       }
-      integration_tests_complete = true;
     }
+
+    integration_tests_run = true;
   });
-} else integration_tests_complete = true;
+
+} else integration_tests_run = true;
 
 self.stay_alive_loop = function() {
-  if (integration_tests_complete && !final_output_printed) {
+  if (integration_tests_run == true && require("util").inspect(futures) == "{}") {
     if (messages.length > 0) console.log("\n" + messages.join("\n\n"));
 
     console.log("\n----\nPass: " + count_p + "; Error: " + count_e + "; Fail: " + count_f);
     console.log("----\nServer stderr: " + server_stderr);
 
-    final_output_printed = true;
-    //server.kill("SIGHUP");
+    server.kill("SIGHUP");
+
+    return;
   }
 
-  setTimeout(function() { return self.stay_alive_loop() } , 500);
+  setTimeout(function() { return self.stay_alive_loop() } , 50);
 }
 self.stay_alive_loop();
 
@@ -121,22 +125,53 @@ function decide_run_test(relative_dir) {
       if (only_name && test_name != only_name) continue;
 
       try {
-        test_instance[test_name]();
+        var future = test_instance[test_name]();
 
-        pass();
-        count_p++;
-      } catch(e) {
-        if (e.name && e.name == "AssertionError") {
-          messages.push(test_name + " failed; expected: " + e.expected + "; actual: " + e.actual + "; operator: " + e.operator);
-          fail();
-          count_f++;
+        if (typeof future == "object") {
+          var future_id = test_file + test_name;
+
+          future.test_name = test_name;
+          futures[future_id] = future;
+          keep_test_future_alive(future_id);
+
         } else {
-          messages.push(test_name + " error; " + e.message);
-          error();
-          count_e++;
+          pass();
+          count_p++;
         }
-        messages[messages.length - 1] += "\n" + e.stack;
+      } catch(e) {
+        register_error_or_failure(test_name, e);
       }
     }
   }
+}
+
+function keep_test_future_alive(future_id) {
+  var future = futures[future_id];
+
+  if (!future.get_done()) {
+    setTimeout(keep_test_future_alive, 20, future_id);
+  }
+  else {
+    if (future.get_error()) register_error_or_failure(future.test_name, future.get_error());
+    else {
+      pass();
+      count_p++;
+    }
+
+    delete futures[future_id];
+  }
+}
+
+function register_error_or_failure(test_name, e) {
+  if (e.name && e.name == "AssertionError") {
+    messages.push(test_name + " failed; expected: " + e.expected + "; actual: " + e.actual + "; operator: " + e.operator);
+    fail();
+    count_f++;
+  } else {
+    messages.push(test_name + " error; " + e.message);
+    error();
+    count_e++;
+  }
+
+  messages[messages.length - 1] += "\n" + e.stack;
 }
