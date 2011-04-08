@@ -150,8 +150,7 @@ function keep_test_future_alive(future_id) {
 
   if (!future.get_done()) {
     setTimeout(keep_test_future_alive, 20, future_id);
-  }
-  else {
+  } else {
     if (future.get_error()) register_error_or_failure(future.test_name, future.get_error());
     else {
       pass();
