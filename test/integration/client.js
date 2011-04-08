@@ -15,9 +15,9 @@ ClientTest = module.exports = function() {
 
       request.end();
       request.on("response", function(response) {
-        assert.equal(response.statusCode, 404);
+        assert.equal(response.statusCode, 200);
       });
-    
+
     }, can_connect_via_websocket: function() {
       var client_sock = new WebSocket("ws://127.0.0.1:8124/socket.io/websocket", "borf");
 

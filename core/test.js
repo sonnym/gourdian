@@ -101,7 +101,6 @@ function decide_run_test(relative_dir) {
     , restrict_file = opts.get("file")
     , only_file = restrict_file ? path.join(tests_path, opts.get("file")) : "";
 
-
   if (!files) {
     console.log("\nNo tests specified in the " + relative_dir + " directory. . .");
     return;

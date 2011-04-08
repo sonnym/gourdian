@@ -13,3 +13,6 @@
 [submodule "node_modules/transporter"]
 	path = node_modules/transporter
 	url = https://github.com/kriszyp/transporter.git
+[submodule "node_modules/underscore"]
+	path = node_modules/underscore
+	url = https://github.com/documentcloud/underscore.git
