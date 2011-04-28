@@ -14,4 +14,4 @@ exports._ = require("underscore");
   ///////////////
  // functions //
 ///////////////
-exports.deep_insepct = function(o) { return require("util").inspect(o, true, null) };
+exports.deep_inspect = function(o) { return require("util").inspect(o, true, null) };
