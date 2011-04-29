@@ -7,13 +7,16 @@ if (process.argv[2] == "--init") {
 
     , gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
 
-  // recursively update node modules directory
+  //
+  console.log("---\nUpdating node_modules directory. . .\n---");
   var node_modules = fs.readdirSync(path.join(__dirname, "..", "node_modules"));
   for (var i = 0, l = node_modules.length; i < l; i++) {
     spawn("git", ["submodule", "update", "--recursive", path.join(gourdian.ROOT, "node_modules", node_modules[i])]);
   }
 
-  // create directories for application
+  //
+  console.log("---\nCreating directories. . . \n---");
+
   var directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "pubic": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
     , directories = reduce_directory_structure(gourdian.ROOT, directory_structure);
 
@@ -25,6 +28,32 @@ if (process.argv[2] == "--init") {
       console.log(directory + " created");
     }
   });
+
+  //
+  console.log("---\nCopying files. . . \n---");
+
+  var init_path = path.join(gourdian.ROOT, "core", "boilerplate", "init");
+  directory_descent_wrapper(init_path, function(source) {
+    var source_rel = source.substring(gourdian.ROOT.length + 1)
+      , source_rel_array = gourdian._.rest((source_rel.split("/") || source.split("\\")), 3)
+      , destination = path.join(gourdian.ROOT, gourdian._.reduce(source_rel_array, function(memo, path_part) { return path.join(memo, path_part) }));
+
+	if (path.existsSync(destination)) {
+	  console.log(destination + " present");
+	} else {
+      fs.readFile(source, function(read_err, buf) {
+      	if (read_err) console.log("\nERROR:  Unable to read file " + source);
+
+        fs.writeFile(destination, buf, function(write_err) {
+          if (write_err) console.log("\nERROR: Unable to write file " + destination);
+		  else console.log(destination + " created");
+       	});
+      });
+    }
+  });
+
+  //
+  console.log("---\nNew project init complete!\n");
 } else {
   console.log("Usage:  script/gourdian --init");
 }
@@ -38,4 +67,18 @@ function reduce_directory_structure(initial_value, obj) {
       return path.join(initial_value, iterated_object);
     }
   }));
+}
+
+function directory_descent_wrapper(full_path, callback) {
+  var files = fs.readdirSync(full_path);
+  gourdian._.each(files, function(file) {
+    var file_path_abs = path.join(full_path, file);
+
+    stats = fs.statSync(file_path_abs);
+    if (stats.isDirectory()) {
+      directory_descent_wrapper(file_path_abs, callback);
+    } else {
+      callback(file_path_abs);
+    }
+  });
 }
