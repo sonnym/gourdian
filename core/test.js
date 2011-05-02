@@ -6,7 +6,7 @@ var fs = require("fs")
   , spawn = require("child_process").spawn
   , sys = require("sys")
 
-  , getopt = require("v8cgi/lib/getopt").GetOpt
+  , GetOpt = require("v8cgi/lib/getopt").GetOpt
 
   , self = this
 
@@ -45,12 +45,18 @@ process.on("uncaughtException", function(err) {
 });
 
 // handle options
-var opts = new getopt();
-opts.add("name", "Run only the tests with a specified name", "", "n", "name", getopt.REQUIRED_ARGUMENT);
-opts.add("file", "Run only the tests in a specified file", "", "f", "file", getopt.REQUIRED_ARGUMENT);
-opts.add("unit-only", "Run only unit tests", false, "u", "unit", getopt.NO_ARGUMENT);
-opts.add("integration-only", "Run only integration tests", false, "i", "integration", getopt.NO_ARGUMENT);
-opts.parse(process.argv);
+var opts = new GetOpt();
+opts.add("name", "Run only the tests with a specified name", "", "n", "name", GetOpt.REQUIRED_ARGUMENT);
+opts.add("file", "Run only the tests in a specified file", "", "f", "file", GetOpt.REQUIRED_ARGUMENT);
+opts.add("unit-only", "Run only unit tests", false, "u", "unit", GetOpt.NO_ARGUMENT);
+opts.add("integration-only", "Run only integration tests", false, "i", "integration", GetOpt.NO_ARGUMENT);
+
+try {
+  opts.parse(process.argv);
+} catch (e) {
+  console.log(e + "\nGourdian server script usage: \n\n" + opts.help());
+  return;
+}
 
 // unit tests
 if (!opts.get("integration-only")) {

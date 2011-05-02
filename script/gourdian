@@ -17,7 +17,7 @@ if (process.argv[2] == "--init") {
   //
   console.log("---\nCreating directories. . . \n---");
 
-  var directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "pubic": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
+  var directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
     , directories = reduce_directory_structure(gourdian.ROOT, directory_structure);
 
   gourdian._.each(directories, function(directory) {
@@ -38,16 +38,16 @@ if (process.argv[2] == "--init") {
       , source_rel_array = gourdian._.rest((source_rel.split("/") || source.split("\\")), 3)
       , destination = path.join(gourdian.ROOT, gourdian._.reduce(source_rel_array, function(memo, path_part) { return path.join(memo, path_part) }));
 
-	if (path.existsSync(destination)) {
-	  console.log(destination + " present");
-	} else {
+  if (path.existsSync(destination)) {
+    console.log(destination + " present");
+  } else {
       fs.readFile(source, function(read_err, buf) {
-      	if (read_err) console.log("\nERROR:  Unable to read file " + source);
+        if (read_err) console.log("\nERROR:  Unable to read file " + source);
 
         fs.writeFile(destination, buf, function(write_err) {
-          if (write_err) console.log("\nERROR: Unable to write file " + destination);
-		  else console.log(destination + " created");
-       	});
+          if (write_err) console.log("\nERROR: Unable to write file " + destination + " " + write_err);
+          else console.log(destination + " created");
+        });
       });
     }
   });
