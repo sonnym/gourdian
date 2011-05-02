@@ -75,7 +75,7 @@ if (!opts.get("unit-only")) {
     server_stdout += data;
 
     // wait for server to come up before running tests
-    if (data.toString().substring(0, 5) == "bugd>") {
+    if (data.toString().substring(0, 6) == "gourd>") {
       for (var d = 0, l_d = run_dirs.length; d < l_d; d++) {
         decide_run_test(run_dirs[d]);
       }
