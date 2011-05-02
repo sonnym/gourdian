@@ -3,7 +3,7 @@
   ///////////////
  // constants //
 ///////////////
-PORT = 8124;
+DEFAULT_PORT = 8124;
 
   ///////////////////////
  // private variables //
@@ -14,14 +14,17 @@ var fs = require("fs")
   , repl = require("repl")
   , url = require("url")
 
-  , getopt = require("v8cgi/lib/getopt.js").GetOpt
+  , GetOpt = require("v8cgi/lib/getopt.js").GetOpt
   , io = require("socket.io-node")
   , static = require("node-static")
 
+  , gourdian = require("./gourdian")
+
+  , Config = require("./config")
   , Router = require("./router")
 
+  , config = new Config()
   , router = new Router()
-  , gourdian = require("./gourdian")
 
   , lib_path = path.join(gourdian.ROOT, "lib")
   , transporter = require("transporter/lib/jsgi/transporter.js").Transporter({url: "/shared/", paths: [lib_path]});
@@ -38,14 +41,21 @@ process.on("uncaughtException", function(error) {
   /////////////
  // options //
 /////////////
-var opts = new getopt();
-opts.add("logfile", "Set the location of the log file", "", "l", "logfile", getopt.REQUIRED_ARGUMENT);
+var opts = new GetOpt();
+opts.add("logfile", "Set the location of the log file", "", "l", "logfile", GetOpt.REQUIRED_ARGUMENT);
+opts.add("port", "Port HTTP server and Socket.IO will listen on", DEFAULT_PORT, "p", "port", GetOpt.REQUIRED_ARGUMENT);
 
-opts.parse(process.argv);
+try {
+  opts.parse(process.argv);
+} catch (e) {
+  console.log(e + "\nGourdian server script usage: \n\n" + opts.help());
+  return;
+}
 
 if (opts.get("logfile")) {
   gourdian.logger.location = opts.get("logfile");
 }
+var port = opts.get("port");
 
   /////////////////
  // controllers //
@@ -112,9 +122,9 @@ if (router.routes.http && router.routes.http.length > 0) {
     gourdian.logger.debug("HTTP request: " + JSON.stringify(request.url));
   });
 
-  http_server.listen(PORT);
+  http_server.listen(port);
 
-  gourdian.logger.info("HTTP server listening on: " + PORT.toString());
+  gourdian.logger.info("HTTP server listening on: " + port.toString());
 } else {
   gourdian.logger.info("No HTTP routes defined; HTTP server will not be started.");
 }
@@ -126,7 +136,7 @@ if (router.routes.socket && router.routes.socket.length > 0 ) {
   // need a defined http server for socket.io to hook into for backwards compatibility
   if (http_server === undefined) {
     var http_server = require("http").createServer();
-    http_server.listen(PORT);
+    http_server.listen(port);
   }
 
   // gather routes
@@ -155,4 +165,4 @@ if (router.routes.socket && router.routes.socket.length > 0 ) {
   //////////
  // repl //
 //////////
-repl.start("bugd> ");
+repl.start("gourd> ");
