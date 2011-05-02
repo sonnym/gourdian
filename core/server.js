@@ -36,6 +36,7 @@ var fs = require("fs")
 // global exception handling
 process.on("uncaughtException", function(error) {
   gourdian.logger.fatal("Caught exception: " + error + "\n" + error.stack);
+  console.log("Caught exception: " + error + "\n" + error.stack);
 });
 
   /////////////
@@ -71,28 +72,43 @@ for (c in controller_files) {
 
   var controller_index = controller_file.substring(0, controller_file.length - 3);
 
-  controllers[controller_index] = require(path.join(controllers_dir, controller_file));
+  // include controller and attach gourdian object
+  controllers[controller_index] = require(path.join(controllers_dir, controller_file))();
   controllers[controller_index].gourdian = gourdian;
+
+  // make all includes globally accessible
+  for (var i = 0, l = config.includes.length; i < l; i++) {
+    controllers[controller_index][gourdian._.keys(config.includes)[i]] = config.includes[i];
+  }
 }
 
   //////////
  // http //
 //////////
 if (router.routes.http && router.routes.http.length > 0) {
+  // separate static and dynamic HTTP requests; order of precedence is: 1) specific files, 2) dynamic content, 3) root file server, 4) transporter fallback
   var root_route = gourdian._.detect(router.routes.http, function(route) { return route.root })
     , file_routes = gourdian._.select(router.routes.http, function(route) { return route.file })
+    , dynamic_routes = gourdian._.select(router.routes.http, function(route) { return route.controller && route.action })
 
     , file_server = root_route ? new static.Server("./" + root_route.root) // new static.Server(path.join(gourdian.ROOT, root_route.root))
                                : new static.Server();
 
   var http_server = require("http").createServer(function(request, response) {
     request.addListener("end", function() {
+      var first_matching_file_route = gourdian._.detect(file_routes, function(route) { return url.parse(request.url).pathname === route.path })
+        , first_matching_dynamic_route = gourdian._.detect(dynamic_routes, function(route) { return url.parse(request.url).pathname === route.path });
 
-      // routes for specific files
-      var first_matching_route = gourdian._.detect(file_routes, function(route) { return url.parse(request.url).pathname == route.path });
-      if (first_matching_route) {
-        //file_server.serveFile(path.join(gourdian.ROOT, first_matching_route.file), 200, { }, request, response);
-        file_server.serveFile("./../" + first_matching_route.file, 200, { }, request, response);
+      // routes for specific static files
+      if (first_matching_file_route) {
+        //file_server.serveFile(path.join(gourdian.ROOT, first_matching_file_route.file), 200, { }, request, response);
+        file_server.serveFile("./../" + first_matching_file_route.file, 200, { }, request, response);
+
+      // routes for dynamically generated content
+      } else if (first_matching_dynamic_route) {
+        var action_body = controllers[first_matching_dynamic_route.controller][first_matching_dynamic_route.action]();
+        response.writeHead(200, { "Content-Length": action_body.length, "Content-Type": "text/html" });
+        response.end(action_body);
 
       // file server root folder
       } else {
