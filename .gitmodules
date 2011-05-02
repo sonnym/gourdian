@@ -1,9 +1,6 @@
-[submodule "src/lib/socket.io"]
-	path = node_modules/socket.io
-	url = http://github.com/LearnBoost/Socket.IO.git
 [submodule "test/lib/node-websocket-client"]
 	path = node_modules/node-websocket-client
-	url = http://github.com/pgriess/node-websocket-client.git
+	url = https://github.com/pgriess/node-websocket-client.git
 [submodule "node_modules/v8cgi"]
 	path = node_modules/v8cgi
 	url = https://github.com/easel/v8cgi.git
@@ -22,3 +19,6 @@
 [submodule "node_modules/node-jake"]
 	path = node_modules/node-jake
 	url = git://github.com/mde/node-jake.git
+[submodule "node_modules/socket.io-node"]
+	path = node_modules/socket.io-node
+	url = https://github.com/LearnBoost/Socket.IO-node.git

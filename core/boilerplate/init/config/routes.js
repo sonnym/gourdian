@@ -1,5 +1,5 @@
 module.exports = function() { return {
-  http: [ { root: "public" }
+  http: [ { root: "public" } ],
 
   socket: [ ]
 } };
