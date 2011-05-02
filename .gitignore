@@ -1,2 +1,4 @@
+log/*.log
+
 node_modules/dust
 node_modules/node-mysql
