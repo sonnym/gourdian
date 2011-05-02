@@ -6,4 +6,3 @@ var TESTNAME = module.exports = function() {
     }
   };
 };
-
