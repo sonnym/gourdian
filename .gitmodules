@@ -22,3 +22,6 @@
 [submodule "node_modules/socket.io-node"]
 	path = node_modules/socket.io-node
 	url = https://github.com/LearnBoost/Socket.IO-node.git
+[submodule "node_modules/dust"]
+	path = node_modules/dust
+	url = https://github.com/akdubya/dustjs.git
