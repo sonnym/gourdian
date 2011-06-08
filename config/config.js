@@ -1,3 +1,3 @@
 module.exports = function() { return {
-  include: [ "dust" ]
+  includes: [ "dust", "node-mysql" ]
 } };

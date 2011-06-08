@@ -29,6 +29,14 @@ var fs = require("fs")
   , lib_path = path.join(gourdian.ROOT, "lib")
   , transporter = require("transporter/lib/jsgi/transporter.js").Transporter({url: "/shared/", paths: [lib_path]});
 
+  /////////////
+ // globals //
+/////////////
+global.util = require("util")
+
+global.Gourdian = gourdian;
+global.Controller = require("./controller")
+
   //////////
  // main //
 //////////
@@ -38,6 +46,8 @@ process.on("uncaughtException", function(error) {
   gourdian.logger.fatal("Caught exception: " + error + "\n" + error.stack);
   console.log("Caught exception: " + error + "\n" + error.stack);
 });
+
+global.stop = function() { process.kill(process.pid, "SIGHUP") };
 
   /////////////
  // options //
@@ -61,24 +71,26 @@ var port = opts.get("port");
   /////////////////
  // controllers //
 /////////////////
-var controllers_dir = path.join(gourdian.ROOT, "app", "c")
-  , controller_files = fs.readdirSync(controllers_dir)
-  , controllers = {};
+var controllers_dir = path.join(gourdian.ROOT, "app", "c");
+if (path.existsSync(controllers_dir)) {
+  var controller_files = fs.readdirSync(controllers_dir)
+    , controllers = {};
 
-for (c in controller_files) {
-  var controller_file = controller_files[c];
+  for (c in controller_files) {
+    var controller_file = controller_files[c];
 
-  if (path.extname(controller_file) != '.js') continue;
+    if (path.extname(controller_file) != '.js') continue;
 
-  var controller_index = controller_file.substring(0, controller_file.length - 3);
+    var controller_index = controller_file.substring(0, controller_file.length - 3);
 
-  // include controller and attach gourdian object
-  controllers[controller_index] = require(path.join(controllers_dir, controller_file))();
-  controllers[controller_index].gourdian = gourdian;
+    // include controller and attach gourdian object
+    controllers[controller_index] = require(path.join(controllers_dir, controller_file))();
+    controllers[controller_index].gourdian = gourdian;
 
-  // make all includes globally accessible
-  for (var i = 0, l = config.includes.length; i < l; i++) {
-    controllers[controller_index][gourdian._.keys(config.includes)[i]] = config.includes[i];
+    // make all includes globally accessible
+    for (var i = 0, l = config.includes.length; i < l; i++) {
+      controllers[controller_index][gourdian._.keys(config.includes)[i]] = config.includes[i];
+    }
   }
 }
 
@@ -95,6 +107,9 @@ if (router.routes.http && router.routes.http.length > 0) {
                                : new static.Server();
 
   var http_server = require("http").createServer(function(request, response) {
+    var request_body = "";
+    request.addListener("data", function(chunk) { request_body += chunk });
+
     request.addListener("end", function() {
       var first_matching_file_route = gourdian._.detect(file_routes, function(route) { return url.parse(request.url).pathname === route.path })
         , first_matching_dynamic_route = gourdian._.detect(dynamic_routes, function(route) { return url.parse(request.url).pathname === route.path });
@@ -106,9 +121,28 @@ if (router.routes.http && router.routes.http.length > 0) {
 
       // routes for dynamically generated content
       } else if (first_matching_dynamic_route) {
-        var action_body = controllers[first_matching_dynamic_route.controller][first_matching_dynamic_route.action]();
-        response.writeHead(200, { "Content-Length": action_body.length, "Content-Type": "text/html" });
-        response.end(action_body);
+        var action_response = controllers[first_matching_dynamic_route.controller][first_matching_dynamic_route.action]();
+
+        // full response
+        if (typeof action_response === "string") {
+          response.writeHead(200, { "Content-Length": action_body.length, "Content-Type": "text/html" });
+          response.end(action_body);
+
+        // chunked response
+        } else if (typeof action_response === "object") {
+          response.writeHead(200, { "Content-Type": "text/html" });
+
+          // function must be an event emitter w/ data, end, and error
+          action_response.on("data", function(data) {
+            response.write(data);
+          });
+          action_response.on("end", function() {
+            response.end();
+          });
+          action_response.on("error", function(error) {
+            gourdian.logger.info("Error: " + error);
+          });
+        }
 
       // file server root folder
       } else {
