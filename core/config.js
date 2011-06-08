@@ -6,8 +6,7 @@ Config = module.exports = function() {
   if (this.config.includes && this.config.includes.length > 0) {
     for (var i = 0, l = this.config.includes.length; i < l; i++) {
       var include = this.config.includes[i];
-
-      this.includes[include] = require(include);
+      global[include] = require(include);
     }
   }
 

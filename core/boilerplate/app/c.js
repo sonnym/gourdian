@@ -1,4 +1,5 @@
-require("util").inherits(module, require("./../../core/controller"));
+util.inherits(module, Controller);
+
 var CONTROLLERNAME = module.exports = function() {
   return { };
 };
