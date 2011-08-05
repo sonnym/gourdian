@@ -4,20 +4,43 @@ if (process.argv[2] == "--init") {
   var fs = require("fs")
     , path = require("path")
     , spawn = require("child_process").spawn
+    , node_modules_waiting_for_exit = 0;
 
-    , gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
+  update_node_modules();
 
-  //
-  console.log("---\nUpdating node_modules directory. . .\n---");
-  var node_modules = fs.readdirSync(path.join(__dirname, "..", "node_modules"));
+  // everything later in the initialization process depends on the modules being present
+  var module_waiting_interval_id = setInterval(function() {
+    if (node_modules_waiting_for_exit == 0) {
+      clearInterval(module_waiting_interval_id);
+
+      create_directory_structure();
+      copy_files_into_directories();
+
+      console.log("---\nNew project init complete!\n");
+    }
+  }, 100);
+} else {
+  console.log("Usage:  script/gourdian --init");
+}
+
+function update_node_modules() {
+  console.log("---\nInitializing and updating node_modules directory. . .\n---");
+  var node_modules = fs.readdirSync(path.join(__dirname, "..", "node_modules"))
+
   for (var i = 0, l = node_modules.length; i < l; i++) {
-    spawn("git", ["submodule", "update", "--recursive", path.join(gourdian.ROOT, "node_modules", node_modules[i])]);
-  }
+    node_modules_waiting_for_exit++;
 
-  //
+    spawn("git", ["submodule", "update", "--recursive", path.join(__dirname, "..", "node_modules", node_modules[i])]).on("exit", function() {
+      node_modules_waiting_for_exit--;
+    });
+  }
+}
+
+function create_directory_structure() {
   console.log("---\nCreating directories. . . \n---");
 
-  var directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
+  var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
+    , directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
     , directories = reduce_directory_structure(gourdian.ROOT, directory_structure);
 
   gourdian._.each(directories, function(directory) {
@@ -28,11 +51,14 @@ if (process.argv[2] == "--init") {
       console.log(directory + " created");
     }
   });
+}
 
-  //
+function copy_files_into_directories() {
   console.log("---\nCopying files. . . \n---");
 
-  var init_path = path.join(gourdian.ROOT, "core", "boilerplate", "init");
+  var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
+    , init_path = path.join(gourdian.ROOT, "core", "boilerplate", "init");
+
   directory_descent_wrapper(init_path, function(source) {
     var source_rel = source.substring(gourdian.ROOT.length + 1)
       , source_rel_array = gourdian._.rest((source_rel.split("/") || source.split("\\")), 3)
@@ -51,14 +77,11 @@ if (process.argv[2] == "--init") {
       });
     }
   });
-
-  //
-  console.log("---\nNew project init complete!\n");
-} else {
-  console.log("Usage:  script/gourdian --init");
 }
 
 function reduce_directory_structure(initial_value, obj) {
+  var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
+
   return gourdian._.flatten(gourdian._.map(obj, function(iterated_object) {
     if (typeof iterated_object === "object") {
       var key = gourdian._.keys(iterated_object)[0];
@@ -70,7 +93,9 @@ function reduce_directory_structure(initial_value, obj) {
 }
 
 function directory_descent_wrapper(full_path, callback) {
-  var files = fs.readdirSync(full_path);
+  var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
+    , files = fs.readdirSync(full_path);
+
   gourdian._.each(files, function(file) {
     var file_path_abs = path.join(full_path, file);
 
