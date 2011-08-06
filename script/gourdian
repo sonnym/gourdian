@@ -41,7 +41,7 @@ function parallel_update_node_modules() {
   for (var i = 0, l = node_modules.length; i < l; i++) {
     node_modules_waiting_for_exit++;
 
-    spawn("git", ["submodule", "update", "--recursive", path.join(__dirname, "..", "node_modules", node_modules[i])]).on("exit", function() {
+    spawn("git", ["submodule", "update", "--init", "--recursive", path.join(__dirname, "..", "node_modules", node_modules[i])]).on("exit", function() {
       node_modules_waiting_for_exit--;
     });
   }
