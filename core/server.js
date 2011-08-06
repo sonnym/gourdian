@@ -15,7 +15,7 @@ var fs = require("fs")
   , url = require("url")
 
   , GetOpt = require("v8cgi/lib/getopt.js").GetOpt
-  , io = require("socket.io")
+  , io = require("socket-io")
   , static = require("node-static")
 
   , gourdian = require("./gourdian")
