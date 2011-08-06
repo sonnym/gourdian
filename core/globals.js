@@ -1,6 +1,8 @@
 global.path = require("path");
 global.inherits = require("util").inherits;
 
+global.Inflect = require("inflect-js");
+
 global.Gourdian = require(path.join(__dirname, "gourdian"));
 
 global.Test = require(path.join(__dirname, "lib", "test"));
