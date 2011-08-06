@@ -1,31 +1,42 @@
 #! /usr/bin/env node
 
-if (process.argv[2] == "--init") {
-  var fs = require("fs")
-    , path = require("path")
-    , spawn = require("child_process").spawn
-    , node_modules_waiting_for_exit = 0;
+var fs = require("fs")
+  , path = require("path")
 
+  , node_modules_waiting_for_exit = 0;
+
+// main
+if (process.argv[2] == "--init-submodules") {
   update_node_modules();
+
+} else if (process.argv[2] == "--init") {
+  update_node_modules(function() {
+    create_directory_structure();
+    copy_files_into_directories();
+
+    console.log("---\nNew project init complete!\n");
+  });
+} else {
+  console.log("Usage:  script/gourdian --init");
+}
+
+function update_node_modules(callback) {
+  console.log("---\nInitializing and updating node_modules directory. . .\n---");
+
+  parallel_update_node_modules();
 
   // everything later in the initialization process depends on the modules being present
   var module_waiting_interval_id = setInterval(function() {
     if (node_modules_waiting_for_exit == 0) {
       clearInterval(module_waiting_interval_id);
-
-      create_directory_structure();
-      copy_files_into_directories();
-
-      console.log("---\nNew project init complete!\n");
+      if (callback) callback();
     }
   }, 100);
-} else {
-  console.log("Usage:  script/gourdian --init");
 }
 
-function update_node_modules() {
-  console.log("---\nInitializing and updating node_modules directory. . .\n---");
-  var node_modules = fs.readdirSync(path.join(__dirname, "..", "node_modules"))
+function parallel_update_node_modules() {
+  var spawn = require("child_process").spawn
+    , node_modules = fs.readdirSync(path.join(__dirname, "..", "node_modules"));
 
   for (var i = 0, l = node_modules.length; i < l; i++) {
     node_modules_waiting_for_exit++;

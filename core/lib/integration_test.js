@@ -1,4 +1,8 @@
-assert = require("assert");
+var IntegrationTest = function() {
+  Test.call(this);
+};
+
+inherits(IntegrationTest, Test);
 
 gourdian = { curriedRequestOn: function(request, callback) {
                var done = false
@@ -52,5 +56,4 @@ gourdian = { curriedRequestOn: function(request, callback) {
                       };
              }
            }
-
-var IntegrationTest = module.exports = function() { };
+module.exports = IntegrationTest;
