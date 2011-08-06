@@ -15,7 +15,7 @@
 	url = https://github.com/documentcloud/underscore.git
 [submodule "node_modules/node-linter"]
 	path = node_modules/node-linter
-	url = https://github.com/kof/node-linter.git
+	url = https://github.com/sonnym/node-linter.git
 [submodule "node_modules/node-jake"]
 	path = node_modules/node-jake
 	url = git://github.com/mde/node-jake.git
