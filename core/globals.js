@@ -1,10 +1,38 @@
+// core libraries
+global.fs = require("fs")
+global.http = require("http")
 global.path = require("path");
-global.inherits = require("util").inherits;
+global.repl = require("repl")
+global.url = require("url")
+global.util = require("util")
 
+// convenient contrivances 
+global.inherits = util.inherits;
+
+// useful libraries
 global.Inflect = require("inflect-js");
 
+// core classes
 global.Gourdian = require(path.join(__dirname, "gourdian"));
+
+global.Reflection = require("./lib/conveniences/reflection");
+global.FileUtils = require("./lib/conveniences/file");
+
+global.Config = require("./config")
+global.Router = require("./router")
+
+// user space classes
+global.Controller = require("./controller")
 
 global.Test = require(path.join(__dirname, "lib", "test"));
 global.IntegrationTest = require(path.join(__dirname, "lib", "integration_test"));
 global.UnitTest = require(path.join(__dirname, "lib", "unit_test"));
+
+//
+global.GetOpt = require("v8cgi/lib/getopt.js").GetOpt
+
+// 
+/*
+global.config = new Config()
+global.router = new Router()
+*/

@@ -1,5 +1,8 @@
 #!/usr/bin/env node
 
+require path.join(__dirname, "globals");
+console.log(Gourdian.deep_insepct(global));
+
   ///////////////
  // constants //
 ///////////////
@@ -8,34 +11,10 @@ DEFAULT_PORT = 8124;
   ///////////////////////
  // private variables //
 ///////////////////////
-var fs = require("fs")
-  , http = require("http")
-  , path = require("path")
-  , repl = require("repl")
-  , url = require("url")
-
-  , GetOpt = require("v8cgi/lib/getopt.js").GetOpt
-  , io = require("socket-io")
+var io = require("socket-io")
   , static = require("node-static")
-
-  , gourdian = require("./gourdian")
-
-  , Config = require("./config")
-  , Router = require("./router")
-
-  , config = new Config()
-  , router = new Router()
-
   , lib_path = path.join(gourdian.ROOT, "lib")
-  , transporter = require("transporter/lib/jsgi/transporter.js").Transporter({url: "/shared/", paths: [lib_path]});
-
-  /////////////
- // globals //
-/////////////
-global.util = require("util")
-
-global.Gourdian = gourdian;
-global.Controller = require("./controller")
+  , transporter = require("transporter/lib/jsgi/transporter.js").Transporter({url: "/shared/", paths: [lib_path]})
 
   //////////
  // main //
