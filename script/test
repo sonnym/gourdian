@@ -3,40 +3,13 @@
 require(require("path").join(__dirname, "..", "core", "globals"));
 
 // was uninspired by the offerings
-var fs = require("fs")
-  , spawn = require("child_process").spawn
-  , sys = require("sys")
-
-  , GetOpt = require("v8cgi/lib/getopt").GetOpt
-
-  , self = this
-
-  , assertion_dirs = ["unit"]
-  , run_dirs = ["integration"]
-
-  , server_path = path.join(Gourdian.ROOT, "core", "server.js")
-  , log_path = path.join(Gourdian.ROOT, "log", "test.log")
-  , tests_path = path.join(Gourdian.ROOT, "test")
-
-  , server = spawn(server_path, ["--logfile=" + log_path])
-  , server_stdout = server_stderr = ""
-
-  , futures = {}
-  , count_e = count_p = count_f = 0
+var tests_path = path.join(Gourdian.ROOT, "test")
   , messages = []
-
-  , integration_tests_run = false;
+  , counts = { e: 0, f: 0, p: 0 };
 
 // attempt to kill server if tests fail hard
 process.on("uncaughtException", function(err) {
-  // also being called when an async test fails; ignore that case
   console.log("\nCaught exception: " + err + "\n" + err.stack);
-  try {
-    server.kill("SIGHUP");
-    console.log("\nTest server successfully sent SIGHUP.");
-  } catch(e) {
-    console.log(e.toString());
-  };
 });
 
 // handle options
@@ -47,8 +20,6 @@ opts.add("file", "Run only the tests in a specified file", "", "f", "file", GetO
 
 opts.add("unit-only", "Run only unit tests", false, "u", "unit", GetOpt.NO_ARGUMENT);
 opts.add("integration-only", "Run only integration tests", false, "i", "integration", GetOpt.NO_ARGUMENT);
-
-opts.add("color", "Do not display color in test output.", "", "c", "color", GetOpt.NO_ARGUMENT);
 
 opts.add("list-only", "Do not run the tests, only list them.", "", "l", "list-only", GetOpt.NO_ARGUMENT);
 
@@ -62,59 +33,19 @@ try {
 // set the test base directory if present
 if (opts.get("directory")) tests_path = opts.get("directory");
 
-if (opts.get("color")) {
-  var error = function() { sys.print("\x1B[1;37mE\x1B[0m") }
-    , pass = function() { sys.print("\x1B[1;32mP\x1B[0m") }
-    , fail = function() { sys.print("\x1B[1;31mF\x1B[0m") };
-} else {
-  var error = function() { sys.print("E") }
-    , pass = function() { sys.print("P") }
-    , fail = function() { sys.print("F") };
-}
-
 // unit tests
 if (!opts.get("integration-only")) {
-  console.log("\nRunning unit tests. . .");
-  for (var d = 0, l_d = assertion_dirs.length; d < l_d; d++) {
-    decide_run_test(assertion_dirs[d]);
-  }
+  console.log("----\nRunning unit tests");
+  decide_run_test("unit");
 }
 
 // integration tests
 if (!opts.get("unit-only")) {
-  console.log("\n----\nRunning integration tests. . .\nServer started with pid: " + server.pid);
-  server.stderr.on('data', function (data) { server_stderr += data; });
-
-  server.stdout.on('data', function (data) {
-    server_stdout += data;
-
-    // wait for server to come up before running tests
-    if (data.toString().substring(0, 6) == "gourd>") {
-      for (var d = 0, l_d = run_dirs.length; d < l_d; d++) {
-        decide_run_test(run_dirs[d]);
-      }
-    }
-
-    integration_tests_run = true;
-  });
-
-} else integration_tests_run = true;
-
-self.stay_alive_loop = function() {
-  if (integration_tests_run == true && require("util").inspect(futures) == "{}") {
-    if (messages.length > 0) console.log("\n" + messages.join("\n\n"));
-
-    console.log("\n----\nPass: " + count_p + "; Error: " + count_e + "; Fail: " + count_f);
-    console.log("----\nServer stderr: " + server_stderr);
-
-    server.kill("SIGHUP");
-
-    return;
-  }
-
-  setTimeout(function() { return self.stay_alive_loop() } , 50);
+  console.log("----\nRunning integration tests");
+  decide_run_test("integration");
 }
-self.stay_alive_loop();
+
+console.log("----\nFailures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----\nMessages:\n" + messages.join("\n\n"));
 
   /////////////
  // private //
@@ -143,59 +74,11 @@ function decide_run_test(relative_dir) {
 
     if (opts.get("list-only")) {
       console.log("--\n" + test_file + "\n" + Gourdian.shallow_inspect(test_instance));
-      return;
-    }
-
-    for (var test_name in test_instance) {
-      if (only_name && test_name != only_name) continue;
-
-      try {
-        var future = test_instance[test_name]();
-
-        if (typeof future == "object") {
-          var future_id = test_file + test_name;
-
-          future.test_name = test_name;
-          futures[future_id] = future;
-          keep_test_future_alive(future_id);
-
-        } else {
-          pass();
-          count_p++;
-        }
-      } catch(e) {
-        register_error_or_failure(test_name, e);
-      }
+    } else {
+      test_instance.run_tests(only_name);
+      messages = messages.concat(test_instance.get_messages());
+      var instance_counts = test_instance.get_counts();
+      Gourdian._.each(instance_counts, function(num, key) { counts[key] += instance_counts[key] });
     }
   }
-}
-
-function keep_test_future_alive(future_id) {
-  var future = futures[future_id];
-
-  if (!future.get_done()) {
-    setTimeout(keep_test_future_alive, 20, future_id);
-  } else {
-    if (future.get_error()) register_error_or_failure(future.test_name, future.get_error());
-    else {
-      pass();
-      count_p++;
-    }
-
-    delete futures[future_id];
-  }
-}
-
-function register_error_or_failure(test_name, e) {
-  if (e.name && e.name == "AssertionError") {
-    messages.push(test_name + " failed; expected: " + e.expected + "; actual: " + e.actual + "; operator: " + e.operator);
-    fail();
-    count_f++;
-  } else {
-    messages.push(test_name + " error; " + e.message);
-    error();
-    count_e++;
-  }
-
-  messages[messages.length - 1] += "\n" + e.stack;
 }

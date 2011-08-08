@@ -65,7 +65,7 @@ namespace("test", function() {
       var path = require("path")
         , spawn = require("child_process").spawn;
 
-      var test = spawn(path.join(__dirname, "script", "test"), ["-c", "-d", path.join(__dirname, "core", "test")]);
+      var test = spawn(path.join(__dirname, "script", "test"), ["-d", path.join(__dirname, "core", "test")]);
       test.stdout.setEncoding('utf8');
       test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.setEncoding('utf8');
@@ -78,7 +78,7 @@ namespace("test", function() {
       var path = require("path")
         , spawn = require("child_process").spawn;
 
-      var test = spawn(path.join(__dirname, "script", "test"), ["-c", "-u", "-d", path.join(__dirname, "core", "test")]);
+      var test = spawn(path.join(__dirname, "script", "test"), ["-u", "-d", path.join(__dirname, "core", "test")]);
       test.stdout.setEncoding('utf8');
       test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.setEncoding('utf8');
@@ -91,7 +91,7 @@ namespace("test", function() {
       var path = require("path")
         , spawn = require("child_process").spawn;
 
-      var test = spawn(path.join(__dirname, "script", "test"), ["-c", "-i", "-d", path.join(__dirname, "core", "test")]);
+      var test = spawn(path.join(__dirname, "script", "test"), ["-i", "-d", path.join(__dirname, "core", "test")]);
       test.stdout.setEncoding('utf8');
       test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.setEncoding('utf8');
@@ -105,7 +105,7 @@ namespace("test", function() {
     var path = require("path")
       , spawn = require("child_process").spawn;
 
-    var test = spawn(path.join(__dirname, "script", "test"), ["-u", "-c"]);
+    var test = spawn(path.join(__dirname, "script", "test"), ["-u"]);
     test.stdout.on("data", function(data) { console.log(data) });
     test.stderr.on("data", function(data) { console.log(data) });
     test.on("exit", function() { complete() });
@@ -116,7 +116,7 @@ namespace("test", function() {
     var path = require("path")
       , spawn = require("child_process").spawn;
 
-    var test = spawn(path.join(__dirname, "script", "test"), ["-i", "-c"]);
+    var test = spawn(path.join(__dirname, "script", "test"), ["-i"]);
     test.stdout.on("data", function(data) { console.log(data) });
     test.stderr.on("data", function(data) { console.log(data) });
     test.on("exit", function() { complete() });

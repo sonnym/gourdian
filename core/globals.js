@@ -11,11 +11,11 @@ global.inherits = util.inherits;
 
 // useful libraries
 global.Inflect = require("inflect-js");
+global.GetOpt = require("v8cgi/lib/getopt.js").GetOpt
 
 // core classes
 global.Gourdian = require(path.join(__dirname, "gourdian"));
 
-global.Reflection = require("./lib/conveniences/reflection");
 global.FileUtils = require("./lib/conveniences/file");
 
 global.Config = require("./config")
@@ -28,8 +28,6 @@ global.Test = require(path.join(__dirname, "lib", "test"));
 global.IntegrationTest = require(path.join(__dirname, "lib", "integration_test"));
 global.UnitTest = require(path.join(__dirname, "lib", "unit_test"));
 
-//
-global.GetOpt = require("v8cgi/lib/getopt.js").GetOpt
 
 // 
 /*

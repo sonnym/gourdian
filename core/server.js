@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
-require path.join(__dirname, "globals");
-console.log(Gourdian.deep_insepct(global));
+require(require("path").join(__dirname, "globals.js"));
 
   ///////////////
  // constants //
