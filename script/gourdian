@@ -11,8 +11,12 @@ if (process.argv[2] == "--init-submodules") {
 
 } else if (process.argv[2] == "--init") {
   update_node_modules(function() {
+    require(path.join(__dirname, "..", "core", "globals.js"))
     create_directory_structure();
-    copy_files_into_directories();
+    
+    console.log("---\nCopying files. . . \n---");
+
+    FileUtils.copy_files_into_directories(path.join(Gourdian.ROOT, "core", "boilerplate", "init"), Gourdian.ROOT);
 
     console.log("---\nNew project init complete!\n");
   });
@@ -52,7 +56,7 @@ function create_directory_structure() {
 
   var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
     , directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
-    , directories = reduce_directory_structure(gourdian.ROOT, directory_structure);
+    , directories = FileUtils.reduce_directory_structure(gourdian.ROOT, directory_structure);
 
   gourdian._.each(directories, function(directory) {
     if (path.existsSync(directory)) {
@@ -60,61 +64,6 @@ function create_directory_structure() {
     } else {
       fs.mkdirSync(directory, 0755);
       console.log(directory + " created");
-    }
-  });
-}
-
-function copy_files_into_directories() {
-  console.log("---\nCopying files. . . \n---");
-
-  var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
-    , init_path = path.join(gourdian.ROOT, "core", "boilerplate", "init");
-
-  directory_descent_wrapper(init_path, function(source) {
-    var source_rel = source.substring(gourdian.ROOT.length + 1)
-      , source_rel_array = gourdian._.rest((source_rel.split("/") || source.split("\\")), 3)
-      , destination = path.join(gourdian.ROOT, gourdian._.reduce(source_rel_array, function(memo, path_part) { return path.join(memo, path_part) }));
-
-  if (path.existsSync(destination)) {
-    console.log(destination + " present");
-  } else {
-      fs.readFile(source, function(read_err, buf) {
-        if (read_err) console.log("\nERROR:  Unable to read file " + source);
-
-        fs.writeFile(destination, buf, function(write_err) {
-          if (write_err) console.log("\nERROR: Unable to write file " + destination + " " + write_err);
-          else console.log(destination + " created");
-        });
-      });
-    }
-  });
-}
-
-function reduce_directory_structure(initial_value, obj) {
-  var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
-
-  return gourdian._.flatten(gourdian._.map(obj, function(iterated_object) {
-    if (typeof iterated_object === "object") {
-      var key = gourdian._.keys(iterated_object)[0];
-      return [ path.join(initial_value, key), reduce_directory_structure(path.join(initial_value, key), gourdian._.values(iterated_object)[0]) ];
-    } else if (typeof iterated_object === "string") {
-      return path.join(initial_value, iterated_object);
-    }
-  }));
-}
-
-function directory_descent_wrapper(full_path, callback) {
-  var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
-    , files = fs.readdirSync(full_path);
-
-  gourdian._.each(files, function(file) {
-    var file_path_abs = path.join(full_path, file);
-
-    stats = fs.statSync(file_path_abs);
-    if (stats.isDirectory()) {
-      directory_descent_wrapper(file_path_abs, callback);
-    } else {
-      callback(file_path_abs);
     }
   });
 }
