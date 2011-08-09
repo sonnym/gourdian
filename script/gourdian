@@ -13,7 +13,7 @@ if (process.argv[2] == "--init-submodules") {
   update_node_modules(function() {
     require(path.join(__dirname, "..", "core", "globals.js"))
     create_directory_structure();
-    
+
     console.log("---\nCopying files. . . \n---");
 
     FileUtils.copy_files_into_directories(path.join(Gourdian.ROOT, "core", "boilerplate", "init"), Gourdian.ROOT);
