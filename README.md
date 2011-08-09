@@ -11,7 +11,7 @@ Until Gourdian is released as an npm module, the easiest way to begin a project 
 Running a Server
 -
 The server is easily started by running:
-	./core/server.js
+	./script/server.js
 
 This will start the server with a REPL by default.  To  stop the server, simply type `stop();` in the REPL.
 
