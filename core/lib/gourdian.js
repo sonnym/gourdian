@@ -3,7 +3,7 @@ Gourdian = function() { };
   ///////////////
  // constants //
 ///////////////
-exports.ROOT = require("path").join(__dirname, "..");
+exports.ROOT = require("path").join(__dirname, "..", "..");
 
   /////////////
  // modules //
