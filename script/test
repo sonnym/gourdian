@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 
 require(require("path").join(__dirname, "..", "core", "globals"));
+Gourdian.logger.location = path.join(Gourdian.ROOT, "log", "test.log");
 
 // was uninspired by the offerings
 var tests_path = path.join(Gourdian.ROOT, "test")
   , messages = []
   , counts = { e: 0, f: 0, p: 0 };
 
-// attempt to kill server if tests fail hard
 process.on("uncaughtException", function(err) {
   console.log("\nCaught exception: " + err + "\n" + err.stack);
 });
@@ -47,9 +47,9 @@ if (!opts.get("unit-only")) {
 
 console.log("----\nFailures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----\nMessages:\n" + messages.join("\n\n"));
 
-  /////////////
- // private //
-/////////////
+  /////////////////////
+ // private methods //
+/////////////////////
 function decide_run_test(relative_dir) {
   var dir = path.join(tests_path, relative_dir)
     , files = fs.readdirSync(dir)

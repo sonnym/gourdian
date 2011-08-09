@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 require(require("path").join(__dirname, "..", "core", "globals.js"));
+global.stop = function() { process.kill(process.pid, "SIGHUP") };
 
   /////////////
  // options //
@@ -27,3 +28,5 @@ process.on("uncaughtException", function(error) {
 
 var server = new Server(logfile, port);
 server.start();
+
+require("repl").start("gourd> ");

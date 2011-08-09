@@ -1,5 +1,3 @@
-require(require("path").join(__dirname, "globals.js"));
-
   ///////////////
  // constants //
 ///////////////
@@ -31,8 +29,6 @@ var Server = function(logfile, port) {
 
 module.exports = Server;
 
-global.stop = function() { process.kill(process.pid, "SIGHUP") };
-
   ////////////////////
  // public methods //
 ////////////////////
@@ -40,8 +36,11 @@ Server.prototype.start = function() {
   load_controllers();
   start_http_server();
   start_sockets();
-  start_repl();
 
+  return true;
+}
+
+Server.prototype.stop = function() {
   return true;
 }
 
@@ -193,8 +192,4 @@ function start_sockets() {
   } else {
     Gourdian.logger.info("No socket routes defined; Socket.IO not instantiated");
   }
-}
-
-function start_repl() {
-  require("repl").start("gourd> ");
 }
