@@ -11,7 +11,7 @@ if (process.argv[2] == "--init-submodules") {
 
 } else if (process.argv[2] == "--init") {
   update_node_modules(function() {
-    require(path.join(__dirname, "..", "core", "globals.js"))
+    require(path.join(__dirname, "..", "core", "lib", "globals"))
     create_directory_structure();
 
     console.log("---\nCopying files. . . \n---");

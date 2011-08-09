@@ -4,7 +4,7 @@ var fs = require("fs")
   , path = require("path")
 
   , GetOpt = require("v8cgi/lib/getopt").GetOpt
-  , gourdian = require("./../core/gourdian")
+  , gourdian = require("./../core/lib/gourdian")
 
   , bp_lt = function(n) { return { "controller": { source: path.join(gourdian.ROOT, "core", "boilerplate", "app", "c.js")
                                                  , destination: path.join("app", "c", n + ".js")

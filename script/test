@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-require(require("path").join(__dirname, "..", "core", "globals"));
+require(require("path").join(__dirname, "..", "core", "lib", "globals"));
 Gourdian.logger.location = path.join(Gourdian.ROOT, "log", "test.log");
 
 // was uninspired by the offerings
