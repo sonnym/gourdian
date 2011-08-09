@@ -41,6 +41,8 @@ Server.prototype.start = function() {
   start_http_server();
   start_sockets();
   start_repl();
+
+  return true;
 }
 
   /////////////////////
@@ -76,7 +78,7 @@ function load_controllers() {
 function start_http_server() {
   var routes = router.get_routes();
 
-  if (routes.http && routes.http.length > 0) {
+  if (routes && routes.http && routes.http.length > 0) {
     // separate static and dynamic HTTP requests; order of precedence is: 1) specific files, 2) dynamic content, 3) root file server, 4) transporter fallback
     var root_route = Gourdian._.detect(routes.http, function(route) { return route.root })
       , file_routes = Gourdian._.select(routes.http, function(route) { return route.file })
@@ -160,7 +162,9 @@ function start_http_server() {
 }
 
 function start_sockets() {
-  if (router.routes.socket && router.routes.socket.length > 0 ) {
+  var routes = router.get_routes();
+
+  if (routes && routes.socket && router.routes.socket.length > 0 ) {
     // need a defined http server for socket.io to hook into for backwards compatibility
     if (http_server === undefined) {
       var http_server = require("http").createServer();
@@ -168,8 +172,8 @@ function start_sockets() {
     }
 
     // gather routes
-    var catch_all_route = Gourdian._.detect(router.routes.socket, function(route) { return route.message == "*" })
-      , disconnection_route = Gourdian._.detect(router.routes.socket, function(route) { return route.message == "disconnect" });
+    var catch_all_route = Gourdian._.detect(routes.socket, function(route) { return route.message == "*" })
+      , disconnection_route = Gourdian._.detect(routes.socket, function(route) { return route.message == "disconnect" });
 
     // start socket.io
     Gourdian.socket = io.listen(http_server, { log: Gourdian.logger.info, transports: ["websocket", "xhr-multipart", "xhr-polling", "jsonp-polling"]});

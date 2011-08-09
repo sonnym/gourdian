@@ -8,7 +8,7 @@ var Config = function() {
   }
 
   // import all includes
-  if (this.config.includes && this.config.includes.length > 0) {
+  if (this.config && this.config.includes && this.config.includes.length > 0) {
     for (var i = 0, l = this.config.includes.length; i < l; i++) {
       var include = this.config.includes[i];
       global[include] = require(include);

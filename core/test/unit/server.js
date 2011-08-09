@@ -1,8 +1,9 @@
 var ServerTest = function() {
   UnitTest.call(this);
 
-  this.the_truth = function() {
-    assert.ok(false);
+  this.server_starts = function() {
+    var server = new Server();
+    assert.ok(server.start());
   };
 }
 
