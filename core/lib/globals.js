@@ -16,14 +16,12 @@ global.GetOpt = require("v8cgi/lib/getopt.js").GetOpt
 global.Gourdian = require(path.join(__dirname, "gourdian"));
 global.Server = require(path.join(__dirname, "server"));
 
-global.FileUtils = require(path.join(__dirname, "conveniences", "file"));
+global.ext = {};
+global.ext.File = require(path.join(__dirname, "ext", "file"));
 
 global.Config = require(path.join(__dirname, "config"));
 global.Router = require(path.join(__dirname, "router"));
 
 // user space classes
 global.Controller = require(path.join(__dirname, "controller"));
-
 global.Test = require(path.join(__dirname, "test"));
-global.IntegrationTest = require(path.join(__dirname, "integration_test"));
-global.UnitTest = require(path.join(__dirname, "unit_test"));

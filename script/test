@@ -5,6 +5,8 @@ Gourdian.logger.location = path.join(Gourdian.ROOT, "log", "test.log");
 
 // was uninspired by the offerings
 var tests_path = path.join(Gourdian.ROOT, "test")
+
+  , tests = []
   , messages = []
   , counts = { e: 0, f: 0, p: 0 };
 
@@ -45,7 +47,7 @@ if (!opts.get("unit-only")) {
   decide_run_test("integration");
 }
 
-console.log("----\nFailures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----\nMessages:\n" + messages.join("\n\n"));
+observe();
 
   /////////////////////
  // private methods //
@@ -70,15 +72,41 @@ function decide_run_test(relative_dir) {
     if (restrict_file && !(path.existsSync(only_file) && fs.realpathSync(only_file) == fs.realpathSync(test_file))) continue;
 
     var required_test_file = require(test_file)
-      , test_instance = new required_test_file();
 
-    if (opts.get("list-only")) {
-      console.log("--\n" + test_file + "\n" + Gourdian.shallow_inspect(test_instance));
+    if (required_test_file instanceof Function) {
+      var test_instance = new required_test_file();
+
+      if (opts.get("list-only")) {
+        console.log("--\n" + test_file + "\n" + Gourdian._.keys(test_instance).join("\n"));
+      } else {
+        test_instance.run_tests(only_name);
+        tests.push(test_instance);
+      }
     } else {
-      test_instance.run_tests(only_name);
-      messages = messages.concat(test_instance.get_messages());
-      var instance_counts = test_instance.get_counts();
-      Gourdian._.each(instance_counts, function(num, key) { counts[key] += instance_counts[key] });
+      console.log("Warning: " + test_file + " does not expose a constructor.");
     }
   }
+}
+
+function observe() {
+  var all_tests_dead = !Gourdian._.reduce(tests, function(memo, test) { return memo || test.alive }, false);
+
+  if (all_tests_dead) {
+    // collect results
+    for(var i in tests) {
+      var test_instance = tests[i]
+        , instance_counts = test_instance.counts;
+
+      messages = messages.concat(test_instance.messages);
+
+      counts.e += instance_counts.e
+      counts.f += instance_counts.f
+      counts.p += instance_counts.p
+    }
+
+    // print results
+    if (!opts.get("list-only")) {
+  	  console.log("----\nFailures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----\nMessages:\n" + messages.join("\n\n"));
+    }
+  } else setTimeout(observe, null);
 }

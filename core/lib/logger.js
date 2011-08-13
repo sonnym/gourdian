@@ -1,15 +1,12 @@
-var fs = require("fs")
-  , path = require("path");
-
 var log = exports;
 
 // public variables
 
 log.level = 'debug';
-log.location = path.join(__dirname, "..", "log", "development.log");
+log.location = path.join(Gourdian.ROOT, "log", "development.log");
 log.output = function(msg) {
   fs.open(log.location, 'a', function (err, fd) {
-    fs.write(fd, (new Date()).toString() + ": " + msg + "\n", function (err, written) {
+    fs.write(fd, (new Date()).toString() + ": " + msg.toString() + "\n", function (err, written) {
       fs.close(fd);
     });
   });

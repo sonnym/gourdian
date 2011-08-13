@@ -1,5 +1,5 @@
 var ServerTest = function() {
-  UnitTest.call(this);
+  Test.call(this);
 
   this.server_starts_and_stops = function() {
     var server = new Server();
@@ -8,5 +8,5 @@ var ServerTest = function() {
   };
 }
 
-inherits(ServerTest, UnitTest);
+inherits(ServerTest, Test);
 module.exports = ServerTest;

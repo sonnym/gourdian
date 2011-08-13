@@ -16,7 +16,7 @@ if (process.argv[2] == "--init-submodules") {
 
     console.log("---\nCopying files. . . \n---");
 
-    FileUtils.copy_files_into_directories(path.join(Gourdian.ROOT, "core", "boilerplate", "init"), Gourdian.ROOT);
+    ext.File.copy_files_into_directories(path.join(Gourdian.ROOT, "core", "boilerplate", "init"), Gourdian.ROOT);
 
     console.log("---\nNew project init complete!\n");
   });
@@ -56,7 +56,7 @@ function create_directory_structure() {
 
   var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
     , directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
-    , directories = FileUtils.reduce_directory_structure(gourdian.ROOT, directory_structure);
+    , directories = ext.File.reduce_directory_structure(gourdian.ROOT, directory_structure);
 
   gourdian._.each(directories, function(directory) {
     if (path.existsSync(directory)) {
