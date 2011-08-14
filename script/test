@@ -28,7 +28,7 @@ opts.add("list-only", "Do not run the tests, only list them.", "", "l", "list-on
 try {
   opts.parse(process.argv);
 } catch (e) {
-  console.log(e + "\nGourdian server script usage: \n\n" + opts.help());
+  console.log(e + "\nGourdian test script usage: \n\n" + opts.help());
   return;
 }
 
@@ -37,13 +37,13 @@ if (opts.get("directory")) tests_path = opts.get("directory");
 
 // unit tests
 if (!opts.get("integration-only")) {
-  console.log("----\nRunning unit tests");
+  console.log("----\nRunning unit tests\n----");
   decide_run_test("unit");
 }
 
 // integration tests
 if (!opts.get("unit-only")) {
-  console.log("----\nRunning integration tests");
+  console.log("\n----\nRunning integration tests\n----");
   decide_run_test("integration");
 }
 
@@ -52,9 +52,18 @@ observe();
   /////////////////////
  // private methods //
 /////////////////////
+function check_directory_existence(dir) {
+  var exists = path.existsSync(dir);
+  if (!exists) console.log(" - Directory " + Gourdian._.last(dir.split("/")) + " does not exist");
+
+  return exists;
+}
+
 function decide_run_test(relative_dir) {
-  var dir = path.join(tests_path, relative_dir)
-    , files = fs.readdirSync(dir)
+  var dir = path.join(tests_path, relative_dir);
+  if (!check_directory_existence(dir)) return;
+
+  var files = fs.readdirSync(dir)
     , restrict_file = opts.get("file")
     , only_file = restrict_file ? path.join(tests_path, opts.get("file")) : ""
     , only_name = opts.get("name");
@@ -106,7 +115,12 @@ function observe() {
 
     // print results
     if (!opts.get("list-only")) {
-  	  console.log("----\nFailures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----\nMessages:\n" + messages.join("\n\n"));
+  	  console.log("----\nFailures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----");
+  	  if (messages.length === 0) console.log("No Messages");
+  	  else console.log("Messages\n----\n" + messages.join("\n--\n"));
     }
+
+    // force exit
+    process.kill(process.pid);
   } else setTimeout(observe, null);
 }

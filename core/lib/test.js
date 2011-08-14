@@ -23,7 +23,7 @@ Test.prototype.__defineSetter__("timeout", function(t) { timeout = t });
 var running = {}
   , exclude_from_tests = []
   , messages = []
-  , timeout = 1
+  , timeout = 500
   , counts = {e: 0, p: 0, f: 0};
 
   ////////////////////
@@ -47,10 +47,20 @@ Test.prototype.run_tests = function(only_name) {
   }
 };
 
-start = function(something) {
-  var test_name = Gourdian._.keys(something)[0]
-  running[test_name].counter++;
-  return function() { running[test_name].counter = 0 }
+start = function(caller) {
+  var test_name = Gourdian._.keys(caller)[0]
+  if (arguments.length === 2) {
+    running[test_name].parallel = true;
+    return { "increment": function(v) { running[test_name].counter += (v ? v : 1) }
+           , "decrement": function() {
+               running[test_name].counter--;
+               if (running[test_name].counter == 0) running[test_name].parallel = false;
+             }
+           };
+  } else {
+    running[test_name].counter++;
+    return function() { running[test_name].counter = 0 }
+  }
 };
 
   /////////////////////
@@ -60,14 +70,18 @@ var observe = function(test_name) {
   var test = running[test_name];
 
   if (!test) {
-    console.log("Error: " + test_name + " disappeared.");
-  } else if (test.value === undefined && test.counter == 0) {
+    console.log(" - Error: " + test_name + " disappeared.");
+
+  } else if (test.value === undefined && !test.parallel && test.counter == 0) {
     counts.p++;
-    process.stdout.write("\x1B[1;32mP\x1B[0m")
+    process.stdout.write("\x1B[1;32mP\x1B[0m");
     delete running[test_name];
-  } else if (test.start && (test.start - (new Date())) > (timeout % 1000)) {
-    console.log("Error: " + test_name + " timed out.");
+
+  } else if (test.start && (new Date() - test.start) > timeout) {
+    counts.e++;
+    messages.push(test_name + " error; Timed Out.");
     delete running[test_name];
+
   } else setTimeout(observe, null, test_name);
 }
 
