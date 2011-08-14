@@ -54,7 +54,7 @@ function parallel_update_node_modules() {
 function create_directory_structure() {
   console.log("---\nCreating directories. . . \n---");
 
-  var gourdian = require(path.join(__dirname, "..", "core", "gourdian"))
+  var gourdian = require(path.join(__dirname, "..", "core", "lib", "gourdian"))
     , directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
     , directories = ext.File.reduce_directory_structure(gourdian.ROOT, directory_structure);
 
