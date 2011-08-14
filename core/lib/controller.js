@@ -1,1 +1,2 @@
-var Controller = module.exports = function() { };
+exports = module.exports = Controller;
+function Controller() { }

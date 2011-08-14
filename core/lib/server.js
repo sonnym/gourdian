@@ -22,9 +22,6 @@ var io = require("socket-io")
 var Server = function(logfile, port) {
   if (logfile) Gourdian.logger.location = this.logfile;
   if (this.port) port = this.port;
-
-  config = new Config();
-  router = new Router();
 };
 
 module.exports = Server;
@@ -33,7 +30,11 @@ module.exports = Server;
  // public methods //
 ////////////////////
 Server.prototype.start = function() {
-  load_controllers();
+  config = new Config();
+  router = new Router();
+  controller_loader = new ControllerLoader();
+
+  controller_loader.load_controllers();
   start_http_server();
   start_sockets();
 
@@ -47,33 +48,6 @@ Server.prototype.stop = function() {
   /////////////////////
  // private methods //
 /////////////////////
-function load_controllers() {
-  var controllers_dir = path.join(Gourdian.ROOT, "app", "c");
-  if (path.existsSync(controllers_dir)) {
-    var controller_files = fs.readdirSync(controllers_dir)
-      , controllers = {};
-
-    for (c in controller_files) {
-      var controller_file = controller_files[c];
-
-      if (path.extname(controller_file) != '.js') continue;
-
-      var controller_index = controller_file.substring(0, controller_file.length - 3);
-
-      // include controller and attach gourdian object
-      controllers[controller_index] = require(path.join(controllers_dir, controller_file))();
-      controllers[controller_index].gourdian = Gourdian;
-
-      /*
-      // make all includes globally accessible
-      for (var i = 0, l = config.includes.length; i < l; i++) {
-        controllers[controller_index][Gourdian._.keys(config.includes)[i]] = config.includes[i];
-      }
-      */
-    }
-  }
-}
-
 function start_http_server() {
   var routes = router.get_routes();
 
@@ -101,12 +75,12 @@ function start_http_server() {
 
         // routes for dynamically generated content
         } else if (first_matching_dynamic_route) {
-          var action_response = controllers[first_matching_dynamic_route.controller][first_matching_dynamic_route.action]();
+          var action_response = controller_loader.run(first_matching_dynamic_route.controller, first_matching_dynamic_route.action);
 
           // full response
           if (typeof action_response === "string") {
-            response.writeHead(200, { "Content-Length": action_body.length, "Content-Type": "text/html" });
-            response.end(action_body);
+            response.writeHead(200, { "Content-Length": action_response.length, "Content-Type": "text/html" });
+            response.end(action_response);
 
           // chunked response
           } else if (typeof action_response === "object") {

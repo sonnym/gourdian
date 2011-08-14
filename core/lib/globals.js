@@ -9,7 +9,6 @@ global.util = require("util")
 global.inherits = util.inherits;
 
 // useful libraries
-global.Inflect = require("inflect-js");
 global.GetOpt = require("v8cgi/lib/getopt.js").GetOpt
 
 // core classes
@@ -18,9 +17,12 @@ global.Server = require(path.join(__dirname, "server"));
 
 global.ext = {};
 global.ext.File = require(path.join(__dirname, "ext", "file"));
+global.ext.Inflect = require("inflect-js");
 
 global.Config = require(path.join(__dirname, "config"));
 global.Router = require(path.join(__dirname, "router"));
+
+global.ControllerLoader = require(path.join(__dirname, "controller_loader"));
 
 // user space classes
 global.Controller = require(path.join(__dirname, "controller"));
