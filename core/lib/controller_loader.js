@@ -30,19 +30,43 @@ ControllerLoader.prototype.load_controllers = function() {
   }
 }
 
-ControllerLoader.prototype.run = function(controller_prefix, method) {
-  var controller = get_controller_name_from_prefix(controller_prefix)
+ControllerLoader.prototype.run = function(route, response) {
+  var controller = get_controller_name_from_prefix(route.controller)
+    , action = route.action;
 
   if (controllers[controller] === undefined || !controllers[controller]) {
     console.log("Warning: Controller " + controller + " not found");
     return false;
 
-  } else if (typeof controllers[controller][method] !== "function") {
-    console.log("Warning: No method " + method + " on " + controller);
+  } else if (typeof controllers[controller][action] !== "function") {
+    console.log("Warning: No action " + action + " on " + controller);
     return false;
 
-  } else {
-    return controllers[controller][method]();
+  }
+
+  var action_result = controllers[controller][action]();
+  /* == call template cache here == */
+
+  // full response
+  if (typeof action_result === "string") {
+    response.writeHead(200, { "Content-Length": action_result.length, "Content-Type": "text/html" });
+    response.end(action_result);
+
+  // chunked response
+  } else if (typeof action_result === "object") {
+    /* == call template cache here or here? == */
+    response.writeHead(200, { "Content-Type": "text/html" });
+
+    // function must be an event emitter w/ data, end, and error
+    action_result.on("data", function(data) {
+      response.write(data);
+    });
+    action_result.on("end", function() {
+      response.end();
+    });
+    action_result.on("error", function(error) {
+      Gourdian.logger.info("Error: " + error);
+    });
   }
 }
 
