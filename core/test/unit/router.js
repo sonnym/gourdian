@@ -1,4 +1,4 @@
-var RouterTest = function() {
+module.exports = RouterTest = function() {
   Test.call(this);
 
   this.router_accurately_determines_if_http_or_socket_server_is_needed = function() {
@@ -20,9 +20,7 @@ var RouterTest = function() {
     assert.ok(!router.need_http_server);
     assert.ok(router.need_socket_server);
 
-    router.routes = { socket: [ { something: 1 } ]
-                    , http: [ { something: 1 } ]
-                    };
+    router.routes = { socket: [ { something: 1 } ] , http: [ { something: 1 } ] };
     assert.ok(router.need_http_server);
     assert.ok(router.need_socket_server);
   };
@@ -35,4 +33,3 @@ var RouterTest = function() {
 }
 
 inherits(RouterTest, Test);
-module.exports = RouterTest;
