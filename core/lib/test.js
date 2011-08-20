@@ -34,9 +34,24 @@ Test.prototype.run_tests = function(only_name) {
     if (!Gourdian._.include(exclude_from_tests, test_name)) {
       if (only_name && test_name !== only_name) continue;
 
-      running[test_name] = { "value": null, "counter": 0, "start": new Date()}
+      running[test_name] = { "value": null, "counter": 0, "start": new Date() };
       try {
-        Gourdian._.extend(this[test_name], { "start": function() { } });
+        // add a start method to this, allowing test to access its counter
+        Gourdian._.extend(this, {"start": function(with_counter) { return (function(name) {
+          if (with_counter) {
+            running[name].parallel = true;
+            return { "increment": function(v) { running[name].counter += (v ? v : 1) }
+                   , "decrement": function() {
+                       running[name].counter--;
+                       if (running[name].counter == 0) running[name].parallel = false;
+                     }
+                   };
+          } else {
+            running[name].counter++;
+            return function() { running[name].counter = 0 }
+          }
+        }(test_name)) } });
+
         running[test_name].value = this[test_name]();
       } catch(e) {
         register_error_or_failure(test_name, e);
@@ -44,22 +59,6 @@ Test.prototype.run_tests = function(only_name) {
         observe(test_name);
       }
     }
-  }
-};
-
-start = function(caller) {
-  var test_name = Gourdian._.keys(caller)[0]
-  if (arguments.length === 2) {
-    running[test_name].parallel = true;
-    return { "increment": function(v) { running[test_name].counter += (v ? v : 1) }
-           , "decrement": function() {
-               running[test_name].counter--;
-               if (running[test_name].counter == 0) running[test_name].parallel = false;
-             }
-           };
-  } else {
-    running[test_name].counter++;
-    return function() { running[test_name].counter = 0 }
   }
 };
 

@@ -12,6 +12,7 @@ var io = require("socket-io")
   , transporter = require("transporter/lib/jsgi/transporter.js").Transporter({url: "/shared/", paths: [lib_path]})
 
   , port = DEFAULT_PORT
+  , http_server_bound_to_port = false
 
   , config
   , router;
@@ -20,8 +21,8 @@ var io = require("socket-io")
  // constructor //
 /////////////////
 var Server = function(logfile, port) {
-  if (logfile) Gourdian.logger.location = this.logfile;
-  if (this.port) port = this.port;
+  if (logfile) Gourdian.logger.location = logfile;
+  if (port) this.port = port;
 };
 
 module.exports = Server;
@@ -29,13 +30,15 @@ module.exports = Server;
   ////////////////////
  // public methods //
 ////////////////////
+Server.prototype.__defineGetter__("bound_to_port", function() { return http_server_bound_to_port });
+
 Server.prototype.start = function() {
   config = new Config();
   router = new Router();
   controller_loader = new ControllerLoader();
 
   controller_loader.load_controllers();
-  start_http_server();
+  start_http_server(this.port);
   start_sockets();
 
   return true;
@@ -48,7 +51,7 @@ Server.prototype.stop = function() {
   /////////////////////
  // private methods //
 /////////////////////
-function start_http_server() {
+function start_http_server(port) {
   if (!router.need_http_server) {
     Gourdian.logger.info("No HTTP routes defined; HTTP server will not be started.");
     return;
@@ -101,15 +104,17 @@ function start_http_server() {
         });
       }
     });
+    Gourdian.logger.debug(Gourdian.deep_inspect(response));
   });
 
   http_server.addListener("request", function(request, response) {
     Gourdian.logger.info("HTTP request: " + JSON.stringify(request.url));
   });
 
-  http_server.listen(port);
-
-  Gourdian.logger.info("HTTP server listening on: " + port.toString());
+  http_server.listen(port || DEFAULT_PORT, function() {
+    Gourdian.logger.info("HTTP server successfully bound to port: " + port);
+    http_server_bound_to_port = true;
+  });
 }
 
 function start_sockets() {

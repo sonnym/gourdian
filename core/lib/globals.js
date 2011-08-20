@@ -26,4 +26,6 @@ global.ControllerLoader = require(path.join(__dirname, "controller_loader"));
 
 // user space classes
 global.Controller = require(path.join(__dirname, "controller"));
+
 global.Test = require(path.join(__dirname, "test"));
+global.IntegrationTest = require(path.join(__dirname, "integration_test"));

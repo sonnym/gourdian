@@ -21,7 +21,7 @@ ControllerLoader.prototype.load_controllers = function() {
         , class_name = get_controller_name_from_prefix(filename_wo_ext)
 
       if (global[class_name] !== undefined) {
-        Gourdian.logger.warn("Warning: naming conflict");
+        Gourdian.logger.error("Warning: naming conflict");
       } else {
         global[class_name] = controllers[class_name] = require(path.join(controllers_dir, controller_file));
         Gourdian.logger.info("File: " + controller_file + " loaded as " + class_name);

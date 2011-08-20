@@ -4,7 +4,7 @@ var ScriptTest = function() {
   var script_dir = path.join(Gourdian.ROOT, "script");
 
   this.script_path_exists = function() {
-    var finish = start(this);
+    var finish = this.start();
 
     path.exists(script_dir, function(exists) {
       assert.ok(exists);
@@ -13,7 +13,7 @@ var ScriptTest = function() {
   }
 
   this.all_scripts_run_without_production_stderr = function() {
-    var tracker = start(this, true);
+    var tracker = this.start(true);
 
     fs.readdir(script_dir, function(err, files) {
       Gourdian._.each(files, function(file) {
