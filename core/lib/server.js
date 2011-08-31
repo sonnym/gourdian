@@ -20,9 +20,15 @@ var io = require("socket-io")
   /////////////////
  // constructor //
 /////////////////
-var Server = function(logfile, port) {
+var Server = function(logfile, port, base_path) {
+  Gourdian.logger.separator();
+  Gourdian.logger.info("New server instantated on port " + port);
+
   if (logfile) Gourdian.logger.location = logfile;
   if (port) this.port = port;
+
+  if (base_path) this.base_path = base_path;
+  else this.base_path = __dirname;
 };
 
 module.exports = Server;
@@ -33,35 +39,34 @@ module.exports = Server;
 Server.prototype.__defineGetter__("bound_to_port", function() { return http_server_bound_to_port });
 
 Server.prototype.start = function() {
-  config = new Config();
-  router = new Router();
-  controller_loader = new ControllerLoader();
+  Gourdian.logger.info("Attempting to start server from base path: " + this.base_path);
 
-  controller_loader.load_controllers();
-  start_http_server(this.port);
-  start_sockets();
+  config = new Config(this.base_path);
+  router = new Router(this.base_path);
+  controller_loader = new ControllerLoader(this.base_path);
 
-  return true;
-}
-
-Server.prototype.stop = function() {
-  return true;
+  start_http_server(this.base_path, this.port);
+  //start_sockets(); // currently interferes with other http server
 }
 
   /////////////////////
  // private methods //
 /////////////////////
-function start_http_server(port) {
+function start_http_server(base_path, port) {
   if (!router.need_http_server) {
     Gourdian.logger.info("No HTTP routes defined; HTTP server will not be started.");
     return;
   }
 
   // separate static and dynamic HTTP requests; order of precedence is: 1) specific files, 2) dynamic content, 3) root file server, 4) transporter fallback
-  var public_path = router.root
-    , file_server;
-  if (public_path) {
-    file_server = new static_handler.Server("./" + router.root) // new static_handler.Server(path.join(Gourdian.ROOT, public_path))
+  var file_server;
+  if (router.root) {
+    var public_path = path.join(base_path, router.root);
+    Gourdian.logger.info("Starting static file server at: " + public_path)
+
+    file_server = new static_handler.Server("." + public_path);
+  } else {
+    Gourdian.logger.info("No root path found, static file server will not be stared");
   }
 
   var http_server = require("http").createServer(function(request, response) {
@@ -70,7 +75,6 @@ function start_http_server(port) {
 
     request.addListener("end", function() {
       var action_route = router.lookup_action_route(request.url);
-      Gourdian.logger.debug(Gourdian.deep_inspect(action_route));
 
       // routes for specific static files
       if (file_server && router.file_route) {
@@ -79,7 +83,7 @@ function start_http_server(port) {
 
       // routes for dynamically generated content
       } else if (action_route) {
-        Gourdian.logger.info("Serving action: " + action_route.toString());
+        Gourdian.logger.info("Serving action: " + action_route.controller + "." + action_route.action);
         controller_loader.run(action_route, response);
 
       // file server root folder
@@ -104,7 +108,6 @@ function start_http_server(port) {
         });
       }
     });
-    Gourdian.logger.debug(Gourdian.deep_inspect(response));
   });
 
   http_server.addListener("request", function(request, response) {

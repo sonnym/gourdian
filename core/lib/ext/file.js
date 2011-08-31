@@ -8,9 +8,9 @@ module.exports.copy_files_into_directories = function(origin, destination) {
       , source_rel_array = Gourdian._.rest((source_rel.split("/") || source.split("\\")), 3)
       , destination = path.join(Gourdian.ROOT, Gourdian._.reduce(source_rel_array, function(memo, path_part) { return path.join(memo, path_part) }));
 
-  if (path.existsSync(destination)) {
-    console.log(destination + " present");
-  } else {
+    if (path.existsSync(destination)) {
+      console.log(destination + " present");
+    } else {
       fs.readFile(source, function(read_err, buf) {
         if (read_err) console.log("\nERROR:  Unable to read file " + source);
 
@@ -23,18 +23,16 @@ module.exports.copy_files_into_directories = function(origin, destination) {
   });
 }
 
-module.exports.directory_descent_wrapper = function(full_path, callback) {
-  var files = fs.readdirSync(full_path);
+module.exports.directory_descent_wrapper = function(root_path, callback) {
+  var files = fs.readdirSync(root_path);
 
   Gourdian._.each(files, function(file) {
-    var file_path_abs = path.join(full_path, file);
+    var abs_path = path.join(root_path, file);
 
-    stats = fs.statSync(file_path_abs);
-    if (stats.isDirectory()) {
-      FileConveniences.directory_descent_wrapper(file_path_abs, callback);
-    } else {
-      callback(file_path_abs);
-    }
+    stats = fs.statSync(abs_path);
+    if (stats.isDirectory()) FileConveniences.directory_descent_wrapper(abs_path, callback);
+
+    callback(abs_path);
   });
 }
 

@@ -33,7 +33,9 @@ try {
 }
 
 // set the test base directory if present
-if (opts.get("directory")) tests_path = opts.get("directory");
+if (opts.get("directory")) {
+  tests_path = opts.get("directory");
+}
 
 // unit tests
 if (!opts.get("integration-only")) {
@@ -68,6 +70,8 @@ function decide_run_test(relative_dir) {
     , only_file = restrict_file ? path.join(tests_path, opts.get("file")) : ""
     , only_name = opts.get("name");
 
+  if (tests_path.indexOf(path.join("core", "test")) > 0) running_framework_tests = true;
+
   if (!files) {
     console.log("\nNo tests specified in the " + relative_dir + " directory. . .");
     return;
@@ -83,14 +87,24 @@ function decide_run_test(relative_dir) {
     var required_test_file = require(test_file)
 
     if (required_test_file instanceof Function) {
+      // instantate an instance of the test object
       var test_instance = new required_test_file();
 
+      // list the contents of the test class
       if (opts.get("list-only")) {
         console.log("--\n" + test_file + "\n" + Gourdian._.keys(test_instance).join("\n"));
+        continue;
+      }
+
+      // run tests, specifying the base path for framework integration tests if necessary
+      if (running_framework_tests && relative_dir == "integration") {
+        test_instance.run_tests(only_name, path.join(Gourdian.ROOT, "core", "boilerplate", "init"));
       } else {
         test_instance.run_tests(only_name);
-        tests.push(test_instance);
       }
+
+      // store instance for later reference
+      tests.push(test_instance);
     } else {
       console.log("Warning: " + test_file + " does not expose a constructor.");
     }
@@ -115,12 +129,11 @@ function observe() {
 
     // print results
     if (!opts.get("list-only")) {
-  	  console.log("----\nFailures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----");
-  	  if (messages.length === 0) console.log("No Messages");
-  	  else console.log("Messages\n----\n" + messages.join("\n--\n"));
+      console.log("----\nFailures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----");
+      if (messages.length === 0) console.log("No Messages");
+      else console.log("Messages\n----\n" + messages.join("\n--\n"));
     }
 
-    // force exit
     process.kill(process.pid);
-  } else setTimeout(observe, null);
+  } else setTimeout(function() { observe.call(this) }, null);
 }

@@ -1,4 +1,5 @@
 // core libraries
+global.child_process = require("child_process")
 global.fs = require("fs")
 global.http = require("http")
 global.path = require("path");
@@ -6,6 +7,9 @@ global.url = require("url")
 global.util = require("util")
 
 // convenient contrivances
+global.exec = child_process.exec;
+global.spawn = child_process.spawn;
+
 global.inherits = util.inherits;
 
 // useful libraries

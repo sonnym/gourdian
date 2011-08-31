@@ -1,17 +1,15 @@
-exports = module.exports = ControllerLoader;
-
-function ControllerLoader() { }
-
 var controllers = {};
 
-ControllerLoader.prototype.load_controllers = function() {
-  var controllers_dir = path.join(Gourdian.ROOT, "app", "c");
+exports = module.exports = ControllerLoader;
+function ControllerLoader(base_path) {
+  var controllers_dir = path.join(base_path, "app", "c");
 
   if (path.existsSync(controllers_dir)) {
     var controller_files = fs.readdirSync(controllers_dir);
 
     for (var c in controller_files) {
       var controller_file = controller_files[c];
+
       if (path.extname(controller_file) !== ".js") {
         Gourdian.logger.error("Warning: Controller files must have an extension of .js");
         continue;
@@ -22,10 +20,11 @@ ControllerLoader.prototype.load_controllers = function() {
 
       if (global[class_name] !== undefined) {
         Gourdian.logger.error("Warning: naming conflict");
-      } else {
-        global[class_name] = controllers[class_name] = require(path.join(controllers_dir, controller_file));
-        Gourdian.logger.info("File: " + controller_file + " loaded as " + class_name);
+        return;
       }
+
+      global[class_name] = controllers[class_name] = require(path.join(controllers_dir, controller_file));
+      Gourdian.logger.info("File: " + controller_file + " loaded as " + class_name);
     }
   }
 }
@@ -34,17 +33,20 @@ ControllerLoader.prototype.run = function(route, response) {
   var controller = get_controller_name_from_prefix(route.controller)
     , action = route.action;
 
+  // ensure controller is in the cache
   if (controllers[controller] === undefined || !controllers[controller]) {
     console.log("Warning: Controller " + controller + " not found");
     return false;
-
-  } else if (typeof controllers[controller][action] !== "function") {
-    console.log("Warning: No action " + action + " on " + controller);
-    return false;
-
   }
 
-  var action_result = controllers[controller][action]();
+  // ensure the controller properly instantiates and the action is a function
+  var controller_instance = new controllers[controller];
+  if (typeof controller_instance[action] !== "function") {
+    console.log("Warning: No action " + action + " on " + controller);
+    return false;
+  }
+
+  var action_result = controller_instance[action]();
   /* == call template cache here == */
 
   // full response

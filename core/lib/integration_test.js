@@ -1,25 +1,28 @@
 var http = require("http")
   , server;
 
-exports = module.exports = IntegrationTest;
-function IntegrationTest() {
+module.exports = IntegrationTest = function() {
   Test.call(this);
-
-  server = new Server(path.join(Gourdian.ROOT, "log", "test.log"), get_random_port());
-  if (!server.start()) console.log("Warning: Test server did successfully start");
 }
-
 inherits(IntegrationTest, Test);
 
+IntegrationTest.prototype.run_tests = function(only_name, base_path) {
+  server = new Server(path.join(Gourdian.ROOT, "log", "test.log"), get_random_port(), base_path);
+  server.start();
+
+  Test.prototype.run_tests.call(this, only_name);
+}
+
 IntegrationTest.prototype.get = function(path, callback) {
-  ensure_server_is_bound(function() {
+  ensure_server_is_bound.call(this, function() {
     var request = http.get({host: "localhost", port: server.port, path: path}, callback);
     request.end();
   });
 }
 
-// private
-
+  /////////////
+ // private //
+/////////////
 function get_random_port() {
   var port = 8000 + Math.floor(Math.random() * 1000);
 

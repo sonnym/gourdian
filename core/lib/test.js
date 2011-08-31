@@ -70,14 +70,17 @@ var observe = function(test_name) {
 
   if (!test) {
     console.log(" - Error: " + test_name + " disappeared.");
+    process.stdout.write("\x1B[1;37me\x1B[0m")
+    delete running[test_name];
 
   } else if (test.value === undefined && !test.parallel && test.counter == 0) {
     counts.p++;
-    process.stdout.write("\x1B[1;32mP\x1B[0m");
+    process.stdout.write("\x1B[1;32mp\x1B[0m");
     delete running[test_name];
 
   } else if (test.start && (new Date() - test.start) > timeout) {
     counts.e++;
+    process.stdout.write("\x1B[1;37me\x1B[0m")
     messages.push(test_name + " error; Timed Out.");
     delete running[test_name];
 
@@ -88,11 +91,11 @@ var register_error_or_failure = function(test_name, e) {
   if (e.name && e.name == "AssertionError") {
     messages.push(test_name + " failed; expected: " + e.expected + "; actual: " + e.actual + "; operator: " + e.operator);
     counts.f++;
-    process.stdout.write("\x1B[1;31mF\x1B[0m")
+    process.stdout.write("\x1B[1;31mf\x1B[0m")
   } else {
     messages.push(test_name + " error; " + e.message);
     counts.e++;
-    process.stdout.write("\x1B[1;37mE\x1B[0m")
+    process.stdout.write("\x1B[1;37me\x1B[0m")
   }
 
   messages[messages.length - 1] += "\n" + e.stack; // append stacktrace to message

@@ -1,7 +1,7 @@
 var config;
 
-var Config = function() {
-  var config_path = path.join(Gourdian.ROOT, "config", "config.json");
+var Config = function(base_path) {
+  var config_path = path.join(base_path, "config", "config.json");
 
   if (path.existsSync(config_path)) {
     this.config = JSON.parse(fs.readFileSync(config_path, "utf8"));

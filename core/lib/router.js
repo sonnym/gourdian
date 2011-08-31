@@ -1,7 +1,7 @@
 var routes, file_routes, dynamic_routes;
 
-var Router = function() {
-  var router_config_path = path.join(Gourdian.ROOT, "config", "routes.json");
+var Router = function(base_path) {
+  var router_config_path = path.join(base_path, "config", "routes.json");
 
   if (path.existsSync(router_config_path)) {
     this.route_obj = JSON.parse(fs.readFileSync(router_config_path, "utf8"));
