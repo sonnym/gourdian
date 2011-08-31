@@ -38,6 +38,8 @@ log.fatal = function(msg) {
   if (levelcalc(log.level) <= levels['fatal']) log.output(msg);
 };
 
+log.separator = function() { log.output("============================="); }
+
 // private methods
 
 var levelcalc = function(lvl) {
