@@ -5,19 +5,17 @@ var fs = require("fs")
 
   , node_modules_waiting_for_exit = 0;
 
+process.on("uncaughtException", function(err) {
+  console.log("\nCaught exception: " + err + "\n" + err.stack);
+});
+
 // main
 if (process.argv[2] == "--init-submodules") {
   update_node_modules();
 
 } else if (process.argv[2] == "--init") {
   update_node_modules(function() {
-    require(path.join(__dirname, "..", "core", "lib", "globals"))
-    create_directory_structure();
-
-    console.log("---\nCopying files. . . \n---");
-
-    ext.File.copy_files_into_directories(path.join(Gourdian.ROOT, "core", "boilerplate", "init"), Gourdian.ROOT);
-
+    create_directory_structure_and_copy_files();
     console.log("---\nNew project init complete!\n");
   });
 } else {
@@ -49,6 +47,15 @@ function parallel_update_node_modules() {
       node_modules_waiting_for_exit--;
     });
   }
+}
+
+function create_directory_structure_and_copy_files() {
+  require(path.join(__dirname, "..", "core", "lib", "globals"))
+  create_directory_structure();
+
+  console.log("---\nCopying files. . . \n---");
+
+  ext.File.copy_files_into_directories(path.join(Gourdian.ROOT, "core", "boilerplate", "init"), Gourdian.ROOT);
 }
 
 function create_directory_structure() {
