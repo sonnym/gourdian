@@ -2,14 +2,17 @@ var FileConveniences = function() { }
 
 module.exports = FileConveniences;
 
-module.exports.copy_files_into_directories = function(origin, destination) {
+// recurses into subdirectories
+module.exports.copy_files_into_directory = function(origin, destination) {
   FileConveniences.directory_descent_wrapper(origin, function(source) {
-    var source_rel = source.substring(Gourdian.ROOT.length + 1)
-      , source_rel_array = Gourdian._.rest((source_rel.split("/") || source.split("\\")), 3)
-      , destination = path.join(Gourdian.ROOT, Gourdian._.reduce(source_rel_array, function(memo, path_part) { return path.join(memo, path_part) }));
+    var source_rel = source.substring(origin.length + 1)
+      , source_rel_array = source_rel.split("/")  // waiting for path.separator or some such convenience
+      , destination = path.join(destination, Gourdian._.reduce(source_rel_array, function(memo, path_part) { return path.join(memo, path_part) }));
 
     if (path.existsSync(destination)) {
-      console.log(destination + " present");
+      fs.stat(destination, function(err, stat) {
+        if (!err && !stat.isDirectory) console.log(destination + " present");
+      });
     } else {
       fs.readFile(source, function(read_err, buf) {
         if (read_err) console.log("\nERROR:  Unable to read file " + source);
@@ -26,14 +29,16 @@ module.exports.copy_files_into_directories = function(origin, destination) {
 module.exports.directory_descent_wrapper = function(root_path, callback) {
   var files = fs.readdirSync(root_path);
 
-  Gourdian._.each(files, function(file) {
-    var abs_path = path.join(root_path, file);
+  if (files && files.length > 0){
+    Gourdian._.each(files, function(file) {
+      var abs_path = path.join(root_path, file);
 
-    stats = fs.statSync(abs_path);
-    if (stats.isDirectory()) FileConveniences.directory_descent_wrapper(abs_path, callback);
+      stats = fs.statSync(abs_path);
+      if (stats.isDirectory()) FileConveniences.directory_descent_wrapper(abs_path, callback);
 
-    callback(abs_path);
-  });
+      callback(abs_path);
+    });
+  }
 }
 
 module.exports.reduce_directory_structure = function(initial_value, obj) {

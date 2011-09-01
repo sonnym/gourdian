@@ -1,28 +1,44 @@
 #! /usr/bin/env node
 
-var fs = require("fs")
-  , path = require("path")
-
-  , node_modules_waiting_for_exit = 0;
-
 process.on("uncaughtException", function(err) {
   console.log("\nCaught exception: " + err + "\n" + err.stack);
 });
 
 // main
 if (process.argv[2] == "--init-submodules") {
+  // should only occur when running in the subdirectory of the gourdian path
+  var node_modules_waiting_for_exit = 0;
   update_node_modules();
 
 } else if (process.argv[2] == "--init") {
-  update_node_modules(function() {
-    create_directory_structure_and_copy_files();
-    console.log("---\nNew project init complete!\n");
-  });
+  // presumably, by this point, Gourdian has been properly installed
+  require(require("path").join(__dirname, "..", "core", "lib", "globals"))
+
+  // determine the target directory based on whether or not a third argument is present
+  var target = cwd = process.cwd();
+  if (process.argv[3]) target = path.join(cwd, process.argv[3]);
+
+  console.log("---\nInitializing a new project in " + target);
+
+  // ensure the target is empty but exists
+  if (!path.existsSync(target)) {
+    fs.mkdir(target, 0666, function() {
+      init_new_app();
+    });
+  } else if (fs.readdirSync(target).length == 0) {
+    init_new_app();
+  } else {
+    console.log("Error: Target directory is not empty");
+  }
 } else {
-  console.log("Usage:  script/gourdian --init");
+  console.log("Usage: script/gourdian --init [relative directory]");
 }
 
-function update_node_modules(callback) {
+function init_new_app() {
+  create_directory_structure_and_copy_files();
+}
+
+function update_node_modules() {
   console.log("---\nInitializing and updating node_modules directory. . .\n---");
 
   parallel_update_node_modules();
@@ -38,34 +54,32 @@ function update_node_modules(callback) {
 
 function parallel_update_node_modules() {
   var spawn = require("child_process").spawn
-    , node_modules = fs.readdirSync(path.join(__dirname, "..", "node_modules"));
+    , node_modules = fs.readdirSync(path.join(target, "..", "node_modules"));
 
   for (var i = 0, l = node_modules.length; i < l; i++) {
     node_modules_waiting_for_exit++;
 
-    spawn("git", ["submodule", "update", "--init", "--recursive", path.join(__dirname, "..", "node_modules", node_modules[i])]).on("exit", function() {
+    spawn("git", ["submodule", "update", "--init", "--recursive", path.join(target, "..", "node_modules", node_modules[i])]).on("exit", function() {
       node_modules_waiting_for_exit--;
     });
   }
 }
 
 function create_directory_structure_and_copy_files() {
-  require(path.join(__dirname, "..", "core", "lib", "globals"))
   create_directory_structure();
 
   console.log("---\nCopying files. . . \n---");
 
-  ext.File.copy_files_into_directories(path.join(Gourdian.ROOT, "core", "boilerplate", "init"), Gourdian.ROOT);
+  ext.File.copy_files_into_directory(path.join(Gourdian.ROOT, "core", "boilerplate", "init"), target);
 }
 
 function create_directory_structure() {
   console.log("---\nCreating directories. . . \n---");
 
-  var gourdian = require(path.join(__dirname, "..", "core", "lib", "gourdian"))
-    , directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
-    , directories = ext.File.reduce_directory_structure(gourdian.ROOT, directory_structure);
+  var directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
+    , directories = ext.File.reduce_directory_structure(target, directory_structure);
 
-  gourdian._.each(directories, function(directory) {
+  Gourdian._.each(directories, function(directory) {
     if (path.existsSync(directory)) {
       console.log(directory + " present");
     } else {
