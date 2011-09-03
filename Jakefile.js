@@ -1,16 +1,3 @@
-desc("Initialize submodule dependencies");
-task("submodules", [], function() {
-  var path = require("path")
-    , spawn = require("child_process").spawn;
-
-    var gourdian = spawn(path.join(__dirname, "script", "gourdian"), ["--init-submodules"]);
-    /*
-    gourdian.stdout.on("data", function(data) { console.log("stdout: " + data) });
-    gourdian.stderr.on("data", function(data) { console.log("stderr: " + data) });
-    */
-    gourdian.on("exit", function(code) { complete() });
-}, true);
-
 namespace("lint", function () {
   desc("A task for running node-linter on gourdian");
   task("framework", [], function() {
@@ -46,83 +33,45 @@ namespace("lint", function () {
 });
 
 namespace("test", function() {
-  namespace("framework", function() {
-    desc("List framework tests");
-    task("list", ["submodules"], function() {
-      var path = require("path")
-        , spawn = require("child_process").spawn;
+  var path = require("path")
+    , spawn = require("child_process").spawn
 
-      var test = spawn(path.join(__dirname, "script", "test"), ["-l", "-g"]);
-      test.stdout.setEncoding('utf8');
-      test.stdout.on("data", function(data) { console.log(data) });
-      test.stderr.setEncoding('utf8');
-      test.stderr.on("data", function(data) { console.log(data) });
-      test.on("exit", function() { complete() });
-    }, true);
+    , test_script = path.join(__dirname, "script", "test")
+    , test = null;
+
+  namespace("framework", function() {
+    // override default test script location if running from gourdian root
+    if (__dirname === path.join(require.resolve("gourdian"), "..", "..")) {
+      test_script = path.join(test_script, "..", "test.js");
+    }
+
+    desc("List framework tests");
+    task("list", [], function() { test = spawn(test_script, ["-g", "-l"]) }, true);
 
     desc("Run all framework tests");
-    task("all", ["submodules"], function() {
-      var path = require("path")
-        , spawn = require("child_process").spawn;
-
-      var test = spawn(path.join(__dirname, "script", "test"), ["-g"]);
-      test.stdout.setEncoding('utf8');
-      test.stderr.setEncoding('utf8');
-      test.stdout.on("data", function(data) { console.log(data) });
-      test.stderr.on("data", function(data) { console.log(data) });
-      test.on("exit", function() { complete() });
-    }, true);
+    task("all", [], function() { test = spawn(test_script, ["-g"]) }, true);
 
     desc("Run framework unit tests");
-    task("unit", ["submodules"], function() {
-      var path = require("path")
-        , spawn = require("child_process").spawn;
-
-      var test = spawn(path.join(__dirname, "script", "test"), ["-u", "-g"]);
-      test.stdout.setEncoding('utf8');
-      test.stderr.setEncoding('utf8');
-      test.stdout.on("data", function(data) { console.log(data) });
-      test.stderr.on("data", function(data) { console.log(data) });
-      test.on("exit", function() { complete() });
-    }, true);
+    task("unit", [], function() { test = spawn(test_script, ["-g", "-u"]) }, true);
 
     desc("Run framework unit tests");
-    task("integration", ["submodules"], function() {
-      var path = require("path")
-        , spawn = require("child_process").spawn;
-
-      var test = spawn(path.join(__dirname, "script", "test"), ["-i", "-g"]);
-      test.stdout.setEncoding('utf8');
-      test.stderr.setEncoding('utf8');
-      test.stdout.on("data", function(data) { console.log(data) });
-      test.stderr.on("data", function(data) { console.log(data) });
-      test.on("exit", function() { complete() });
-    }, true);
+    task("integration", [], function() { test = spawn(test_script, ["-g", "-i"]) }, true);
   });
 
   desc("Run application unit tests");
-  task("all", ["submodules"], function() {
-    var path = require("path")
-      , spawn = require("child_process").spawn;
-
-    var test = spawn(path.join(__dirname, "script", "test"), ["-u"]);
-    test.stdout.setEncoding('utf8');
-    test.stderr.setEncoding('utf8');
-    test.stdout.on("data", function(data) { console.log(data) });
-    test.stderr.on("data", function(data) { console.log(data) });
-    test.on("exit", function() { complete() });
-  }, true);
+  task("all", [], function() { test = spawn(test_script, ["-u"]) }, true);
 
   desc("Run application integration tests");
-  task("app", ["submodules"], function() {
-    var path = require("path")
-      , spawn = require("child_process").spawn;
+  task("app", [], function() { test = spawn(test_script, ["-i"]) }, true);
 
-    var test = spawn(path.join(__dirname, "script", "test"), ["-i"]);
-    test.stdout.setEncoding('utf8');
-    test.stderr.setEncoding('utf8');
-    test.stdout.on("data", function(data) { console.log(data) });
-    test.stderr.on("data", function(data) { console.log(data) });
-    test.on("exit", function() { complete() });
-  }, true);
+  (function wait_for_tests() {
+    if (test === null) setTimeout(wait_for_tests, null);
+    else {
+      test.stdout.setEncoding('utf8');
+      test.stderr.setEncoding('utf8');
+      test.stdout.on("data", function(data) { console.log(data) });
+      test.stderr.on("data", function(data) { console.log(data) });
+      test.on("exit", function() { complete() });
+   }
+ })();
 });
