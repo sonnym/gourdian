@@ -12,7 +12,7 @@ if (process.argv[2] == "--init-submodules") {
 
 } else if (process.argv[2] == "--init") {
   // presumably, by this point, Gourdian has been properly installed
-  require(require("path").join(__dirname, "..", "core", "lib", "globals"))
+  require("gourdian");
 
   // determine the target directory based on whether or not a third argument is present
   var target = cwd = process.cwd();
@@ -70,13 +70,13 @@ function create_directory_structure_and_copy_files() {
 
   console.log("---\nCopying files. . . \n---");
 
-  ext.File.copy_files_into_directory(path.join(Gourdian.ROOT, "core", "boilerplate", "init"), target);
+  ext.File.copy_files_into_directory(path.join(Gourdian.framework_root, "boilerplate", "init"), target);
 }
 
 function create_directory_structure() {
   console.log("---\nCreating directories. . . \n---");
 
-  var directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, { "test": ["integration", "lib", "performance", "unit"] }]
+  var directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, "script", { "test": ["integration", "lib", "performance", "unit"] }]
     , directories = ext.File.reduce_directory_structure(target, directory_structure);
 
   Gourdian._.each(directories, function(directory) {

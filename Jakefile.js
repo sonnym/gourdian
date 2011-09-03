@@ -16,7 +16,7 @@ namespace("lint", function () {
   task("framework", [], function() {
     var linter = require("node-linter");
 
-    linter.run({ files: "./core/gourdian.js"
+    linter.run({ files: path.join(__dirname, "..", "..", "core", "gourdian.js")
                , config: "./node_modules/node-linter/conf/server.json"
                , confRoot: "./node_modules/node-linter/conf"
                , recursive: true
@@ -52,7 +52,7 @@ namespace("test", function() {
       var path = require("path")
         , spawn = require("child_process").spawn;
 
-      var test = spawn(path.join(__dirname, "script", "test"), ["-l", "-d", path.join(__dirname, "core", "test")]);
+      var test = spawn(path.join(__dirname, "script", "test"), ["-l", "-g"]);
       test.stdout.setEncoding('utf8');
       test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.setEncoding('utf8');
@@ -65,10 +65,10 @@ namespace("test", function() {
       var path = require("path")
         , spawn = require("child_process").spawn;
 
-      var test = spawn(path.join(__dirname, "script", "test"), ["-d", path.join(__dirname, "core", "test")]);
+      var test = spawn(path.join(__dirname, "script", "test"), ["-g"]);
       test.stdout.setEncoding('utf8');
-      test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.setEncoding('utf8');
+      test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.on("data", function(data) { console.log(data) });
       test.on("exit", function() { complete() });
     }, true);
@@ -78,10 +78,10 @@ namespace("test", function() {
       var path = require("path")
         , spawn = require("child_process").spawn;
 
-      var test = spawn(path.join(__dirname, "script", "test"), ["-u", "-d", path.join(__dirname, "core", "test")]);
+      var test = spawn(path.join(__dirname, "script", "test"), ["-u", "-g"]);
       test.stdout.setEncoding('utf8');
-      test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.setEncoding('utf8');
+      test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.on("data", function(data) { console.log(data) });
       test.on("exit", function() { complete() });
     }, true);
@@ -91,10 +91,10 @@ namespace("test", function() {
       var path = require("path")
         , spawn = require("child_process").spawn;
 
-      var test = spawn(path.join(__dirname, "script", "test"), ["-i", "-d", path.join(__dirname, "core", "test")]);
+      var test = spawn(path.join(__dirname, "script", "test"), ["-i", "-g"]);
       test.stdout.setEncoding('utf8');
-      test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.setEncoding('utf8');
+      test.stdout.on("data", function(data) { console.log(data) });
       test.stderr.on("data", function(data) { console.log(data) });
       test.on("exit", function() { complete() });
     }, true);
@@ -106,6 +106,8 @@ namespace("test", function() {
       , spawn = require("child_process").spawn;
 
     var test = spawn(path.join(__dirname, "script", "test"), ["-u"]);
+    test.stdout.setEncoding('utf8');
+    test.stderr.setEncoding('utf8');
     test.stdout.on("data", function(data) { console.log(data) });
     test.stderr.on("data", function(data) { console.log(data) });
     test.on("exit", function() { complete() });
@@ -117,6 +119,8 @@ namespace("test", function() {
       , spawn = require("child_process").spawn;
 
     var test = spawn(path.join(__dirname, "script", "test"), ["-i"]);
+    test.stdout.setEncoding('utf8');
+    test.stderr.setEncoding('utf8');
     test.stdout.on("data", function(data) { console.log(data) });
     test.stderr.on("data", function(data) { console.log(data) });
     test.on("exit", function() { complete() });

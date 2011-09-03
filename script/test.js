@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-require(require("path").join(__dirname, "..", "core", "lib", "globals"));
+require("gourdian");
 Gourdian.logger.location = path.join(Gourdian.ROOT, "log", "test.log");
 
 // was uninspired by the offerings
 var tests_path = path.join(Gourdian.ROOT, "test")
+  , running_framework_tests = false
 
   , tests = []
   , messages = []
@@ -16,7 +17,8 @@ process.on("uncaughtException", function(err) {
 
 // handle options
 var opts = new GetOpt();
-opts.add("directory", "The absolute directory in which the tests exist.", "test", "d", "directory", GetOpt.REQUIRED_ARGUMENT);
+opts.add("gourdian", "Run framework tests", "", "g", GetOpt.NO_ARGUMENT);
+
 opts.add("name", "Run only the tests with a specified name", "", "n", "name", GetOpt.REQUIRED_ARGUMENT);
 opts.add("file", "Run only the tests in a specified file", "", "f", "file", GetOpt.REQUIRED_ARGUMENT);
 
@@ -32,9 +34,10 @@ try {
   return;
 }
 
-// set the test base directory if present
-if (opts.get("directory")) {
-  tests_path = opts.get("directory");
+// determine if running framework tests
+if (opts.get("gourdian")) {
+  running_framework_tests = true;
+  tests_path = path.join(Gourdian.framework_root, "test")
 }
 
 // unit tests
@@ -70,8 +73,6 @@ function decide_run_test(relative_dir) {
     , only_file = restrict_file ? path.join(tests_path, opts.get("file")) : ""
     , only_name = opts.get("name");
 
-  if (tests_path.indexOf(path.join("core", "test")) > 0) running_framework_tests = true;
-
   if (!files) {
     console.log("\nNo tests specified in the " + relative_dir + " directory. . .");
     return;
@@ -98,7 +99,7 @@ function decide_run_test(relative_dir) {
 
       // run tests, specifying the base path for framework integration tests if necessary
       if (running_framework_tests && relative_dir == "integration") {
-        test_instance.run_tests(only_name, path.join(Gourdian.ROOT, "core", "boilerplate", "init"));
+        test_instance.run_tests(only_name, path.join(Gourdian.framework_root, "boilerplate", "init"));
       } else {
         test_instance.run_tests(only_name);
       }

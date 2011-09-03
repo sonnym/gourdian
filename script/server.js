@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-require(require("path").join(__dirname, "..", "core", "lib", "globals.js"));
+require("gourdian");
 global.stop = function() { process.kill(process.pid, "SIGHUP") };
 
   /////////////

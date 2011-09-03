@@ -1,22 +1,18 @@
 #! /usr/bin/env node
 
-var fs = require("fs")
-  , path = require("path")
+require("gourdian");
 
-  , GetOpt = require("v8cgi/lib/getopt").GetOpt
-  , gourdian = require("./../core/lib/gourdian")
-
-  , bp_lt = function(n) { return { "controller": { source: path.join(gourdian.ROOT, "core", "boilerplate", "app", "c.js")
+var bp_lt = function(n) { return { "controller": { source: path.join(gourdian.ROOT, "boilerplate", "app", "c.js")
                                                  , destination: path.join("app", "c", n + ".js")
                                                  , from: "CONTROLLERNAME"
                                                  , to: n
                                                  }
-                                 , "integration_test": { source: path.join(gourdian.ROOT, "core", "boilerplate", "test", "integration.js")
+                                 , "integration_test": { source: path.join(gourdian.ROOT, "boilerplate", "test", "integration.js")
                                                        , destination: path.join("test", "integration", n + ".js")
                                                        , from: "TESTNAME"
                                                        , to: n
                                                        }
-                                 , "unit_test": { source: path.join(gourdian.ROOT, "core", "boilerplate", "test", "unit.js")
+                                 , "unit_test": { source: path.join(gourdian.ROOT, "boilerplate", "test", "unit.js")
                                                 , destination: path.join("test", "unit", n + ".js")
                                                 , from: "TESTNAME"
                                                 , to: n
