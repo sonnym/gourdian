@@ -99,7 +99,7 @@ function decide_run_test(relative_dir) {
 
       // run tests, specifying the base path for framework integration tests if necessary
       if (running_framework_tests && relative_dir == "integration") {
-        test_instance.run_tests(only_name, path.join(Gourdian.framework_root, "boilerplate", "init"));
+        test_instance.run_tests(only_name, path.join(Gourdian.framework_root, "test", "fixtures", "application"));
       } else {
         test_instance.run_tests(only_name);
       }
