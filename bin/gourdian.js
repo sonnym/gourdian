@@ -1,16 +1,9 @@
 #! /usr/bin/env node
 
-process.on("uncaughtException", function(err) {
-  console.log("\nCaught exception: " + err + "\n" + err.stack);
-});
+require("gourdian");
 
 // main
-if (process.argv[2] == "--init-submodules") {
-  // should only occur when running in the subdirectory of the gourdian path
-  var node_modules_waiting_for_exit = 0;
-  update_node_modules();
-
-} else if (process.argv[2] == "--init") {
+if (process.argv[2] == "--init") {
   // presumably, by this point, Gourdian has been properly installed
   require("gourdian");
 
@@ -34,43 +27,18 @@ if (process.argv[2] == "--init-submodules") {
   console.log("Usage: script/gourdian --init [relative directory]");
 }
 
+  /////////////
+ // private //
+/////////////
 function init_new_app() {
-  create_directory_structure_and_copy_files();
-}
-
-function update_node_modules() {
-  console.log("---\nInitializing and updating node_modules directory. . .\n---");
-
-  parallel_update_node_modules();
-
-  // everything later in the initialization process depends on the modules being present
-  var module_waiting_interval_id = setInterval(function() {
-    if (node_modules_waiting_for_exit == 0) {
-      clearInterval(module_waiting_interval_id);
-      if (callback) callback();
-    }
-  }, 100);
-}
-
-function parallel_update_node_modules() {
-  var spawn = require("child_process").spawn
-    , node_modules = fs.readdirSync(path.join(target, "..", "node_modules"));
-
-  for (var i = 0, l = node_modules.length; i < l; i++) {
-    node_modules_waiting_for_exit++;
-
-    spawn("git", ["submodule", "update", "--init", "--recursive", path.join(target, "..", "node_modules", node_modules[i])]).on("exit", function() {
-      node_modules_waiting_for_exit--;
-    });
-  }
-}
-
-function create_directory_structure_and_copy_files() {
   create_directory_structure();
 
-  console.log("---\nCopying files. . . \n---");
+  console.log("---\nCopying files\n---");
 
-  ext.File.copy_files_into_directory(path.join(Gourdian.framework_root, "boilerplate", "init"), target);
+  ext.File.copy_files_into_directory(path.join(Gourdian.framework_root, "boilerplate", "init"), target, function() {
+    console.log("---\nCopied files successfully");
+    mark_scripts_executable();
+  });
 }
 
 function create_directory_structure() {
@@ -85,6 +53,15 @@ function create_directory_structure() {
     } else {
       fs.mkdirSync(directory, 0755);
       console.log(directory + " created");
+    }
+  });
+}
+
+function mark_scripts_executable() {
+  console.log("---\nMarking scripts executable\n---");
+  fs.readdir(path.join(".", "script"), function(err, files) {
+    for (var i in files) {
+      fs.chmod(path.join(".", "script", files[i]), 0771);
     }
   });
 }
