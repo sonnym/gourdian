@@ -1,3 +1,20 @@
 { "name": "gourdian"
+, "version": "0.0.1"
+, "author": "Sonny Michaud <michaud.sonny@gmail.com> (https://github.com/sonnym)"
+
 , "main" : "./lib/gourdian.js"
+, "bin" : { "gourdian": "./bin/gourdian.js" }
+
+, "dependencies": null
+
+, "repository":
+  { "type": "git"
+  , "url": "https://github.com/sonnym/gourdian.git"
+  }
+
+, "engines": { "node": ">=0.4.0 <0.5.0" }
+
+, "preferGlobal": true
+
+, "scripts": { "postinstall": "git submodule init node_modules" }
 }

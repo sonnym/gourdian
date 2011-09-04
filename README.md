@@ -5,8 +5,13 @@ The simplest way to incorporate websockets into traditional web applications.
 
 Starting a Project
 -
-Until Gourdian is released as an npm module, the easiest way to begin a project is to checkout this repository and then run:
-	./script/gourdian --init
+Gourdian is now set up to be installed as an npm module, but is not yet published. This means it can be installed in a few easy steps.
+
+- Install node 4.x.x
+- Install npm
+- `git clone https://github.com/sonnym/gourdian.git && cd gourdian && npm link`
+
+Once these steps are completed, you will be able to start a new project by simply typing `gourdian --init project_directory` or `gourdian --init` in a directory you want to create a new project in.
 
 Running a Server
 -

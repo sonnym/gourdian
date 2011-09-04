@@ -7,15 +7,9 @@
 [submodule "node_modules/node-static"]
 	path = node_modules/node-static
 	url = https://github.com/cloudhead/node-static.git
-[submodule "node_modules/transporter"]
-	path = node_modules/transporter
-	url = https://github.com/kriszyp/transporter.git
 [submodule "node_modules/underscore"]
 	path = node_modules/underscore
 	url = https://github.com/documentcloud/underscore.git
-[submodule "node_modules/node-linter"]
-	path = node_modules/node-linter
-	url = https://github.com/sonnym/node-linter.git
 [submodule "node_modules/node-jake"]
 	path = node_modules/node-jake
 	url = git://github.com/mde/node-jake.git
@@ -34,3 +28,6 @@
 [submodule "node_modules/uglify-js"]
 	path = node_modules/uglify-js
 	url = https://github.com/mishoo/UglifyJS.git
+[submodule "node_modules/transporter"]
+	path = node_modules/transporter
+	url = https://github.com/deanlandolt/transporter.git
