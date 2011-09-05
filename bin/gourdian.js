@@ -2,11 +2,10 @@
 
 require("gourdian");
 
-// main
-if (process.argv[2] == "--init") {
-  // presumably, by this point, Gourdian has been properly installed
-  require("gourdian");
+var command = process.argv[2];
 
+// main
+if (command === "init") {
   // determine the target directory based on whether or not a third argument is present
   var target = cwd = process.cwd();
   if (process.argv[3]) target = path.join(cwd, process.argv[3]);
@@ -16,26 +15,31 @@ if (process.argv[2] == "--init") {
   // ensure the target is empty but exists
   if (!path.existsSync(target)) {
     fs.mkdir(target, 0666, function() {
-      init_new_app();
+      init_new_app(false);
     });
-  } else if (fs.readdirSync(target).length == 0) {
+  } else if (fs.readdirSync(target).length === 0) {
     init_new_app();
   } else {
     console.log("Error: Target directory is not empty");
+
+    // allow the user to initialize an existing project directory
+    ext.Console.prompt("\nDo you want to continue anyway (WARNING: some files may be overwritten)", ["y", "n"], "n", function(response) {
+      if (response === "y") init_new_app(true);
+    });
   }
 } else {
-  console.log("Usage: script/gourdian --init [relative directory]");
+  console.log("Usage: script/gourdian init [directory]");
 }
 
   /////////////
  // private //
 /////////////
-function init_new_app() {
+function init_new_app(overwrite_existing_files) {
   create_directory_structure();
 
   console.log("---\nCopying files\n---");
 
-  ext.File.copy_files_into_directory(path.join(Gourdian.framework_root, "boilerplate", "init"), target, function() {
+  ext.File.copy_files_into_directory(path.join(Gourdian.framework_root, "boilerplate", "init"), target, overwrite_existing_files, function() {
     console.log("---\nCopied files successfully");
     mark_scripts_executable();
   });
