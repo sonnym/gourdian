@@ -13,9 +13,9 @@ Gourdian is now set up to be installed as an npm module, but is not yet publishe
 
 Starting a Project
 -
-Once Gourdian is installed, staring a project is simple.  Simply navigate to the folder you want to contain the project and type: `gourdian --init`.
+Once Gourdian is installed, staring a project is simple.  Simply navigate to the folder you want to contain the project and type: `gourdian init`.
 
-You can also specify a path, e.g. `gourdian --init path/to/project`.
+You can also specify a path, e.g. `gourdian init path/to/project`.
 
 This directory will server as the root folder of your project. Initialization will create all the files necessary to begin working on a web application immediately.
 
