@@ -17,7 +17,7 @@ process.on("uncaughtException", function(err) {
 
 // handle options
 var opts = new GetOpt();
-opts.add("gourdian", "Run framework tests", "", "g", GetOpt.NO_ARGUMENT);
+opts.add("gourdian", "Run framework tests", "", "g", "framework", GetOpt.NO_ARGUMENT);
 
 opts.add("name", "Run only the tests with a specified name", "", "n", "name", GetOpt.REQUIRED_ARGUMENT);
 opts.add("file", "Run only the tests in a specified file", "", "f", "file", GetOpt.REQUIRED_ARGUMENT);
