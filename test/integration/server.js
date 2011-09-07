@@ -35,9 +35,14 @@ module.exports = ServerTest = function() {
     var finish = this.start();
 
     this.get("/streaming", function(response) {
+      assert.equal(response.complete, false);
+      assert.equal(response.headers["transfer-encoding"], "chunked");
       assert.equal(response.statusCode, 200);
-      console.log(response);
-      finish();
+
+      response.on("end", function(a, b, c) {
+        assert.equal(response.complete, true);
+        finish();
+      });
     });
   }
 }
