@@ -30,5 +30,15 @@ module.exports = ServerTest = function() {
       finish();
     });
   }
+
+  this.server_responds_to_chunked_dynamic_requests_via_template_loader = function() {
+    var finish = this.start();
+
+    this.get("/streaming", function(response) {
+      assert.equal(response.statusCode, 200);
+      console.log(response);
+      finish();
+    });
+  }
 }
 inherits(ServerTest, IntegrationTest);
