@@ -1,11 +1,13 @@
 #!/usr/bin/env node
 
 require("gourdian");
-Gourdian.logger.location = path.join(Gourdian.ROOT, "log", "test.log");
+Gourdian.logger.location = path.join(__dirname, "..", "log", "test.log");
 
 // was uninspired by the offerings
 var tests_path = path.join(Gourdian.ROOT, "test")
   , running_framework_tests = false
+
+  , test_runner = new TestRunner()
 
   , tests = []
   , messages = []
@@ -65,72 +67,40 @@ function check_directory_existence(dir) {
 }
 
 function decide_run_test(relative_dir) {
+  // setup path
   var dir = path.join(tests_path, relative_dir);
   if (!check_directory_existence(dir)) return;
 
-  var files = fs.readdirSync(dir)
-    , restrict_file = opts.get("file")
-    , only_file = restrict_file ? path.join(tests_path, opts.get("file")) : ""
-    , only_name = opts.get("name");
-
+  // load list of files
+  var files = fs.readdirSync(dir);
   if (!files) {
     console.log("\nNo tests specified in the " + relative_dir + " directory. . .");
     return;
   }
 
+  // attach filters if necessary
+  if (opts.get("file")) test_runner.filter("file", opts.get("file"));
+  if (opts.get("name")) test_runner.filter("name", opts.get("name"));
+
+  // settings
+  test_runner.list = opts.get("list-only");
+  test_runner.start_framework_app = (running_framework_tests && relative_dir == "integration");
+
+  // add files to test runner
   for (var f = 0, l_f = files.length; f < l_f; f++) {
     var test_file = path.join(dir, files[f]);
-
-    // only run js files and limit to tests with given name if specified
-    if (path.extname(test_file) != '.js') continue;
-    if (restrict_file && !(path.existsSync(only_file) && fs.realpathSync(only_file) == fs.realpathSync(test_file))) continue;
-
-    var required_test_file = require(test_file)
-
-    if (required_test_file instanceof Function) {
-      // instantate an instance of the test object
-      var test_instance = new required_test_file();
-
-      // list the contents of the test class
-      if (opts.get("list-only")) {
-        console.log("--\n" + test_file + "\n" + Gourdian._.keys(test_instance).join("\n"));
-        continue;
-      }
-
-      // run tests, specifying the base path for framework integration tests if necessary
-      if (running_framework_tests && relative_dir == "integration") {
-        test_instance.run_tests(only_name, path.join(Gourdian.framework_root, "test", "fixtures", "application"));
-      } else {
-        test_instance.run_tests(only_name);
-      }
-
-      // store instance for later reference
-      tests.push(test_instance);
-    } else {
-      console.log("Warning: " + test_file + " does not expose a constructor.");
-    }
+    test_runner.add(test_file);
   }
 }
 
 function observe() {
-  var all_tests_dead = !Gourdian._.reduce(tests, function(memo, test) { return memo || test.alive }, false);
-
-  if (all_tests_dead) {
-    // collect results
-    for(var i in tests) {
-      var test_instance = tests[i]
-        , instance_counts = test_instance.counts;
-
-      messages = messages.concat(test_instance.messages);
-
-      counts.e += instance_counts.e
-      counts.f += instance_counts.f
-      counts.p += instance_counts.p
-    }
+  if (test_runner.complete) {
+    var messages = test_runner.messages
+      , counts = test_runner.counts;
 
     // print results
     if (!opts.get("list-only")) {
-      console.log("----\nFailures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----");
+      console.log("----\nTests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----");
       if (messages.length === 0) console.log("No Messages");
       else console.log("Messages\n----\n" + messages.join("\n--\n"));
     }
