@@ -8,7 +8,7 @@ global.stop = function() { process.kill(process.pid, "SIGHUP") };
 /////////////
 var opts = new GetOpt();
 opts.add("logfile", "Set the location of the log file", "", "l", "logfile", GetOpt.REQUIRED_ARGUMENT);
-opts.add("port", "Port HTTP server and Socket.IO will listen on", DEFAULT_PORT, "p", "port", GetOpt.REQUIRED_ARGUMENT);
+opts.add("port", "Port HTTP server and Socket.IO will listen on", "", "p", "port", GetOpt.REQUIRED_ARGUMENT);
 
 try {
   opts.parse(process.argv);
@@ -23,7 +23,7 @@ var logfile = (opts.get("logfile")) ? opts.get("logfile") : null
 // global exception handling
 process.on("uncaughtException", function(error) {
   Gourdian.logger.fatal("Caught exception: " + error + "\n" + error.stack);
-  console.log("Caught exception: " + error + "\n" + error.stack);
+  process.stdout.write("Caught exception: " + error + "\n" + error.stack);
 });
 
 var server = new Server(logfile, port);

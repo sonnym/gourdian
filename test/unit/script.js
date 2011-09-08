@@ -11,6 +11,25 @@ var ScriptTest = function() {
       async.finish();
     });
   }
+
+  this.server_script_runs_and_gets_to_repl_without_stderr = function() {
+    var async = this.start()
+      , data = "";
+
+    this.spawner("./script/server.js", [],
+      { "stdout": function(datum) {
+          data += datum;
+          if (data.length >= 6) {
+            assert.equal(data.substring(0, 6), "gourd>");
+            async.finish();
+          }
+        }
+      , "stderr": function(datum) {
+          async.message("received stderr: " + datum);
+        }
+      }
+    );
+  }
 }
 
 inherits(ScriptTest, Test);
