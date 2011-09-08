@@ -4,11 +4,11 @@ var ScriptTest = function() {
   var script_dir = path.join(Gourdian.ROOT, "script");
 
   this.script_path_exists = function() {
-    var finish = this.start();
+    var async = this.start();
 
     path.exists(script_dir, function(exists) {
       assert.ok(exists);
-      finish();
+      async.finish();
     });
   }
 }
