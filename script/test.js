@@ -104,7 +104,5 @@ function observe() {
       if (messages.length === 0) console.log("No Messages");
       else console.log("Messages\n----\n" + messages.join("\n--\n"));
     }
-
-    process.kill(process.pid);
   } else setTimeout(function() { observe.call(this) }, null);
 }
