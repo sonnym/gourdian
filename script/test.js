@@ -95,8 +95,7 @@ function decide_run_test(relative_dir) {
 
 function observe() {
   if (test_runner.complete) {
-    var messages = test_runner.messages
-      , counts = test_runner.counts;
+    var messages = test_runner.messages, counts = test_runner.counts;
 
     // print results
     if (!opts.get("list-only")) {
