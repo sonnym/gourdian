@@ -39,4 +39,4 @@
 	url = https://github.com/jed/keygrip.git
 [submodule "node_modules/socket.io-node-client"]
 	path = node_modules/socket.io-node-client
-	url = https://github.com/LearnBoost/Socket.IO-node-client.git
+	url = git@github.com:sonnym/Socket.IO-node-client.git
