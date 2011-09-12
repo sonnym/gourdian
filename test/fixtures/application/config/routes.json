@@ -3,6 +3,8 @@
           , { "path": "/welcome", "controller": "welcome", "action": "index" }
           , { "path": "/streaming", "controller": "welcome", "action": "streaming" }
           , { "path": "/set", "controller": "welcome", "action": "index" }
-          ],
-  "socket": [ ]
+          ]
+, "socket": [ { "event": "*", "controller": "socket", "action": "message" }
+            , { "event": "disconnect", "controller": "socket", "action": "disconnect" }
+            ]
 }

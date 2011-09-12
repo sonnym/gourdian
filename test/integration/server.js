@@ -1,9 +1,9 @@
 module.exports = ServerTest = function() {
   IntegrationTest.call(this);
 
-  this.server_responds_to_nonexistent_static_file_request_with_a_404 = function() {
-    var async = this.start();
+  var async = this.start();
 
+  this.server_responds_to_nonexistent_static_file_request_with_a_404 = function() {
     this.get("/dne.html", function(response) {
       assert.equal(response.statusCode, 404);
       async.finish();
@@ -12,10 +12,14 @@ module.exports = ServerTest = function() {
 
   /*
   this.server_responds_to_static_file_request = function() {
-    var async = this.start();
-
     this.get("/index.html", function(response) {
-      console.log(Gourdian.deep_inspect(response.headers));
+      assert.equal(response.statusCode, 200);
+      async.finish();
+    });
+  }
+
+  this.server_responds_to_top_level_request = function() {
+    this.get("/", function(response) {
       assert.equal(response.statusCode, 200);
       async.finish();
     });
@@ -23,8 +27,6 @@ module.exports = ServerTest = function() {
   */
 
   this.server_responds_to_unchunked_dynamic_requests = function() {
-    var async = this.start();
-
     this.get("/welcome", function(response) {
       assert.equal(response.statusCode, 200);
       async.finish();
@@ -32,8 +34,6 @@ module.exports = ServerTest = function() {
   }
 
   this.server_responds_to_chunked_dynamic_requests_via_template_loader = function() {
-    var async = this.start();
-
     this.get("/streaming", function(response) {
       assert.equal(response.complete, false);
       assert.equal(response.headers["transfer-encoding"], "chunked");
@@ -47,9 +47,15 @@ module.exports = ServerTest = function() {
   }
 
   this.server_gets_a_cookie_when_going_to_the_proper_url = function() {
-    var async = this.start();
     this.get("/set", function(response) {
       assert.equal(response.headers["set-cookie"][0], "_id=nada; path=/; httponly");
+      async.finish();
+    });
+  }
+
+  this.socket_io_handles_http_requests_intended_for_it = function() {
+    this.get("/socket.io", function(response) {
+      assert.equal(response.statusCode, 200);
       async.finish();
     });
   }
