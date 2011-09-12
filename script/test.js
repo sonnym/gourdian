@@ -14,6 +14,7 @@ var tests_path = path.join(Gourdian.ROOT, "test")
   , counts = { e: 0, f: 0, p: 0 };
 
 process.on("uncaughtException", function(err) {
+  console.log("Caught exception: " + error + "\n" + error.stack);
   Gourdian.logger.fatal("Caught exception: " + error + "\n" + error.stack);
 });
 
@@ -42,18 +43,12 @@ if (opts.get("gourdian")) {
   tests_path = path.join(Gourdian.framework_root, "test")
 }
 
-// unit tests
-if (!opts.get("integration-only")) {
-  console.log("----\nRunning unit tests\n----");
-  decide_run_test("unit");
-}
+// run tests
+console.log("---\nRunning Tests\n---");
+if (!opts.get("integration-only")) decide_run_test("unit");
+if (!opts.get("unit-only")) decide_run_test("integration");
 
-// integration tests
-if (!opts.get("unit-only")) {
-  console.log("\n----\nRunning integration tests\n----");
-  decide_run_test("integration");
-}
-
+// wait for complettion
 observe();
 
   /////////////////////
@@ -99,7 +94,7 @@ function observe() {
 
     // print results
     if (!opts.get("list-only")) {
-      console.log("----\nTests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----");
+      console.log("\n----\nTests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----");
       if (messages.length === 0) console.log("No Messages");
       else console.log("Messages\n----\n" + messages.join("\n--\n"));
     }
