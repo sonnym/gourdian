@@ -39,7 +39,7 @@ module.exports = ServerTest = function() {
       assert.equal(response.headers["transfer-encoding"], "chunked");
       assert.equal(response.statusCode, 200);
 
-      response.on("end", function(a, b, c) {
+      response.on("end", function() {
         assert.equal(response.complete, true);
         async.finish();
       });
@@ -54,10 +54,34 @@ module.exports = ServerTest = function() {
   }
 
   this.socket_io_handles_http_requests_intended_for_it = function() {
-    this.get("/socket.io", function(response) {
-      assert.equal(response.statusCode, 200);
-      async.finish();
+    this.get("/socket.io/1", function(response) {
+      var data = "";
+      response.on("data", function(chunk) { data += chunk });
+
+      response.on("end", function() {
+        var data_parts = data.split(":");
+        assert.equal(parseInt(data_parts[1]), 15);
+        assert.equal(parseInt(data_parts[2]), 25);
+        assert.equal(data_parts[3], "websocket,htmlfile,xhr-polling,jsonp-polling");
+
+        var transports = data_parts[3].split(",");
+        assert.equal(transports.length, 4);
+
+        assert.equal(response.statusCode, 200);
+        async.finish();
+      });
     });
   }
+
+  /*
+  this.socket_io_delivers_client_side_include = function() {
+    this.get("/socket.io/socket.io.js", function(response) {
+      response.on("end", function() {
+        assert.equal(response.statusCode, 200);
+        async.finish();
+      });
+    });
+  }
+  */
 }
 inherits(ServerTest, IntegrationTest);
