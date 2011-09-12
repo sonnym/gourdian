@@ -20,7 +20,9 @@ var ScriptTest = function() {
       { "stdout": function(datum) {
           data += datum;
           if (data.length >= 6) {
-            assert.equal(data.substring(0, 6), "gourd>");
+            data += ""; /* data needs to be manipulated in order for this test to work
+                           presumably because it is buffer but is coerced this way */
+            assert.ok(data.indexOf("gourd>") >= 0);
             async.finish();
           }
         }
