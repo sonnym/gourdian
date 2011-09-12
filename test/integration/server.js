@@ -73,6 +73,12 @@ module.exports = ServerTest = function() {
     });
   }
 
+  this.socket_io_can_be_connected_to_via_websocket = function() {
+    this.ws_connect(function() {
+      async.finish();
+    });
+  }
+
   /*
   this.socket_io_delivers_client_side_include = function() {
     this.get("/socket.io/socket.io.js", function(response) {
