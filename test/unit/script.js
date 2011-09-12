@@ -28,7 +28,8 @@ var ScriptTest = function() {
         , "stderr": function(datum) {
             async.message("received stderr: " + datum);
           }
-        , "exit": function() {
+        , "exit": function(code, signal) {
+            assert.equal(signal, "SIGHUP");
             async.finish();
           }
         }
