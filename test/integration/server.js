@@ -74,7 +74,10 @@ module.exports = ServerTest = function() {
   }
 
   this.socket_io_can_be_connected_to_via_websocket = function() {
+    var self = this;
     this.ws_connect(function() {
+      assert.equal(self._server._io.server.connections, 1);
+      assert.equal(self._client.connectionState, 1);
       async.finish();
     });
   }
