@@ -13,6 +13,7 @@ var ScriptTest = function() {
   }
 
   this.server_script_runs_and_gets_to_repl_without_stderr_and_stops = function() {
+    this._timeout = 1000;
     var async = this.start()
       , data = ""
       , child = this.spawner("./script/server.js", [],

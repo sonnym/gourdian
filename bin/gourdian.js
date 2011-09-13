@@ -14,7 +14,7 @@ if (command === "init") {
 
   // ensure the target is empty but exists
   if (!path.existsSync(target)) {
-    fs.mkdir(target, 0666, function() {
+    fs.mkdir(target, 0777, function() {
       init_new_app(false);
     });
   } else if (fs.readdirSync(target).length === 0) {
@@ -39,7 +39,7 @@ function init_new_app(overwrite_existing_files) {
 
   console.log("---\nCopying files\n---");
 
-  ext.File.copy_files_into_directory(path.join(Gourdian.framework_root, "boilerplate", "init"), target, overwrite_existing_files, function() {
+  ext.File.r_cp(path.join(Gourdian.framework_root, "boilerplate", "init"), target, overwrite_existing_files, function() {
     console.log("---\nCopied files successfully");
     mark_scripts_executable();
   });
