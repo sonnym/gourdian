@@ -1,5 +1,5 @@
 [submodule "test/lib/node-websocket-client"]
-	path = node_modules/websocket
+	path = node_modules/websocket-client
 	url = https://github.com/pgriess/node-websocket-client.git
 [submodule "node_modules/v8cgi"]
 	path = node_modules/v8cgi
