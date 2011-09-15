@@ -14,7 +14,6 @@ var tests_path = path.join(Gourdian.ROOT, "test")
   , counts = { e: 0, f: 0, p: 0 };
 
 process.on("uncaughtException", function(err) {
-  console.log("Caught exception: " + error + "\n" + error.stack);
   Gourdian.logger.fatal("Caught exception: " + error + "\n" + error.stack);
 });
 
