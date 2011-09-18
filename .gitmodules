@@ -1,6 +1,3 @@
-[submodule "test/lib/node-websocket-client"]
-	path = node_modules/websocket-client
-	url = https://github.com/pgriess/node-websocket-client.git
 [submodule "node_modules/v8cgi"]
 	path = node_modules/v8cgi
 	url = https://github.com/easel/v8cgi.git
@@ -19,8 +16,8 @@
 [submodule "node_modules/inflect-js"]
 	path = node_modules/inflect-js
 	url = https://github.com/sonnym/inflect-js.git
-[submodule "node_modules/socket-io"]
-	path = node_modules/socket-io
+[submodule "node_modules/socket.io"]
+	path = node_modules/socket.io
 	url = https://github.com/LearnBoost/socket.io.git
 [submodule "node_modules/socket.io-client"]
 	path = node_modules/socket.io-client
@@ -37,6 +34,3 @@
 [submodule "node_modules/keygrip"]
 	path = node_modules/keygrip
 	url = https://github.com/jed/keygrip.git
-[submodule "node_modules/socket.io-node-client"]
-	path = node_modules/socket.io-node-client
-	url = git@github.com:sonnym/Socket.IO-node-client.git

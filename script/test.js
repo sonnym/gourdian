@@ -97,5 +97,5 @@ function observe() {
       if (messages.length === 0) console.log("No Messages");
       else console.log("Messages\n----\n" + messages.join("\n--\n"));
     }
-  } else setTimeout(function() { observe.call(this) }, null);
+  } else setTimeout(observe, null);
 }
