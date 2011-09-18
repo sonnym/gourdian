@@ -10,7 +10,6 @@ module.exports = ServerTest = function() {
     });
   }
 
-  /*
   this.server_responds_to_static_file_request = function() {
     this.get("/index.html", function(response) {
       assert.equal(response.statusCode, 200);
@@ -24,7 +23,6 @@ module.exports = ServerTest = function() {
       async.finish();
     });
   }
-  */
 
   this.server_responds_to_unchunked_dynamic_requests = function() {
     this.get("/welcome", function(response) {
