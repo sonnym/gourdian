@@ -90,14 +90,13 @@ module.exports = ServerTest = function() {
   */
 
   this.client_can_send_message_to_socket_io = function() {
-    this._timeout = 1000;
     var self = this
       , messages = 0;
 
     this.ws_connect(function() {
       self._client.socket.packet({ type: "event", name: "test123", endpoint: "" });
       self._client.socket.on("message", function(msg) {
-        if (messages.length === 0) {
+        if (messages === 0) {
           messages++;
           return;
         }

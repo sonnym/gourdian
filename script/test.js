@@ -14,7 +14,7 @@ var tests_path = path.join(Gourdian.ROOT, "test")
   , counts = { e: 0, f: 0, p: 0 };
 
 process.on("uncaughtException", function(err) {
-  Gourdian.logger.fatal("Caught exception: " + error + "\n" + error.stack);
+  Gourdian.logger.fatal("Caught exception: " + err + "\n" + err.stack);
 });
 
 // handle options
@@ -42,8 +42,12 @@ if (opts.get("gourdian")) {
   tests_path = path.join(Gourdian.framework_root, "test")
 }
 
+ext.Console.separator();
+if (opts.get("list-only")) console.log("Listing Tests");
+else console.log("Running Tests");
+ext.Console.separator();
+
 // run tests
-console.log("---\nRunning Tests\n---");
 if (!opts.get("integration-only")) decide_run_test("unit");
 if (!opts.get("unit-only")) decide_run_test("integration");
 
@@ -93,9 +97,17 @@ function observe() {
 
     // print results
     if (!opts.get("list-only")) {
-      console.log("\n----\nTests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p + "\n----");
+      ext.Console.separator();
+      console.log("Tests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p);
+      ext.Console.separator();
+
       if (messages.length === 0) console.log("No Messages");
-      else console.log("Messages\n----\n" + messages.join("\n--\n"));
+      else {
+        ext.Console.separator();
+        console.log("Messages");
+        ext.Console.separator();
+        console.log(messages.join("\n--\n"));
+      }
     }
   } else setTimeout(observe, null);
 }
