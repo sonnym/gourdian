@@ -10,7 +10,6 @@ module.exports = ServerTest = function() {
     });
   }
 
-  /*
   this.server_responds_to_static_file_request = function() {
     this.get("/index.html", function(response) {
       assert.equal(response.statusCode, 200);
@@ -24,7 +23,6 @@ module.exports = ServerTest = function() {
       async.finish();
     });
   }
-  */
 
   this.server_responds_to_unchunked_dynamic_requests = function() {
     this.get("/welcome", function(response) {
@@ -97,15 +95,12 @@ module.exports = ServerTest = function() {
       , messages = 0;
 
     this.ws_connect(function() {
-      self._client.socket.packet({ type: "event", name: "test123", endpoint: "" });
+      self._client.socket.packet({ type: "event", name: "eidolon", endpoint: "" });
       self._client.socket.on("message", function(msg) {
-        if (messages.length === 0) {
-          messages++;
-          return;
-        }
+        if (msg.type === "connect" || msg.type === "heartbeat") return;
 
         assert.equal(msg.type, "message");
-        assert.equal(msg.data, "testsend");
+        assert.equal(msg.data, "noumenon");
 
         self._client.socket.close();
         async.finish();
