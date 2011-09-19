@@ -94,15 +94,12 @@ module.exports = ServerTest = function() {
       , messages = 0;
 
     this.ws_connect(function() {
-      self._client.socket.packet({ type: "event", name: "test123", endpoint: "" });
+      self._client.socket.packet({ type: "event", name: "eidolon", endpoint: "" });
       self._client.socket.on("message", function(msg) {
-        if (messages === 0) {
-          messages++;
-          return;
-        }
+        if (msg.type === "connect" || msg.type === "heartbeat") return;
 
         assert.equal(msg.type, "message");
-        assert.equal(msg.data, "testsend");
+        assert.equal(msg.data, "noumenon");
 
         self._client.socket.close();
         async.finish();

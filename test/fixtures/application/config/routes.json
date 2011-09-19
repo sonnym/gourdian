@@ -4,7 +4,8 @@
           , { "path": "/streaming", "controller": "welcome", "action": "streaming" }
           , { "path": "/set", "controller": "welcome", "action": "index" }
           ]
-, "socket": [ { "event": "*", "controller": "socket", "action": "message" }
-            , { "event": "disconnect", "controller": "socket", "action": "disconnect" }
-            ]
+, "socket": { "connect": { "controller": "socket", "action": "connect" }
+            , "disconnect": { "controller": "socket", "action": "disconnect" }
+            , "events": { "eidolon": { "controller": "socket", "action": "respond_to_socket" } }
+            }
 }
