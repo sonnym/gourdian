@@ -31,6 +31,19 @@ Routes
 
 Tests
 -
+Gourdian tests come in three different types:
+
+- Unit Tests
+- Integration Tests
+- Performance Tests
+
+The main differences between the three can be summed up as the following:
+
+Unit tests are the most basic case, upon which other types of test are built.
+
+Integration tests provide you with an independent server and client for every test.
+
+Performance tests give a flexible number of clients, but only one server for each test.  They also have no timeout by default.
 
 MVC
 -

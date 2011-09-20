@@ -51,26 +51,32 @@ namespace("test", function() {
     task("list", [], function() { test = spawn(test_script, ["-g", "-l"]) }, true);
 
     desc("Run all framework tests");
-    task("all", [], function() { test = spawn(test_script, ["-g"]) }, true);
+    task("all", [], function() { test = spawn(test_script, ["-g", "-i", "-p", "-u"]) }, true);
 
     desc("Run framework unit tests");
     task("unit", [], function() { test = spawn(test_script, ["-g", "-u"]) }, true);
 
-    desc("Run framework unit tests");
+    desc("Run framework integration tests");
     task("integration", [], function() { test = spawn(test_script, ["-g", "-i"]) }, true);
+
+    desc("Run framework performance tests");
+    task("performance", [], function() { test = spawn(test_script, ["-g", "-p"]) }, true);
   });
 
   desc("List application tests");
   task("list", [], function() { test = spawn(test_script, ["-l"]) }, true);
 
   desc("Run application tests");
-  task("all", [], function() { test = spawn(test_script) }, true);
+  task("all", [], function() { test = spawn(test_script, ["-i", "-p", "-u"]) }, true);
 
   desc("Run application unit tests");
   task("unit", [], function() { test = spawn(test_script, ["-u"]) }, true);
 
   desc("Run application integration tests");
   task("integration", [], function() { test = spawn(test_script, ["-i"]) }, true);
+
+  desc("Run application performance tests");
+  task("performance", [], function() { test = spawn(test_script, ["-p"]) }, true);
 
   (function wait_for_tests() {
     if (test === null) setTimeout(wait_for_tests, null);

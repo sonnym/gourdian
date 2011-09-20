@@ -24,8 +24,9 @@ opts.add("gourdian", "Run framework tests", "", "g", "framework", GetOpt.NO_ARGU
 opts.add("name", "Run only the tests with a specified name", "", "n", "name", GetOpt.REQUIRED_ARGUMENT);
 opts.add("file", "Run only the tests in a specified file", "", "f", "file", GetOpt.REQUIRED_ARGUMENT);
 
-opts.add("unit-only", "Run only unit tests", false, "u", "unit", GetOpt.NO_ARGUMENT);
-opts.add("integration-only", "Run only integration tests", false, "i", "integration", GetOpt.NO_ARGUMENT);
+opts.add("unit", "Run only unit tests", false, "u", "unit", GetOpt.NO_ARGUMENT);
+opts.add("integration", "Run only integration tests", false, "i", "integration", GetOpt.NO_ARGUMENT);
+opts.add("performance", "Run only performance tests", false, "p", "performance", GetOpt.NO_ARGUMENT);
 
 opts.add("list-only", "Do not run the tests, only list them.", "", "l", "list-only", GetOpt.NO_ARGUMENT);
 
@@ -48,8 +49,9 @@ else console.log("Running Tests");
 ext.Console.separator();
 
 // run tests
-if (!opts.get("integration-only")) decide_run_test("unit");
-if (!opts.get("unit-only")) decide_run_test("integration");
+if (opts.get("unit")) decide_run_test("unit");
+if (opts.get("integration")) decide_run_test("integration");
+if (opts.get("performance")) decide_run_test("performance");
 
 // wait for complettion
 observe();
@@ -82,7 +84,8 @@ function decide_run_test(relative_dir) {
 
   // settings
   test_runner.list = opts.get("list-only");
-  test_runner.start_framework_app = (running_framework_tests && relative_dir == "integration");
+  test_runner.start_framework_app = (running_framework_tests &&
+                                     (relative_dir == "integration" || relative_dir == "performance"));
 
   // add files to test runner
   for (var f = 0, l_f = files.length; f < l_f; f++) {

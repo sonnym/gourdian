@@ -3,15 +3,6 @@ var ScriptTest = function() {
 
   var script_dir = path.join(Gourdian.ROOT, "script");
 
-  this.script_path_exists = function() {
-    var async = this.start();
-
-    path.exists(script_dir, function(exists) {
-      assert.ok(exists);
-      async.finish();
-    });
-  }
-
   this.server_script_runs_and_gets_to_repl_without_stderr_and_stops = function() {
     this._timeout = 1000;
     var async = this.start()
