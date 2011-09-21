@@ -100,6 +100,7 @@ function observe() {
 
     // print results
     if (!opts.get("list-only")) {
+      console.log();
       ext.Console.separator();
       console.log("Tests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p);
       ext.Console.separator();
