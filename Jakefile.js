@@ -83,8 +83,8 @@ namespace("test", function() {
     else {
       test.stdout.setEncoding('utf8');
       test.stderr.setEncoding('utf8');
-      test.stdout.on("data", function(data) { console.log(data) });
-      test.stderr.on("data", function(data) { console.log(data) });
+      test.stdout.on("data", function(data) { process.stdout.write(data) });
+      test.stderr.on("data", function(data) { process.stdout.write(data) });
       test.on("exit", function() { complete() });
    }
  })();
