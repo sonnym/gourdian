@@ -48,6 +48,15 @@ if (opts.get("list-only")) console.log("Listing Tests");
 else console.log("Running Tests");
 ext.Console.separator();
 
+// set up test runner
+// attach filters if necessary
+if (opts.get("file")) test_runner.filter("file", opts.get("file"));
+if (opts.get("name")) test_runner.filter("name", opts.get("name"));
+
+// settings
+test_runner.list = opts.get("list-only");
+test_runner.framework = running_framework_tests;
+
 // run tests
 if (opts.get("unit")) decide_run_test("unit");
 if (opts.get("integration")) decide_run_test("integration");
@@ -77,15 +86,6 @@ function decide_run_test(relative_dir) {
     console.log("\nNo tests specified in the " + relative_dir + " directory. . .");
     return;
   }
-
-  // attach filters if necessary
-  if (opts.get("file")) test_runner.filter("file", opts.get("file"));
-  if (opts.get("name")) test_runner.filter("name", opts.get("name"));
-
-  // settings
-  test_runner.list = opts.get("list-only");
-  test_runner.start_framework_app = (running_framework_tests &&
-                                     (relative_dir == "integration" || relative_dir == "performance"));
 
   // add files to test runner
   for (var f = 0, l_f = files.length; f < l_f; f++) {
