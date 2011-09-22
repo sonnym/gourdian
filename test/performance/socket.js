@@ -7,14 +7,11 @@ module.exports = SocketTest = function() {
     var self = this;
     (function wait() {
       if (self._clients.length === 125) {
-        (function ekg() {
-          // ensure that each client has at least 5 heartbeats after the handshake
-          if (Gourdian._.reduce(self._clients, function(memo, client) { return (client.heartbeats > 5) }, true)) {
-            async.finish();
-          } else {
-            setTimeout(ekg, null);
-          }
-        })();
+        // ensure that each client has at least 5 heartbeats after the handshake
+        var ekg = function() {
+          return Gourdian._.reduce(self._clients, function(memo, client) { return (client.heartbeats > 5) }, true);
+        };
+        ext.Sync.wait_for(ekg, function() { async.finish() });
       } else {
         self.add_client("ws_connect")
         setTimeout(wait, null);
