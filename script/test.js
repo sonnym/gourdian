@@ -80,18 +80,10 @@ function decide_run_test(relative_dir) {
   var dir = path.join(tests_path, relative_dir);
   if (!check_directory_existence(dir)) return;
 
-  // load list of files
-  var files = fs.readdirSync(dir);
-  if (!files) {
-    console.log("\nNo tests specified in the " + relative_dir + " directory. . .");
-    return;
-  }
-
-  // add files to test runner
-  for (var f = 0, l_f = files.length; f < l_f; f++) {
-    var test_file = path.join(dir, files[f]);
-    test_runner.add(test_file);
-  }
+  ext.File.directory_descent_wrapper(dir, function(path) {
+    var stats = fs.statSync(path);
+    if (stats.isFile()) test_runner.add(path);
+  });
 }
 
 function observe() {
