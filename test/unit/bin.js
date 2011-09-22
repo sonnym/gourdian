@@ -3,7 +3,7 @@ module.exports = BinTest = function() {
   var async = this.start();
 
   this.can_initialize_an_empty_project_in_a_nonexistent_directory = function() {
-    this._timeout = 1000;
+    this._timeout = 500;
     this.spawner( "gourdian", ["init", path.join("test", "fixtures", "empty_nex")]
                 , { "exit": function(code, sig) {
                        assert.equal(code, 0);
