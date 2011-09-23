@@ -11,5 +11,13 @@ module.exports = SessionStoreTest = function() {
     var session_id = session_store.create();
     assert.ok(session_store.get(session_id));
   }
+
+  this.can_destory_a_session = function() {
+    var session_id = session_store.create();
+    assert.ok(session_store.get(session_id));
+
+    session_store.destroy(session_id);
+    assert.equal(session_store.get(session_id), undefined);
+  }
 }
 inherits(SessionStoreTest, Test);
