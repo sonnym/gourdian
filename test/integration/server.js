@@ -44,9 +44,13 @@ module.exports = ServerTest = function() {
     });
   }
 
-  this.server_gets_a_cookie_when_going_to_the_proper_url = function() {
+  this.client_gets_a_cookie_when_going_to_the_proper_url = function() {
     this.get("/set", function(response) {
-      assert.equal(response.headers["set-cookie"][0], "_id=nada; path=/; httponly");
+      var cookie = response.headers["set-cookie"][0]
+        , cookie_id = cookie.split("; ")[0].split("=")[1];
+
+      // 32 byte sha1
+      assert.equal(cookie_id.length, 32);
       async.finish();
     });
   }
