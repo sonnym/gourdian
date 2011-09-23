@@ -44,14 +44,24 @@ module.exports = ServerTest = function() {
     });
   }
 
-  this.client_gets_a_cookie_when_going_to_the_proper_url = function() {
-    this.get("/set", function(response) {
-      var cookie = response.headers["set-cookie"][0]
-        , cookie_id = cookie.split("; ")[0].split("=")[1];
+  this.client_gets_a_cookie_on_request = function() {
+    var self = this;
+    this.get("/index.html", function(response) {
+      var cookie_id = self._client.cookie;
 
       // 32 byte sha1
       assert.equal(cookie_id.length, 32);
       async.finish();
+    });
+  }
+
+  this.client_gets_a_cookie_only_on_first_request = function() {
+    var self = this;
+    this.get("/index.html", function() {
+      self.get("/index.html", function(response) {
+        assert.ok(response.headers["set-cookie"] === undefined);
+        async.finish();
+      });
     });
   }
 }
