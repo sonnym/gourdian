@@ -31,6 +31,3 @@
 [submodule "node_modules/cookies"]
 	path = node_modules/cookies
 	url = https://github.com/jed/cookies.git
-[submodule "node_modules/keygrip"]
-	path = node_modules/keygrip
-	url = https://github.com/jed/keygrip.git
