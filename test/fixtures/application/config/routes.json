@@ -2,6 +2,7 @@
   "http": [ { "root": "/public" }
           , { "path": "/welcome", "controller": "welcome", "action": "index" }
           , { "path": "/streaming", "controller": "welcome", "action": "streaming" }
+          , { "path": "/store/save", "controller": "session", "action": "save" }
           , { "path": "/set", "controller": "welcome", "action": "index" }
           ]
 , "socket": { "connect": { "controller": "socket", "action": "connect" }

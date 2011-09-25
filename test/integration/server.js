@@ -64,5 +64,13 @@ module.exports = ServerTest = function() {
       });
     });
   }
+
+  this.client_can_save_information_in_a_session = function() {
+    var self = this;
+    this.get("/store/save", function() {
+      assert.equal(self._server._session_store.get(self._client.cookie).hello, "world");
+      async.finish();
+    });
+  }
 }
 inherits(ServerTest, IntegrationTest);
