@@ -72,5 +72,19 @@ module.exports = ServerTest = function() {
       async.finish();
     });
   }
+
+  this.client_can_save_and_retrieve_data_in_a_session = function() {
+    var self = this;
+    this.get("/store/save", function() {
+      assert.equal(self._server._session_store.get(self._client.cookie).hello, "world");
+
+      self.get("/store/check", function(response) {
+        response.on("data", function(data) {
+          assert.equal(data, "world");
+          async.finish();
+        });
+      });
+    });
+  }
 }
 inherits(ServerTest, IntegrationTest);

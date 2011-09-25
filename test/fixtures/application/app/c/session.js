@@ -6,5 +6,9 @@ module.exports = SessionsController = function() {
     self._session.hello = "world";
     return "";
   };
+
+  this.check = function() {
+    return self._session.hello;
+  }
 }
 inherits(SessionsController, Controller);
