@@ -29,8 +29,8 @@ module.exports = SessionStoreTest = function() {
 
     session[secret_key] = secret_val;
 
-    var found = session_store.find(function(val, key) {
-      return (val[secret_key] === secret_val);
+    var found = session_store.find(function(fnd_session, fnd_session_id) {
+      return (fnd_session[secret_key] === secret_val);
     });
 
     assert.equal(found, session);

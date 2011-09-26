@@ -58,5 +58,24 @@ module.exports = ServerSocketIoTest = function() {
       });
     });
   }
+
+  this.client_can_send_authorization_cookie_header_with_handshake = function() {
+    var self = this;
+    this.get("/store/save", function(response) {
+      var cookie_parts = response.headers["set-cookie"][0].split("; ")
+        , id_part = cookie_parts[0]
+        , cookie_id = id_part.split("=")[1];
+
+      self.ws_handshake({headers: {"Cookie": cookie_id} }, function() {
+        self.ws_send_packet({ type: "event", name: "check_session", endpoint: "" });
+        self._client._socket.on("message", function(msg) {
+          if (msg.type !== "connect" && msg.type !== "heartbeat") {
+            assert.equal(msg.data, "world");
+            async.finish();
+          }
+        });
+      });
+    });
+  }
 }
 inherits(ServerSocketIoTest, IntegrationTest);

@@ -8,6 +8,8 @@
           ]
 , "socket": { "connect": { "controller": "socket", "action": "connect" }
             , "disconnect": { "controller": "socket", "action": "disconnect" }
-            , "events": { "eidolon": { "controller": "socket", "action": "respond_to_socket" } }
+            , "events": { "eidolon": { "controller": "socket", "action": "respond_to_socket" }
+                        , "check_session": { "controller": "socket", "action": "check_session" }
+                        }
             }
 }
