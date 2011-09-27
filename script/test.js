@@ -14,7 +14,11 @@ var tests_path = path.join(Gourdian.ROOT, "test")
   , counts = { e: 0, f: 0, p: 0 };
 
 process.on("uncaughtException", function(err) {
-  Gourdian.logger.fatal("Caught exception: " + err + "\n" + err.stack);
+  if (test_runner) {
+    test_runner._messages.push(err.stack);
+  } else {
+    Gourdian.logger.fatal("Caught exception: " + err + "\n" + err.stack);
+  }
 });
 
 // handle options
@@ -105,5 +109,5 @@ function observe() {
         console.log(messages.join("\n--\n"));
       }
     }
-  } else setTimeout(observe, null);
+  } else process.nextTick(observe);
 }
