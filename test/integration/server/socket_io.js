@@ -30,7 +30,6 @@ module.exports = ServerSocketIoTest = function() {
     });
   }
 
-  /*
   this.socket_io_delivers_client_side_include = function() {
     this.get("/socket.io/socket.io.js", function(response) {
       response.on("end", function() {
@@ -39,7 +38,6 @@ module.exports = ServerSocketIoTest = function() {
       });
     });
   }
-  */
 
   this.client_can_send_message_to_socket_io = function() {
     var self = this
