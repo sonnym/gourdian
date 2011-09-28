@@ -64,7 +64,25 @@ if (opts.get("integration")) decide_run_test("integration");
 if (opts.get("performance")) decide_run_test("performance");
 
 // wait for complettion
-observe();
+ext.Sync.wait_for(function() { return test_runner.complete }, function() {
+  var messages = test_runner.messages, counts = test_runner.counts;
+
+  // print results
+  if (!opts.get("list-only")) {
+    console.log();
+    ext.Console.separator();
+    console.log("Tests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p);
+    ext.Console.separator();
+
+    if (messages.length === 0) console.log("No Messages");
+    else {
+      ext.Console.separator();
+      console.log("Messages");
+      ext.Console.separator();
+      console.log(messages.join("\n--\n"));
+    }
+  }
+});
 
   /////////////////////
  // private methods //
@@ -85,26 +103,4 @@ function decide_run_test(relative_dir) {
     var stats = fs.statSync(path);
     if (stats.isFile()) test_runner.add(path);
   });
-}
-
-function observe() {
-  if (test_runner.complete) {
-    var messages = test_runner.messages, counts = test_runner.counts;
-
-    // print results
-    if (!opts.get("list-only")) {
-      console.log();
-      ext.Console.separator();
-      console.log("Tests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p);
-      ext.Console.separator();
-
-      if (messages.length === 0) console.log("No Messages");
-      else {
-        ext.Console.separator();
-        console.log("Messages");
-        ext.Console.separator();
-        console.log(messages.join("\n--\n"));
-      }
-    }
-  } else process.nextTick(observe);
 }
