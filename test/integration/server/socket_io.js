@@ -75,5 +75,21 @@ module.exports = ServerSocketIoTest = function() {
       });
     });
   }
+
+  this.client_can_send_message_packets_to_the_server = function() {
+    var self = this;
+    this.ws_handshake({}, function() {
+      var secret = "" + Math.random();
+      self.ws_send_packet({ type: "json", data: { secret: secret } });
+      self._client._socket.on("message", function(msg) {
+        if (msg.type === "heartbeat" || msg.type === "connect") return;
+
+        assert.equal(secret, msg.data);
+
+        self._client._socket.close();
+        async.finish();
+      });
+    });
+  }
 }
 inherits(ServerSocketIoTest, IntegrationTest);

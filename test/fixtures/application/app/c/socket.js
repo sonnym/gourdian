@@ -14,6 +14,10 @@ module.exports = SocketController = function() {
     return self._session.hello;
   }
 
+  this.echo = function() {
+    return this._message.secret;
+  }
+
   this.disconnect = function() {
   };
 }
