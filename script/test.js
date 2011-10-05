@@ -28,6 +28,7 @@ opts.add("file", "Run only the tests in a specified file", "", "f", "file", GetO
 opts.add("unit", "Run only unit tests", false, "u", "unit", GetOpt.NO_ARGUMENT);
 opts.add("integration", "Run only integration tests", false, "i", "integration", GetOpt.NO_ARGUMENT);
 opts.add("performance", "Run only performance tests", false, "p", "performance", GetOpt.NO_ARGUMENT);
+opts.add("acceptance", "Run only acceptance tests", false, "a", "acceptance", GetOpt.NO_ARGUMENT);
 
 opts.add("list-only", "Do not run the tests, only list them.", "", "l", "list-only", GetOpt.NO_ARGUMENT);
 
@@ -61,12 +62,10 @@ test_runner.framework = running_framework_tests;
 // run tests
 if (opts.get("unit")) decide_run_test("unit");
 if (opts.get("integration")) decide_run_test("integration");
-ext.Sync.wait_for(function() { return test_runner.complete }, function() {
-  if (opts.get("performance")) {
-    decide_run_test("performance");
-    ext.Sync.wait_for(function() { return test_runner.complete}, print_test_output);
-  } else print_test_output();
-});
+if (opts.get("performance")) decide_run_test("performance");
+if (opts.get("acceptance")) decide_run_test("acceptance");
+
+ext.Sync.wait_for(function() { return test_runner.complete }, print_test_output);
 
   /////////////////////
  // private methods //

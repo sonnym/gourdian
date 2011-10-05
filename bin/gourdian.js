@@ -48,8 +48,14 @@ function init_new_app(overwrite_existing_files) {
 function create_directory_structure() {
   console.log("---\nCreating directories. . . \n---");
 
-  var directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, "script", { "test": ["integration", "lib", "performance", "unit"] }]
-    , directories = ext.File.reduce_directory_structure(target, directory_structure);
+  var directory_structure = [ { "app": ["m", "v", "c"] }
+                            , "config"
+                            , "log"
+                            , { "public": ["css", "js"] }
+                            , "script"
+                            , { "test": ["acceptance", "fixtures", "integration", "lib", "performance", "unit"] }
+                            ];
+  var directories = ext.File.reduce_directory_structure(target, directory_structure);
 
   Gourdian._.each(directories, function(directory) {
     if (path.existsSync(directory)) {
