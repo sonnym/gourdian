@@ -39,16 +39,13 @@ try {
   return;
 }
 
+ext.Console.separator();
+
 // determine if running framework tests
 if (opts.get("gourdian")) {
   running_framework_tests = true;
   tests_path = path.join(Gourdian.framework_root, "test")
 }
-
-ext.Console.separator();
-if (opts.get("list-only")) console.log("Listing Tests");
-else console.log("Running Tests");
-ext.Console.separator();
 
 // set up test runner
 // attach filters if necessary
@@ -56,16 +53,25 @@ if (opts.get("file")) test_runner.filter("file", opts.get("file"));
 if (opts.get("name")) test_runner.filter("name", opts.get("name"));
 
 // settings
-test_runner.list = opts.get("list-only");
 test_runner.framework = running_framework_tests;
 
-// run tests
-if (opts.get("unit")) decide_run_test("unit");
-if (opts.get("integration")) decide_run_test("integration");
-if (opts.get("performance")) decide_run_test("performance");
-if (opts.get("acceptance")) decide_run_test("acceptance");
+// add tests
+if (opts.get("unit")) enqueue_test_file("unit");
+if (opts.get("integration")) enqueue_test_file("integration");
+if (opts.get("performance")) enqueue_test_file("performance");
+if (opts.get("acceptance")) enqueue_test_file("acceptance");
 
-ext.Sync.wait_for(function() { return test_runner.complete }, print_test_output);
+// operate on tests
+if (opts.get("list-only")) {
+  console.log("Listing Tests");
+  ext.Console.separator();
+  test_runner.list();
+} else {
+  console.log("Running Tests");
+  ext.Console.separator();
+  test_runner.run();
+  ext.Sync.wait_for(function() { return test_runner.complete }, print_test_output);
+}
 
   /////////////////////
  // private methods //
@@ -77,7 +83,7 @@ function check_directory_existence(dir) {
   return exists;
 }
 
-function decide_run_test(relative_dir) {
+function enqueue_test_file(relative_dir) {
   // setup path
   var dir = path.join(tests_path, relative_dir);
   if (!check_directory_existence(dir)) return;
@@ -91,18 +97,16 @@ function decide_run_test(relative_dir) {
 function print_test_output() {
   var messages = test_runner.messages, counts = test_runner.counts;
 
-  if (!opts.get("list-only")) {
-    console.log();
-    ext.Console.separator();
-    console.log("Tests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p);
-    ext.Console.separator();
+  console.log();
+  ext.Console.separator();
+  console.log("Tests: " + counts.t + "; Failures: " + counts.f + "; Errors: " + counts.e + "; Pass: " + counts.p);
+  ext.Console.separator();
 
-    if (messages.length === 0) console.log("No Messages");
-    else {
-      ext.Console.separator();
-      console.log("Messages");
-      ext.Console.separator();
-      console.log(messages.join("\n--\n"));
-    }
+  if (messages.length === 0) console.log("No Messages");
+  else {
+    ext.Console.separator();
+    console.log("Messages");
+    ext.Console.separator();
+    console.log(messages.join("\n--\n"));
   }
 }

@@ -48,7 +48,7 @@ namespace("test", function() {
     }
 
     desc("List framework tests");
-    task("list", [], function() { test = spawn(test_script, ["-g", "-l"]) }, true);
+    task("list", [], function() { test = spawn(test_script, ["-g", "-l", "-u", "-i", "-p"]) }, true);
 
     desc("Run all framework tests");
     task("all", [], function() { test = spawn(test_script, ["-g", "-i", "-p", "-u"]) }, true);
@@ -64,7 +64,7 @@ namespace("test", function() {
   });
 
   desc("List application tests");
-  task("list", [], function() { test = spawn(test_script, ["-l"]) }, true);
+  task("list", [], function() { test = spawn(test_script, ["-l", "-u", "-i", "-p"]) }, true);
 
   desc("Run application tests");
   task("all", [], function() { test = spawn(test_script, ["-i", "-p", "-u"]) }, true);
