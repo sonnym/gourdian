@@ -24,6 +24,13 @@ module.exports = ServerTest = function() {
     });
   }
 
+  this.can_fetch_transporter_include = function() {
+    this.get("/lib/receiver.js", function(response) {
+      assert.equal(response.statusCode, 200);
+      async.finish();
+    });
+  }
+
   this.server_responds_to_unchunked_dynamic_requests = function() {
     this.get("/welcome", function(response) {
       assert.equal(response.statusCode, 200);
