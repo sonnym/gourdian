@@ -25,7 +25,7 @@ module.exports = ServerTest = function() {
   }
 
   this.can_fetch_transporter_include = function() {
-    this.get("/lib/receiver.js", function(response) {
+    this.get("/lib/transporter/receiver.js", function(response) {
       assert.equal(response.statusCode, 200);
       async.finish();
     });
