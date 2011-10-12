@@ -52,9 +52,6 @@ if (opts.get("gourdian")) {
 if (opts.get("file")) test_runner.filter("file", opts.get("file"));
 if (opts.get("name")) test_runner.filter("name", opts.get("name"));
 
-// settings
-test_runner.framework = running_framework_tests;
-
 // add tests
 if (opts.get("unit")) enqueue_test_file("unit");
 if (opts.get("integration")) enqueue_test_file("integration");
@@ -67,6 +64,8 @@ if (opts.get("list-only")) {
   ext.Console.separator();
   test_runner.list();
 } else {
+  if (running_framework_tests) test_runner.server_path = path.join(Gourdian.framework_root, "test", "fixtures", "application");
+
   console.log("Running Tests");
   ext.Console.separator();
   test_runner.run();
