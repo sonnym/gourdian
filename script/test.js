@@ -76,17 +76,14 @@ if (opts.get("list-only")) {
   /////////////////////
  // private methods //
 /////////////////////
-function check_directory_existence(dir) {
-  var exists = path.existsSync(dir);
-  if (!exists) console.log(" - Directory " + Gourdian._.last(dir.split("/")) + " does not exist");
-
-  return exists;
-}
-
 function enqueue_test_file(relative_dir) {
   // setup path
   var dir = path.join(tests_path, relative_dir);
-  if (!check_directory_existence(dir)) return;
+
+  if (!path.existsSync(dir)) {
+    console.log(" - Directory " + Gourdian._.last(dir.split("/")) + " does not exist");
+    return;
+  }
 
   ext.File.directory_descent_wrapper(dir, function(path) {
     var stats = fs.statSync(path);
