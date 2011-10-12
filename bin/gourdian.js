@@ -57,7 +57,7 @@ function create_directory_structure() {
                             ];
   var directories = ext.File.reduce_directory_structure(target, directory_structure);
 
-  Gourdian._.each(directories, function(directory) {
+  _.each(directories, function(directory) {
     if (path.existsSync(directory)) {
       console.log(directory + " present");
     } else {

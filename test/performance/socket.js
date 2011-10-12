@@ -8,7 +8,7 @@ module.exports = SocketTest = function() {
     ext.Sync.wait_for_while(function() { return self._clients.length === 200 }, function() {
       // ensure that each client has at least 5 heartbeats after the handshake
       var ekg = function() {
-        return Gourdian._.reduce(self._clients, function(memo, client) { return (client.heartbeats > 5) }, true);
+        return _.reduce(self._clients, function(memo, client) { return (client.heartbeats > 5) }, true);
       };
       ext.Sync.wait_for(ekg, function() { async.finish() });
     }, function() {

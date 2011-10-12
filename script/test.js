@@ -84,7 +84,7 @@ function enqueue_test_file(relative_dir) {
   var dir = path.join(tests_path, relative_dir);
 
   if (!path.existsSync(dir)) {
-    console.log(" - Directory " + Gourdian._.last(dir.split("/")) + " does not exist");
+    console.log(" - Directory " + _.last(dir.split("/")) + " does not exist");
     return;
   }
 

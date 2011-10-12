@@ -8,7 +8,7 @@ module.exports = FileExtTest = function() {
     assert.equal(directories.length, 15);
 
     // ensure each entry has the root_path prepended
-    assert.equal(Gourdian._.detect(directories, function(dir) { return dir.substring(0, 11) !== "/something/" }), undefined);
+    assert.equal(_.detect(directories, function(dir) { return dir.substring(0, 11) !== "/something/" }), undefined);
   }
 }
 inherits(FileExtTest, Test);
