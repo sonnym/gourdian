@@ -3,6 +3,10 @@
 require("gourdian");
 Gourdian.logger.location = path.join(__dirname, "..", "log", "test.log");
 
+// class loader
+var class_loader = new ClassLoader();
+class_loader.load(path.join(Gourdian.framework_root, "lib", "tests"), null, { pollute: true, prefix: 1});
+
 // was uninspired by the offerings
 var tests_path = path.join(Gourdian.ROOT, "test")
   , running_framework_tests = false
