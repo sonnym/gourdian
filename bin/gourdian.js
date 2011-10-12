@@ -48,7 +48,7 @@ function init_new_app(overwrite_existing_files) {
 function create_directory_structure() {
   console.log("---\nCreating directories. . . \n---");
 
-  var directory_structure = [ { "app": ["m", "v", "c"] }
+  var directory_structure = [ { "app": ["models", "views", "controllers"] }
                             , "config"
                             , "log"
                             , { "public": ["css", "js"] }
