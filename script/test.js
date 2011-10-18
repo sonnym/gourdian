@@ -68,7 +68,11 @@ if (opts.get("list-only")) {
   ext.Console.separator();
   test_runner.list();
 } else {
-  if (running_framework_tests) test_runner.server_path = path.join(Gourdian.framework_root, "test", "fixtures", "application");
+  if (running_framework_tests) {
+    var _configuration = new Configuration();
+    _configuration.base_path = path.join(Gourdian.framework_root, "test", "fixtures", "application");
+    _configuration.rebuild_paths();
+  }
 
   console.log("Running Tests");
   ext.Console.separator();
