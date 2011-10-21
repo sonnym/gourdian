@@ -1,0 +1,6 @@
+{
+  "http": [
+            { "path": "/gourd_resource", "controller": "gourd_resource", "action": "index" }
+          ],
+  "socket": [ ]
+}
