@@ -4,5 +4,9 @@ module.exports = GourdResourceController = function() {
   this.index = function() {
     return "hello";
   };
+
+  this.with_template = function() {
+    return { magic: "be here!" };
+  };
 }
 inherits(GourdResourceController, Controller);

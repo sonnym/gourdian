@@ -1,6 +1,7 @@
 {
   "http": [
             { "path": "/gourd_resource", "controller": "gourd_resource", "action": "index" }
+          , { "path": "/gourd_resource_with_template", "controller": "gourd_resource", "action": "with_template" }
           ],
   "socket": [ ]
 }
