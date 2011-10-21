@@ -1,6 +1,5 @@
 {
-  "http": [ { "root": "public" }
-          , { "path": "/welcome", "controller": "welcome", "action": "index" }
+  "http": [ { "path": "/welcome", "controller": "welcome", "action": "index" }
           ],
   "socket": [ ]
 }

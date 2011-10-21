@@ -1,6 +1,5 @@
 {
-  "http": [ { "root": "/public" }
-          , { "path": "/welcome", "controller": "welcome", "action": "index" }
+  "http": [ { "path": "/welcome", "controller": "welcome", "action": "index" }
           , { "path": "/streaming", "controller": "welcome", "action": "streaming" }
           , { "path": "/store/save", "controller": "session", "action": "save" }
           , { "path": "/store/check", "controller": "session", "action": "check" }
