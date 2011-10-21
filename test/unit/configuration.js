@@ -13,5 +13,20 @@ module.exports = ConfigurationTest = function() {
 
     assert.equal(c.paths.length, 2);
   }
+
+  this.operate_on_paths = function() {
+    var c = new Configuration()
+      , operated_paths = []
+      , async = this.start();
+
+    c.operate_on_paths(["."], function(error, filename) {
+      operated_paths.push(filename);
+    });
+
+    ext.Sync.wait_for(function() { return c.paths.length === operated_paths.length }, function() {
+      assert.equal(operated_paths.length, _.uniq(operated_paths).length);
+      async.finish();
+    });
+  };
 }
 inherits(ConfigurationTest, Test);
