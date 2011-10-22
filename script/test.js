@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 require("gourdian");
-Gourdian.logger.location = path.join(__dirname, "..", "log", "test.log");
+Logger.location = path.join(__dirname, "..", "log", "test.log");
 
 // class loader
 var class_loader = new ClassLoader();
@@ -19,7 +19,7 @@ var tests_path = path.join(Gourdian.ROOT, "test")
 
 process.on("uncaughtException", function(err) {
   if (test_runner) test_runner._messages.push(err.stack);
-  Gourdian.logger.fatal("Caught exception: " + err + "\n" + err.stack);
+  Logger.fatal("Caught exception: " + err + "\n" + err.stack);
 });
 
 // handle options
@@ -112,5 +112,7 @@ function print_test_output() {
     console.log("Messages");
     ext.Console.separator();
     console.log(messages.join("\n--\n"));
+
+    Logger.end();
   }
 }

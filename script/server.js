@@ -22,7 +22,6 @@ var logfile = (opts.get("logfile")) ? opts.get("logfile") : null
 
 // global exception handling
 process.on("uncaughtException", function(error) {
-  Gourdian.logger.fatal("Caught exception: " + error + "\n" + error.stack);
   process.stdout.write("Caught exception: " + error + "\n" + error.stack);
 });
 
