@@ -57,5 +57,19 @@ module.exports = ServerTest = function() {
       });
     });
   }
+
+  this.server_can_access_params_from_query_string = function() {
+    this.get("/params?id=secret", function(response) {
+      assert.equal(response.statusCode, 200);
+
+      var data = "";
+      response.on("data", function(d) { data += d });
+
+      ext.Sync.wait_for(function() { return data.length === 6 }, function() {
+        assert.equal(data, "secret");
+        async.finish();
+      });
+    });
+  }
 }
 inherits(ServerTest, IntegrationTest);

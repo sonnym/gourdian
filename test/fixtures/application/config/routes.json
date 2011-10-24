@@ -1,5 +1,6 @@
 {
   "http": [ { "path": "/welcome", "controller": "welcome", "action": "index" }
+          , { "path": "/params", "controller": "params", "action": "show" }
           , { "path": "/streaming", "controller": "welcome", "action": "streaming" }
           , { "path": "/store/save", "controller": "session", "action": "save" }
           , { "path": "/store/check", "controller": "session", "action": "check" }
