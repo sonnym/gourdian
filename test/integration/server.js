@@ -71,5 +71,19 @@ module.exports = ServerTest = function() {
       });
     });
   }
+
+  this.server_catches_and_reports_exceptions_in_controller_action = function() {
+    this.get("/error", function(response) {
+      assert.equal(response.statusCode, 500);
+
+      var data = "";
+      response.on("data", function(d) { data += d });
+
+      response.on("end", function() {
+        assert.equal(data.substring(0, 10), "test error");
+        async.finish();
+      });
+    });
+  }
 }
 inherits(ServerTest, IntegrationTest);
