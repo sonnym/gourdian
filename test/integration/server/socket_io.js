@@ -10,7 +10,8 @@ module.exports = ServerSocketIoTest = function() {
 
       response.on("end", function() {
         var data_parts = data.split(":");
-        assert.equal(data_parts[3], "websocket,htmlfile,xhr-polling,jsonp-polling");
+        //assert.equal(data_parts[3], "websocket,htmlfile,xhr-polling,jsonp-polling");
+        assert.equal(data_parts[3], "jsonp-polling,websocket,htmlfile,xhr-polling");
 
         var transports = data_parts[3].split(",");
         assert.equal(transports.length, 4);
