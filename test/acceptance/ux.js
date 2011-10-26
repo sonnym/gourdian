@@ -5,8 +5,6 @@ module.exports = UXTest = function() {
   var async = this.start();
 
   this.can_follow_a_link = function() {
-    var client = this.add_client();
-
     this.get("/", function(client) {
       client.clickLink("dynamic", function(err, browser, status) {
         assert.ok(browser.response[2].indexOf("created dynamically") > -1);
