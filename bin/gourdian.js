@@ -1,8 +1,18 @@
 #! /usr/bin/env node
 
-require("gourdian");
+process.on("uncaughtException", function(error) {
+  process.stdout.write("Caught exception: " + error + "\n" + error.stack);
+});
+
+var fs = require("fs");
+var path = require("path");
+var _ = require("underscore");
 
 var command = process.argv[2];
+
+var lib_path = require("path").join(require.resolve("gourdian"), "..");
+var ext_console = require(path.join(lib_path, "ext", "console.js"));
+var ext_file = require(path.join(lib_path, "ext", "file.js"));
 
 // main
 if (command === "init") {
@@ -23,7 +33,7 @@ if (command === "init") {
     console.log("Error: Target directory is not empty");
 
     // allow the user to initialize an existing project directory
-    ext.Console.prompt("\nDo you want to continue anyway (WARNING: some files may be overwritten)", ["y", "n"], "n", function(response) {
+    ext_console.prompt("\nDo you want to continue anyway (WARNING: some files may be overwritten)", ["y", "n"], "n", function(response) {
       if (response === "y") init_new_app(true);
     });
   }
@@ -39,7 +49,9 @@ function init_new_app(overwrite_existing_files) {
 
   console.log("---\nCopying files\n---");
 
-  ext.File.r_cp(path.join(Gourdian.framework_root, "boilerplate", "init"), target, overwrite_existing_files, function() {
+  var framework_root = require("path").join(require.resolve("gourdian"), "..", "..");
+  console.log(framework_root);
+  ext_file.r_cp(path.join(framework_root, "boilerplate", "init"), target, overwrite_existing_files, function() {
     console.log("---\nCopied files successfully");
     mark_scripts_executable();
   });
@@ -55,7 +67,7 @@ function create_directory_structure() {
                             , "script"
                             , { "test": ["acceptance", "fixtures", "integration", "lib", "performance", "unit"] }
                             ];
-  var directories = ext.File.reduce_directory_structure(target, directory_structure);
+  var directories = ext_file.reduce_directory_structure(target, directory_structure);
 
   _.each(directories, function(directory) {
     if (path.existsSync(directory)) {
