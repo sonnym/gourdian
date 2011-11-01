@@ -50,7 +50,6 @@ function init_new_app(overwrite_existing_files) {
   console.log("---\nCopying files\n---");
 
   var framework_root = require("path").join(require.resolve("gourdian"), "..", "..");
-  console.log(framework_root);
   ext_file.r_cp(path.join(framework_root, "boilerplate", "init"), target, overwrite_existing_files, function() {
     console.log("---\nCopied files successfully");
     mark_scripts_executable();
