@@ -64,8 +64,7 @@ module.exports = ServerTest = function() {
 
       var data = "";
       response.on("data", function(d) { data += d });
-
-      ext.Sync.wait_for(function() { return data.length === 6 }, function() {
+      response.on("end", function() {
         assert.equal(data, "secret");
         async.finish();
       });
