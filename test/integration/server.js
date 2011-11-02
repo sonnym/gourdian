@@ -72,6 +72,19 @@ module.exports = ServerTest = function() {
     });
   }
 
+  this.server_can_access_params_from_request_body = function() {
+    this.post("/form", { secret: "message" }, function(response) {
+      assert.equal(response.statusCode, 200);
+
+      var data = "";
+      response.on("data", function(d) { data += d });
+      response.on("end", function() {
+        assert.equal(data, "message");
+        async.finish();
+      });
+    });
+  };
+
   this.server_catches_and_reports_exceptions_in_controller_action = function() {
     this.get("/error", function(response) {
       assert.equal(response.statusCode, 500);

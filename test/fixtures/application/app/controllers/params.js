@@ -4,5 +4,9 @@ module.exports = ParamsController = function() {
   this.show = function() {
     return this._params.id;
   };
+
+  this.form = function() {
+    return this._params.secret
+  };
 }
 inherits(ParamsController, Controller);
