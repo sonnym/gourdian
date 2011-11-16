@@ -7,7 +7,7 @@ Installation
 -
 Gourdian is now set up to be installed as an npm module, but is not yet published. This means it can be installed in a few easy steps.
 
-- Install node 0.5.10
+- Install node 0.6.1
 - Install npm
 - `git clone https://github.com/sonnym/gourdian.git && cd gourdian && npm link`
 

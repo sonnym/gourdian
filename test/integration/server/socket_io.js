@@ -25,7 +25,7 @@ module.exports = ServerSocketIoTest = function() {
   this.socket_io_can_be_connected_to_via_websocket = function() {
     var self = this;
     this.ws_connect(function() {
-      assert.equal(self._server._io.server.connections, 2); // frankly not sure why 2
+      assert.equal(self._server._io.server.connections, 1);
       assert.ok(self._server._io.connected[self._client.sid])
       async.finish();
     });
