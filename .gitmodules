@@ -9,7 +9,7 @@
 	url = https://github.com/documentcloud/underscore.git
 [submodule "node_modules/dust"]
 	path = node_modules/dust
-	url = https://github.com/akdubya/dustjs.git
+	url = https://github.com/linkedin/dustjs.git
 [submodule "node_modules/inflect-js"]
 	path = node_modules/inflect-js
 	url = https://github.com/sonnym/inflect-js.git
