@@ -16,5 +16,5 @@
 
 , "preferGlobal": true
 
-, "scripts": { "postinstall": "git submodule init node_modules" }
+, "scripts": { "postinstall": "git submodule update --init --recursive node_modules" }
 }
