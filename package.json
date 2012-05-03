@@ -5,14 +5,14 @@
 , "main" : "./lib/gourdian.js"
 , "bin" : { "gourdian": "./bin/gourdian.js" }
 
-, "dependencies": null
+, "dependencies": { "socket.io": "~0.9" }
 
 , "repository":
   { "type": "git"
   , "url": "https://github.com/sonnym/gourdian.git"
   }
 
-, "engines": { "node": "0.5.10" }
+, "engines": { "node": "0.7.8" }
 
 , "preferGlobal": true
 
