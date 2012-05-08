@@ -87,7 +87,7 @@ function enqueue_test_file(relative_dir) {
   // setup path
   var dir = path.join(tests_path, relative_dir);
 
-  if (!path.existsSync(dir)) {
+  if (!fs.existsSync(dir)) {
     console.log(" - Directory " + _.last(dir.split("/")) + " does not exist");
     return;
   }

@@ -23,7 +23,7 @@ if (command === "init") {
   console.log("---\nInitializing a new project in " + target);
 
   // ensure the target is empty but exists
-  if (!path.existsSync(target)) {
+  if (!fs.existsSync(target)) {
     fs.mkdir(target, 0777, function() {
       init_new_app(false);
     });
@@ -69,7 +69,7 @@ function create_directory_structure() {
   var directories = ext_file.reduce_directory_structure(target, directory_structure);
 
   _.each(directories, function(directory) {
-    if (path.existsSync(directory)) {
+    if (fs.existsSync(directory)) {
       console.log(directory + " present");
     } else {
       fs.mkdirSync(directory, 0755);

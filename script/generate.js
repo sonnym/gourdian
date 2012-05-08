@@ -53,7 +53,7 @@ switch (opts.get("type")) {
 }
 
 function copy_file_with_replace_if_not_exists(args) {
-  if (path.existsSync(args.destination)) {
+  if (fs.existsSync(args.destination)) {
     console.log(args.destination + " present");
     return;
   }
