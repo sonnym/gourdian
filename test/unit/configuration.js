@@ -1,32 +1,38 @@
-module.exports = ConfigurationTest = function() {
-  Test.call(this);
+var path = require("path");
+var _ = require("underscore");
 
-  this.is_singleton = function() {
-    var c_1 = new Configuration();
-    var c_2 = new Configuration();
+var ext = require("./../../lib/ext");
 
-    assert.ok(c_1 === c_2);
-  }
+var Gourdian = require("./../../lib/gourdian");
+var Configuration = require("./../../lib/configuration");
 
-  this.configuration_automatically_adds_gourd_paths = function() {
-    var c = new Configuration();
+exports.is_singleton = function(test) {
+  var config_1 = new Configuration();
+  var config_2 = new Configuration();
 
-    assert.equal(c.paths.length, 2);
-  }
-
-  this.operate_on_paths = function() {
-    var c = new Configuration()
-      , operated_paths = []
-      , async = this.start();
-
-    c.operate_on_paths(["."], function(error, filename) {
-      operated_paths.push(filename);
-    });
-
-    ext.Sync.wait_for(function() { return c.paths.length === operated_paths.length }, function() {
-      assert.equal(operated_paths.length, _.uniq(operated_paths).length);
-      async.finish();
-    });
-  };
+  test.ok(config_1 === config_2);
+  test.done();
 }
-inherits(ConfigurationTest, Test);
+
+this.configuration_automatically_adds_gourd_paths = function(test) {
+  var config = new Configuration();
+  config.base_path = path.join(Gourdian.ROOT, "test", "fixtures", "application");
+  config.rebuild_paths();
+
+  test.equal(config.paths.length, 2);
+  test.done();
+}
+
+exports.operate_on_paths = function(test) {
+  var config = new Configuration();
+  var operated_paths = [];
+
+  config.operate_on_paths(["."], function(error, filename) {
+    operated_paths.push(filename);
+  });
+
+  ext.Sync.wait_for(function() { return config.paths.length === operated_paths.length }, function() {
+    test.equal(operated_paths.length, _.uniq(operated_paths).length);
+    test.done();
+  });
+}

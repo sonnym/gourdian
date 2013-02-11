@@ -1,33 +1,21 @@
-var ScriptTest = function() {
-  Test.call(this);
+var exec = require("child_process").exec;
+var Gourdian = require("./../../lib/gourdian");
 
+exports.server_script_runs_and_gets_to_repl_without_stderr_and_stops = function(test) {
   var script_dir = path.join(Gourdian.ROOT, "script");
+  var stdout  = "";
+  var server = spawn("./script/server.js");
 
-  this.server_script_runs_and_gets_to_repl_without_stderr_and_stops = function() {
-    this._timeout = 1000;
-    var async = this.start()
-      , data = ""
-      , child = this.spawner("./script/server.js", [],
-        { "stdout": function(datum) {
-            data += datum;
-            if (data.length >= 6) {
-              data += ""; /* data needs to be manipulated in order for this test to work
-                             presumably because it is buffer but is coerced this way */
-              assert.ok(data.indexOf("gourd>") >= 0);
-              child.stdin.write("stop();\n");
-            }
-          }
-        , "stderr": function(datum) {
-            async.message("received stderr: " + datum);
-          }
-        , "exit": function(code, signal) {
-            assert.equal(signal, "SIGHUP");
-            async.finish();
-          }
-        }
-      );
-  }
+  server.stdout.on("data", function(data) {
+    stdout += data.toString();
+    if (stdout.length >= 6) {
+      test.ok(stdout.indexOf("gourd>") >= 0);
+      server.stdin.write("stop();\n");
+    }
+  });
+
+  server.on("exit", function(code, signal) {
+    test.equal(signal, "SIGHUP");
+    test.done();
+  });
 }
-
-inherits(ScriptTest, Test);
-module.exports = ScriptTest;

@@ -1,39 +1,47 @@
-module.exports = SessionStoreTest = function() {
-  Test.call(this);
+var SessionStore = require("./../../lib/session_store");
 
-  var session_store = new SessionStore();
+module.exports = {
+  setUp: function(callback) {
+    this.session_store = new SessionStore();
+    callback();
+  },
 
-  this.generate_key_produces_a_32_byte_string = function() {
-    assert.equal(session_store.generate_key().length, 32);
-  }
+  generate_key_produces_a_32_byte_string: function(test) {
+    test.equal(this.session_store.generate_key().length, 32);
+    test.done();
+  },
 
-  this.can_get_a_session_after_create = function() {
-    var session_id = session_store.create();
-    assert.ok(session_store.get(session_id));
-  }
+  can_get_a_session_after_create: function(test) {
+    var session_id = this.session_store.create();
+    test.ok(this.session_store.get(session_id));
+    test.done();
+  },
 
-  this.can_destory_a_session = function() {
-    var session_id = session_store.create();
-    assert.ok(session_store.get(session_id));
+  can_destory_a_session: function(test) {
+    var session_id = this.session_store.create();
+    test.ok(this.session_store.get(session_id));
 
-    session_store.destroy(session_id);
-    assert.equal(session_store.get(session_id), undefined);
-  }
+    this.session_store.destroy(session_id);
+    test.equal(this.session_store.get(session_id), undefined);
 
-  this.can_search_for_data_saved_in_a_session = function() {
-    var session_id = session_store.create()
-      , session = session_store.get(session_id);
+    test.done();
+  },
 
-    var secret_key = session_store.generate_key()
-      , secret_val = session_store.generate_key();
+  can_search_for_data_saved_in_a_session: function(test) {
+    var session_id = this.session_store.create();
+    var session = this.session_store.get(session_id);
+
+    var secret_key = this.session_store.generate_key();
+    var secret_val = this.session_store.generate_key();
 
     session[secret_key] = secret_val;
 
-    var found = session_store.find(function(fnd_session, fnd_session_id) {
+    var found = this.session_store.find(function(fnd_session, fnd_session_id) {
       return (fnd_session[secret_key] === secret_val);
     });
 
-    assert.equal(found, session);
+    test.equal(found, session);
+
+    test.done();
   }
 }
-inherits(SessionStoreTest, Test);
