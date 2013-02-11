@@ -5,13 +5,13 @@
 , "main" : "./lib/gourdian.js"
 , "bin" : { "gourdian": "./bin/gourdian.js" }
 
-, "dependencies":
-    { "socket.io": "git://github.com/sonnym/socket.io.git#expose_test_client_api"
-    , "zombie": "~0.13"
-    }
+, "dependencies": {
+    "socket.io": "git://github.com/sonnym/socket.io.git#expose_test_client_api"
+  , "zombie": "~0.13"
+  }
 
-, "repository":
-  { "type": "git"
+, "repository": {
+    "type": "git"
   , "url": "https://github.com/sonnym/gourdian.git"
   }
 
