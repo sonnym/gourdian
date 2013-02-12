@@ -1,36 +1,52 @@
-module.exports = GourdTest = function() {
-  IntegrationTest.call(this);
+var path = require("path");
 
-  var async = this.start()
-    , self = this;
+var Gourdian = require("./../../lib/gourdian");
+var IntegrationTest = require("./../../lib/tests/integration");
 
-  this.gourd_responds_to_unchunked_dynamic_requests = function() {
-    this.get("/gourd_resource", function(response) {
-      var r_body = "";
-      response.on("data", function(d) { r_body += d });
-      response.on("end", function() {
-        assert.equal(response.statusCode, 200);
-        assert.equal(r_body, "hello");
-        async.finish();
-      });
-    });
-  };
+var config = new Configuration();
+config.base_path = path.join(Gourdian.ROOT, "test", "fixtures", "application");
+config.rebuild_paths();
 
-  this.gourd_responds_to_chunked_dynamic_requests_via_template_loader = function() {
-    this.get("/gourd_resource_with_template", function(response) {
-      assert.equal(response.complete, false);
-      assert.equal(response.headers["transfer-encoding"], "chunked");
-      assert.equal(response.statusCode, 200);
-
-      var r_body = "";
-      response.on("data", function(d) { r_body += d });
-
-      response.on("end", function() {
-        assert.equal(response.complete, true);
-        assert.equal(r_body, "Streaming be here!");
-        async.finish();
-      });
-    });
-  };
+exports.setUp = function(callback) {
+  this.integration = new IntegrationTest();
+  this.integration.start_server();
+  callback();
 }
-inherits(GourdTest, IntegrationTest)
+
+exports.gourd_responds_to_unchunked_dynamic_requests = function(test) {
+  this.integration.get("/gourd_resource", function(response) {
+    var response_body = "";
+
+    response.on("data", function(data) {
+      response_body += data.toString()
+    });
+
+    response.on("end", function() {
+      test.equal(response.statusCode, 200);
+      test.equal(response_body, "hello");
+      test.done();
+    });
+  });
+}
+
+exports.gourd_responds_to_chunked_dynamic_requests_via_template_loader = function(test) {
+  this.integration.get("/gourd_resource_with_template", function(response) {
+    test.equal(response.complete, false);
+    test.equal(response.headers["transfer-encoding"], "chunked");
+    test.equal(response.statusCode, 200);
+
+    var r_body = "";
+    response.on("data", function(d) { r_body += d });
+
+    response.on("end", function() {
+      test.equal(response.complete, true);
+      test.equal(r_body, "Streaming be here!");
+      test.done();
+    });
+  });
+}
+
+exports.tearDown = function (callback) {
+  this.integration.stop_server();
+  callback();
+}
