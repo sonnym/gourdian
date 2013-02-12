@@ -7,7 +7,7 @@
 
 , "dependencies": {
     "socket.io": "git://github.com/sonnym/socket.io.git#expose_test_client_api"
-  , "zombie": "~0.13"
+  , "zombie": "~1.4"
   }
 
 , "devDependencies": {
