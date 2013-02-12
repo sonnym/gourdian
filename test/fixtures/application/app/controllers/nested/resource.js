@@ -5,4 +5,3 @@ module.exports = NestedResourceController = function() {
     return "irrelevant";
   }
 }
-inherits(NestedResourceController, Test);
