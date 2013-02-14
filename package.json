@@ -6,7 +6,11 @@
 , "bin" : { "gourdian": "./bin/gourdian.js" }
 
 , "dependencies": {
-    "socket.io": "git://github.com/sonnym/socket.io.git#expose_test_client_api"
+    "dustjs": "git://github.com/sonnym/dustjs"
+  , "inflect-js": "git://github.com/sonnym/inflect-js"
+  , "node-static": "git://github.com/sonnym/node-static"
+  , "socket.io": "git://github.com/sonnym/socket.io.git#expose_test_client_api"
+  , "transporter": "git://github.com/sonnym/transporter"
   , "zombie": "~1.4"
   }
 
