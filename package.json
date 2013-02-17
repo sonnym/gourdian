@@ -8,7 +8,7 @@
 , "dependencies": {
     "cookies": "~0.3"
   , "dustjs": "git://github.com/sonnym/dustjs"
-  , "inflect-js": "git://github.com/sonnym/inflect-js"
+  , "inflect-js": "~1"
   , "node-static": "git://github.com/sonnym/node-static"
   , "socket.io": "git://github.com/sonnym/socket.io.git#expose_test_client_api"
   , "transporter": "git://github.com/sonnym/transporter"
