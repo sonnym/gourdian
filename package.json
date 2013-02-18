@@ -10,6 +10,7 @@
   , "dustjs": "git://github.com/sonnym/dustjs"
   , "inflect-js": "~1"
   , "node-static": "git://github.com/sonnym/node-static"
+  , "persist":  "~0.2"
   , "socket.io": "git://github.com/sonnym/socket.io.git#expose_test_client_api"
   , "transporter": "git://github.com/sonnym/transporter"
   , "underscore": "~1.3"
@@ -18,6 +19,7 @@
 
 , "devDependencies": {
     "nodeunit": "~0.7"
+  , "sqlite3": "~2.1"
   }
 
 , "repository": {
