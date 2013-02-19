@@ -7,7 +7,7 @@
 
 , "dependencies": {
     "cookies": "~0.3"
-  , "dustjs": "git://github.com/sonnym/dustjs"
+  , "dustjs-linkedin": "~1.2"
   , "inflect-js": "~1"
   , "node-static": "git://github.com/sonnym/node-static"
   , "persist":  "~0.2"
