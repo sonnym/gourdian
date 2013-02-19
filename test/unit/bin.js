@@ -11,14 +11,10 @@ exports.can_initialize_an_empty_project_in_a_nonexistent_directory = function(te
     test.equal(code, 0);
     test.equal(signal, null);
 
-    exec("ls " + path.join("test", "fixtures", "empty_nex", "script") + " | wc -l" , function(_, stdout, _) {
-      test.equal(2, parseInt(stdout));
-
-      exec("rm -rf " + path.join("test", "fixtures", "empty_nex"), function (err, _, stderr) {
-        if (!err && !stderr) {
-          test.done();
-        }
-      });
+    exec("rm -rf " + path.join("test", "fixtures", "empty_nex"), function (err, _, stderr) {
+      if (!err && !stderr) {
+        test.done();
+      }
     });
   });
 }
@@ -39,14 +35,11 @@ exports.can_initialize_an_empty_project_in_an_existing_directory = function(test
     gourdian.on("exit", function(code, signal) {
       test.equal(code, 0);
       test.equal(signal, null);
-      exec("ls " + path.join("test", "fixtures", "empty_ex", "script") + " | wc -l" , function(_, stdout, _) {
-        test.equal(2, parseInt(stdout));
 
-        exec("rm -rf " + path.join("test", "fixtures", "empty_ex"), function (err, _, stderr) {
-          if (!err && !stderr) {
-            test.done();
-          }
-        });
+      exec("rm -rf " + path.join("test", "fixtures", "empty_ex"), function (err, _, stderr) {
+        if (!err && !stderr) {
+          test.done();
+        }
       });
     });
   });

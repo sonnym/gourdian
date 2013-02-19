@@ -94,7 +94,6 @@ function create_directory_structure() {
                             , "config"
                             , "log"
                             , { "public": ["css", "js"] }
-                            , "script"
                             , { "test": ["acceptance", "fixtures", "integration", "lib", "performance", "unit"] }
                             ];
   var directories = ext_file.reduce_directory_structure(target, directory_structure);
@@ -105,15 +104,6 @@ function create_directory_structure() {
     } else {
       fs.mkdirSync(directory, 0755);
       console.log(directory + " created");
-    }
-  });
-}
-
-function mark_scripts_executable() {
-  console.log("---\nMarking scripts executable\n---");
-  fs.readdir(path.join(".", "script"), function(err, files) {
-    for (var i in files) {
-      fs.chmod(path.join(".", "script", files[i]), 0771);
     }
   });
 }
