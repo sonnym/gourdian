@@ -1,5 +1,5 @@
-module.exports = WelcomeController = function() {
-  Controller.call(this);
+var WelcomeController = module.exports = function() {
+  Gourdian.Controller.call(this);
 
   this.index = function() {
     return "Welcome to the Gourdian project!<br>The file you are looking at was created dynamically.";
@@ -20,7 +20,7 @@ module.exports = WelcomeController = function() {
   };
   */
 }
-inherits(WelcomeController, Controller);
+inherits(WelcomeController, Gourdian.Controller);
 
 /*
 WelcomeController.prototype.index = function() {

@@ -8,6 +8,8 @@ var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
 
+var GetOpt = require("v8cgi/lib/getopt.js").GetOpt
+
 var command = process.argv[2];
 
 var lib_path = require("path").join(require.resolve("gourdian"), "..");
@@ -38,7 +40,7 @@ if (command === "init") {
     });
   }
 } else if (command === "server") {
-  require("gourdian");
+  var Gourdian = require("gourdian");
   global.stop = function() { process.kill(process.pid, "SIGHUP") };
 
     /////////////
@@ -63,7 +65,7 @@ if (command === "init") {
     process.stdout.write("Caught exception: " + error + "\n" + error.stack);
   });
 
-  var server = new Server(logfile, port);
+  var server = new Gourdian.Server(logfile, port);
   server.start();
 
   require("repl").start("gourd> ");

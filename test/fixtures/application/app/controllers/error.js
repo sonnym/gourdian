@@ -1,8 +1,8 @@
-module.exports = ErrorController = function() {
-  Controller.call(this);
+var ErrorController = module.exports = function() {
+  Gourdian.Controller.call(this);
 
   this.index = function() {
     throw new Error("test error");
   };
 };
-inherits(ErrorController, Controller);
+inherits(ErrorController, Gourdian.Controller);

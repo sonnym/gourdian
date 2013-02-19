@@ -1,5 +1,5 @@
-module.exports = GourdResourceController = function() {
-  Controller.call(this);
+var GourdResourceController = module.exports = function() {
+  Gourdian.Controller.call(this);
 
   this.index = function() {
     return "hello";
@@ -9,4 +9,4 @@ module.exports = GourdResourceController = function() {
     return { magic: "be here!" };
   };
 }
-inherits(GourdResourceController, Controller);
+inherits(GourdResourceController, Gourdian.Controller);

@@ -1,7 +1,7 @@
-var Router = require("./../../lib/router");
+var Router = require("gourdian");
 
 exports.router_accurately_determines_if_http_or_socket_server_is_needed = function(test) {
-  var router = new Router();
+  var router = new Gourdian.Router();
 
   router.routes = null;
   test.ok(!router.need_socket_server);
@@ -27,7 +27,7 @@ exports.router_accurately_determines_if_http_or_socket_server_is_needed = functi
 }
 
 exports.root_file_is_accurate = function(test) {
-  var router = new Router();
+  var router = new Gourdian.Router();
 
   router.routes = null;
   test.ok(!router.root);

@@ -1,5 +1,5 @@
-module.exports = ParamsController = function() {
-  Controller.call(this);
+var ParamsController = module.exports = function() {
+  Gourdian.Controller.call(this);
 
   this.show = function() {
     return this._params.id;
@@ -9,4 +9,4 @@ module.exports = ParamsController = function() {
     return this._params.secret
   };
 }
-inherits(ParamsController, Controller);
+inherits(ParamsController, Gourdian.Controller);

@@ -1,3 +1,4 @@
+var Gourdian  = require("gourdian");
 var ClassLoader = require("./../../lib/class_loader");
 
 exports.resolve_class_nam = function(test) {

@@ -1,10 +1,9 @@
 var path = require("path");
 
 var Gourdian = require("./../../lib/gourdian");
-var Configuration = require("./../../lib/configuration");
 
-var config = new Configuration();
-config.base_path = path.join(Gourdian.ROOT, "test", "fixtures", "application");
+var config = new Gourdian.Configuration();
+config.base_path = require("path").join(Gourdian.ROOT, "test", "fixtures", "application");
 config.rebuild_paths();
 
 var IntegrationTest = require("./../../lib/tests/integration");

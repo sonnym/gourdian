@@ -1,8 +1,8 @@
-var SessionStore = require("./../../lib/session_store");
+var Gourdian = require("gourdian");
 
 module.exports = {
   setUp: function(callback) {
-    this.session_store = new SessionStore();
+    this.session_store = new Gourdian.SessionStore();
     callback();
   },
 

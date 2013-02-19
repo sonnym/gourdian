@@ -1,5 +1,5 @@
-module.exports = SocketController = function() {
-  Controller.call(this);
+var SocketController = module.exports = function() {
+  Gourdian.Controller.call(this);
 
   var self = this;
 
@@ -21,4 +21,4 @@ module.exports = SocketController = function() {
   this.disconnect = function() {
   };
 }
-inherits(SocketController, Controller);
+inherits(SocketController, Gourdian.Controller);

@@ -1,5 +1,5 @@
-module.exports = SessionsController = function() {
-  Controller.call(this);
+var SessionsController = module.exports = function() {
+  Gourdian.Controller.call(this);
 
   var self = this;
   this.save = function() {
@@ -11,4 +11,4 @@ module.exports = SessionsController = function() {
     return self._session.hello;
   }
 }
-inherits(SessionsController, Controller);
+inherits(SessionsController, Gourdian.Controller);

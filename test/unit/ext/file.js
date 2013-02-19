@@ -3,7 +3,7 @@ var ext = require("./../../../lib/ext");
 
 exports.reduce_directory_structure_properly_operates_on_an_object = function(test) {
   var directory_structure = [{ "app": ["m", "v", "c"] }, "config", "log", { "public": ["css", "js"] }, "script", { "test": ["integration", "lib", "performance", "unit"] }]
-    , directories = ext.File.reduce_directory_structure("/something", directory_structure);
+    , directories = Gourdian.ext.File.reduce_directory_structure("/something", directory_structure);
 
   test.equal(directories.length, 15);
 

@@ -1,4 +1,4 @@
-Shared = function() {
+var Shared = function() {
   this.hello = "world";
 }
 
