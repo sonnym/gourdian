@@ -12,7 +12,7 @@ var GetOpt = require("v8cgi/lib/getopt.js").GetOpt
 
 var command = process.argv[2];
 
-var lib_path = require("path").join(require.resolve("gourdian"), "..");
+var lib_path = require("path").join(__dirname, "..", "lib");
 var ext_console = require(path.join(lib_path, "ext", "console.js"));
 var ext_file = require(path.join(lib_path, "ext", "file.js"));
 
