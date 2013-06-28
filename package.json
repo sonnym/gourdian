@@ -7,6 +7,7 @@
 
 , "dependencies": {
     "cookies": "~0.3"
+  , "commander": "~1.2"
   , "dustjs-linkedin": "~1.2"
   , "inflect-js": "~1"
   , "node-static": "git://github.com/sonnym/node-static"
@@ -30,6 +31,4 @@
 , "engines": { "node": ">=0.6" }
 
 , "preferGlobal": true
-
-, "scripts": { "postinstall": "git submodule update --init --recursive node_modules/v8cgi" }
 }

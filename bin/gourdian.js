@@ -8,19 +8,35 @@ var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
 
-var GetOpt = require("v8cgi/lib/getopt.js").GetOpt
-
-var command = process.argv[2];
-
 var lib_path = require("path").join(__dirname, "..", "lib");
 var ext_console = require(path.join(lib_path, "ext", "console.js"));
 var ext_file = require(path.join(lib_path, "ext", "file.js"));
 
-// main
-if (command === "init") {
+var program = require("commander");
+program.version("0.0.1")
+
+program
+  .command("init [path]")
+  .description("Initialize a new gourdian project")
+  .action(init);
+
+program
+  .command("server")
+  .description("Start a server for a gourdian project")
+  .option("-l --logfile", "Set the location of the log file")
+  .option("-p --port", "Port HTTP server and Socket.IO will listen on")
+  .action(server);
+
+program
+  .command("*")
+  .action(function () { program.help() });
+
+program.parse(process.argv);
+
+function init(path) {
   // determine the target directory based on whether or not a third argument is present
   var target = cwd = process.cwd();
-  if (process.argv[3]) target = path.join(cwd, process.argv[3]);
+  if (path) target = path.join(cwd, path);
 
   console.log("---\nInitializing a new project in " + target);
 
@@ -39,39 +55,21 @@ if (command === "init") {
       if (response === "y") init_new_app(true);
     });
   }
-} else if (command === "server") {
+}
+
+function server() {
   var Gourdian = require("gourdian");
   global.stop = function() { process.kill(process.pid, "SIGHUP") };
-
-    /////////////
-   // options //
-  /////////////
-  var opts = new GetOpt();
-  opts.add("logfile", "Set the location of the log file", "", "l", "logfile", GetOpt.REQUIRED_ARGUMENT);
-  opts.add("port", "Port HTTP server and Socket.IO will listen on", "", "p", "port", GetOpt.REQUIRED_ARGUMENT);
-
-  try {
-    opts.parse(process.argv);
-  } catch (e) {
-    console.log(e + "\nGourdian server script usage: \n\n" + opts.help());
-    return;
-  }
-
-  var logfile = (opts.get("logfile")) ? opts.get("logfile") : null
-    , port = (opts.get("port")) ? opts.get("port") : null;
 
   // global exception handling
   process.on("uncaughtException", function(error) {
     process.stdout.write("Caught exception: " + error + "\n" + error.stack);
   });
 
-  var server = new Gourdian.Server(logfile, port);
+  var server = new Gourdian.Server(program.logfile, program.port);
   server.start();
 
   require("repl").start("gourd> ");
-} else {
-  console.log("Usage: gourdian init [directory]");
-  console.log("       gourdian server");
 }
 
   /////////////
