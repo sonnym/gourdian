@@ -61,11 +61,6 @@ function server() {
   var Gourdian = require("gourdian");
   global.stop = function() { process.kill(process.pid, "SIGHUP") };
 
-  // global exception handling
-  process.on("uncaughtException", function(error) {
-    process.stdout.write("Caught exception: " + error + "\n" + error.stack);
-  });
-
   var server = new Gourdian.Server(program.logfile, program.port);
   server.start();
 
