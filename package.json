@@ -2,7 +2,7 @@
 , "version": "0.0.1"
 , "author": "Sonny Michaud <michaud.sonny@gmail.com> (https://github.com/sonnym)"
 
-, "main" : "./lib/gourdian.js"
+, "main" : "lib/gourdian.js"
 , "bin" : { "gourdian": "./bin/gourdian.js" }
 
 , "dependencies": {
