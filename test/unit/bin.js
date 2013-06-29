@@ -46,9 +46,7 @@ exports.can_initialize_an_empty_project_in_an_existing_directory = function(test
 }
 
 exports.can_start_and_start_server = function(test) {
-  var script_dir = path.join(Gourdian.ROOT, "script");
   var stdout  = "";
-
   var server = spawn("gourdian", ["server"]);
 
   server.stdout.on("data", function(data) {
