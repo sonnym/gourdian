@@ -33,10 +33,12 @@ program
 
 program.parse(process.argv);
 
-function init(path) {
+function init(project_path) {
   // determine the target directory based on whether or not a third argument is present
   var target = cwd = process.cwd();
-  if (path) target = path.join(cwd, path);
+  if (project_path) {
+    target = path.join(cwd, project_path);
+  }
 
   console.log("---\nInitializing a new project in " + target);
 
