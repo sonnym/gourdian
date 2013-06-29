@@ -43,16 +43,16 @@ function init(path) {
   // ensure the target is empty but exists
   if (!fs.existsSync(target)) {
     fs.mkdir(target, 0777, function() {
-      init_new_app(false);
+      init_new_app(false, target);
     });
   } else if (fs.readdirSync(target).length === 0) {
-    init_new_app();
+    init_new_app(false, target);
   } else {
     console.log("Error: Target directory is not empty");
 
     // allow the user to initialize an existing project directory
     ext_console.prompt("\nDo you want to continue anyway (WARNING: some files may be overwritten)", ["y", "n"], "n", function(response) {
-      if (response === "y") init_new_app(true);
+      if (response === "y") init_new_app(true, target);
     });
   }
 }
@@ -70,19 +70,18 @@ function server() {
   /////////////
  // private //
 /////////////
-function init_new_app(overwrite_existing_files) {
-  create_directory_structure();
+function init_new_app(overwrite_existing_files, target) {
+  create_directory_structure(target);
 
   console.log("---\nCopying files\n---");
 
   var framework_root = require("path").join(require.resolve("gourdian"), "..", "..");
   ext_file.r_cp(path.join(framework_root, "boilerplate", "init"), target, overwrite_existing_files, function() {
     console.log("---\nCopied files successfully");
-    mark_scripts_executable();
   });
 }
 
-function create_directory_structure() {
+function create_directory_structure(target) {
   console.log("---\nCreating directories. . . \n---");
 
   var directory_structure = [ { "app": ["models", "views", "controllers"] }
