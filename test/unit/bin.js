@@ -21,22 +21,16 @@ exports.can_initialize_an_empty_project_in_a_nonexistent_directory = function(te
 
 exports.can_initialize_an_empty_project_in_an_existing_directory = function(test) {
   var stdout = "";
+  var existing_directory_path = path.join("test", "fixtures", "empty_ex");
 
-  fs.mkdir(path.join("test", "fixtures", "empty_ex"), 0777, function(err) {
-    var gourdian = spawn("gourdian", ["init", path.join("test", "fixtures", "empty_ex")]);
+  fs.mkdir(existing_directory_path, 0777, function(err) {
+    var gourdian = exec("yes | gourdian init " + existing_directory_path);
 
-    gourdian.stdout.on("data", function(data) {
-      stdout += data.toString();
-      if (stdout.indexOf("[n]:")) {
-        gourdian.stdin.write("y\n");
-      }
-    });
-
-    gourdian.on("exit", function(code, signal) {
+    gourdian.on("close", function(code, signal) {
       test.equal(code, 0);
       test.equal(signal, null);
 
-      exec("rm -rf " + path.join("test", "fixtures", "empty_ex"), function (err, _, stderr) {
+      exec("rm -rf " + existing_directory_path, function (err, _, stderr) {
         if (!err && !stderr) {
           test.done();
         }
