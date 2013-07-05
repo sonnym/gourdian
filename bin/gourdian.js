@@ -61,12 +61,15 @@ function init(project_path) {
 
 function server() {
   var Gourdian = require("gourdian");
-  global.stop = function() { process.kill(process.pid, "SIGHUP") };
 
   var server = new Gourdian.Server(program.logfile, program.port);
   server.start();
 
-  require("repl").start("gourd> ");
+  var repl = require("repl").start("gourd> ");
+  repl.on("exit", function() {
+    server.stop();
+    process.exit(0);
+  });
 }
 
   /////////////

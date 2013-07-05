@@ -47,12 +47,13 @@ exports.can_start_and_start_server = function(test) {
     stdout += data.toString();
     if (stdout.length >= 6) {
       test.ok(stdout.indexOf("gourd>") >= 0);
-      server.stdin.write("stop();\n");
+      server.stdin.write(".exit\n");
     }
   });
 
   server.on("exit", function(code, signal) {
-    test.equal(signal, "SIGHUP");
+    test.equal(signal, null);
+    test.equal(code, 0);
     test.done();
   });
 }
