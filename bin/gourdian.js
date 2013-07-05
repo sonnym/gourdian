@@ -67,8 +67,9 @@ function server() {
 
   var repl = require("repl").start("gourd> ");
   repl.on("exit", function() {
-    server.stop();
-    process.exit(0);
+    server.stop(function() {
+      process.exit(0);
+    });
   });
 }
 
