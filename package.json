@@ -4,6 +4,9 @@
 
 , "main" : "lib/gourdian.js"
 , "bin" : { "gourdian": "./bin/gourdian.js" }
+, "scripts": {
+    "test": "make test"
+  }
 
 , "dependencies": {
     "cookies": "~0.3"
