@@ -10,7 +10,7 @@
 
 , "dependencies": {
     "cookies": "~0.3"
-  , "commander": "~1.2"
+  , "commander": "git://github.com/sonnym/commander.js#hidden_commands"
   , "dustjs-linkedin": "~1.2"
   , "inflect-js": "~1"
   , "node-static": "git://github.com/sonnym/node-static"

@@ -29,6 +29,7 @@ program
 
 program
   .command("*")
+  .hidden()
   .action(function () { program.help() });
 
 program.parse(process.argv);
