@@ -74,9 +74,6 @@ function server() {
   });
 }
 
-  /////////////
- // private //
-/////////////
 function init_new_app(overwrite_existing_files, target) {
   create_directory_structure(target);
 
