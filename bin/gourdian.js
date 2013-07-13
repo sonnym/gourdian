@@ -8,10 +8,6 @@ var fs = require("fs");
 var path = require("path");
 var _ = require("underscore");
 
-var lib_path = require("path").join(__dirname, "..", "lib");
-var ext_console = require(path.join(lib_path, "ext", "console.js"));
-var ext_file = require(path.join(lib_path, "ext", "file.js"));
-
 var program = require("commander");
 program.version("0.0.1")
 
@@ -35,6 +31,10 @@ program
 program.parse(process.argv);
 
 function init(project_path) {
+  var lib_path = path.join(__dirname, "..", "lib");
+  var ext_console = require(path.join(lib_path, "ext", "console.js"));
+  var ext_file = require(path.join(lib_path, "ext", "file.js"));
+
   // determine the target directory based on whether or not a third argument is present
   var target = cwd = process.cwd();
   if (project_path) {
