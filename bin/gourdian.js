@@ -30,6 +30,10 @@ program
 
 program.parse(process.argv);
 
+if (process.argv.length === 2) {
+  program.help();
+}
+
 function init(project_path) {
   var lib_path = path.join(__dirname, "..", "lib");
   var ext_console = require(path.join(lib_path, "ext", "console.js"));
