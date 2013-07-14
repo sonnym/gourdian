@@ -14,7 +14,7 @@
   , "dustjs-linkedin": "~1.2"
   , "inflect-js": "~1"
   , "node-static": "git://github.com/sonnym/node-static"
-  , "persist":  "~0.2"
+  , "sequelize":  "~2.0.0-alpha"
   , "socket.io": "git://github.com/sonnym/socket.io.git#expose_test_client_api"
   , "transporter": "git://github.com/sonnym/transporter"
   , "underscore": "~1.3"
