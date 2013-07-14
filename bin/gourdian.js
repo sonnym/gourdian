@@ -40,9 +40,7 @@ if (process.argv.length === 2) {
 }
 
 function init(project_path) {
-  var lib_path = path.join(__dirname, "..", "lib");
-  var ext_console = require(path.join(lib_path, "ext", "console.js"));
-  var ext_file = require(path.join(lib_path, "ext", "file.js"));
+  var Gourdian = require("gourdian");
 
   // determine the target directory based on whether or not a third argument is present
   var target = cwd = process.cwd();
@@ -63,7 +61,7 @@ function init(project_path) {
     console.log("Error: Target directory is not empty");
 
     // allow the user to initialize an existing project directory
-    ext_console.prompt("\nDo you want to continue anyway (WARNING: some files may be overwritten)", ["y", "n"], "n", function(response) {
+    Gourdian.ext.Console.prompt("\nDo you want to continue anyway (WARNING: some files may be overwritten)", ["y", "n"], "n", function(response) {
       if (response === "y") init_new_app(true, target);
     });
   }
@@ -100,7 +98,7 @@ function init_new_app(overwrite_existing_files, target) {
   console.log("---\nCopying files\n---");
 
   var framework_root = require("path").join(require.resolve("gourdian"), "..", "..");
-  ext_file.r_cp(path.join(framework_root, "boilerplate", "init"), target, overwrite_existing_files, function() {
+  Gourdian.ext.File.r_cp(path.join(framework_root, "boilerplate", "init"), target, overwrite_existing_files, function() {
     console.log("---\nCopied files successfully");
   });
 }
@@ -114,7 +112,7 @@ function create_directory_structure(target) {
                             , { "public": ["css", "js"] }
                             , { "test": ["acceptance", "fixtures", "integration", "lib", "performance", "unit"] }
                             ];
-  var directories = ext_file.reduce_directory_structure(target, directory_structure);
+  var directories = Gourdian.ext.File.reduce_directory_structure(target, directory_structure);
 
   _.each(directories, function(directory) {
     if (fs.existsSync(directory)) {
