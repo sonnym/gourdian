@@ -22,6 +22,11 @@ program
   .option("-l --logfile", "Set the location of the log file")
   .option("-p --port", "Port HTTP server and Socket.IO will listen on")
   .action(server);
+ 
+program
+  .command("test [files]")
+  .description("Run tests in test environment")
+  .action(test);
 
 program
   .command("*")
@@ -76,6 +81,17 @@ function server() {
       process.exit(0);
     });
   });
+}
+
+function test(file) {
+  Gourdian = require("gourdian");
+  AcceptanceTest = require(path.join(__dirname, "..", "lib", "tests", "acceptance.js"));
+  IntegrationTest = require(path.join(__dirname, "..", "lib", "tests", "integration.js"));
+  PerformanceTest = require(path.join(__dirname, "..", "lib", "tests", "performance.js"));
+
+  var testrunner = require("nodeunit").reporters.default;
+
+  testrunner.run([file]);
 }
 
 function init_new_app(overwrite_existing_files, target) {
