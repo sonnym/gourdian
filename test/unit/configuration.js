@@ -1,20 +1,18 @@
+require("gourdian");
+
 var path = require("path");
 var _ = require("underscore");
 
-var ext = require("./../../lib/ext");
-
-var Configuration = require("./../../lib/configuration");
-
 exports.is_singleton = function(test) {
-  var config_1 = new Gourdian.Configuration();
-  var config_2 = new Gourdian.Configuration();
+  var config_1 = Gourdian.Configuration;
+  var config_2 = Gourdian.Configuration;
 
   test.ok(config_1 === config_2);
   test.done();
 }
 
 this.configuration_automatically_adds_gourd_paths = function(test) {
-  var config = new Configuration();
+  var config = Gourdian.Configuration;
   config.base_path = path.join(Gourdian.ROOT, "test", "fixtures", "application");
   config.rebuild_paths();
 
@@ -23,7 +21,7 @@ this.configuration_automatically_adds_gourd_paths = function(test) {
 }
 
 exports.operate_on_paths = function(test) {
-  var config = new Gourdian.Configuration();
+  var config = Gourdian.Configuration;
   var operated_paths = [];
 
   config.operate_on_paths(["."], function(error, filename) {

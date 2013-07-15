@@ -2,7 +2,7 @@ var ext = require("../../lib/ext");
 
 var Gourdian = require("./../../lib/gourdian");
 
-var config = new Gourdian.Configuration();
+var config = Gourdian.Configuration;
 config.base_path = require("path").join(Gourdian.ROOT, "test", "fixtures", "application");
 config.rebuild_paths();
 
