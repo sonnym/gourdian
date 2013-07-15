@@ -53,6 +53,7 @@ exports.socket_io_delivers_client_side_include = function(test) {
   });
 }
 
+/*
 exports.client_can_send_message_to_socket_io = function(test) {
   var self = this
     , messages = 0;
@@ -89,6 +90,7 @@ exports.client_can_send_authorization_cookie_header_with_handshake = function(te
     });
   });
 }
+*/
 
 exports.client_can_send_message_packets_to_the_server = function(test) {
   var self = this;
